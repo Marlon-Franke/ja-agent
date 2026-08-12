@@ -4,13 +4,24 @@ Prüft DATEV-Buchungsstapel wie ein erfahrener Abschlussprüfer und liefert
 einen strukturierten Excel-Prüfbericht – bereit zur Durchsicht, kein
 Textblock. Kernprinzip: **Regeln, die eindeutig sind, gehören in Code, nicht
 ins Prompt.** 66 Checks laufen deterministisch in Python, klassifiziert in
-vier Prüfebenen (1 technische Integrität, 2 Regelprüfung, 3 Plausibilität,
-4 Anomalie) und nach Prüfungstyp ([R] regelbasiert, [P] Plausibilität,
-[A] Anomalie, [X] benötigt Zusatzdaten); die KI beurteilt nur die
-Kandidaten, die sich nicht in Regeln fassen lassen (sachfremde Buchungen,
-Privatveranlassung, Aktivierungs- und Cut-off-Fragen). Prüfungen, die
-weitere Datenquellen erfordern, weist der Bericht als solche aus – sie
-werden aktiv, sobald die Quelle angeliefert wird.
+vier Prüfebenen
+
+1. technische Integrität
+2. Regelprüfung
+3. Plausibilität,
+4. Anomalie) 
+
+und nach Prüfungstyp 
+
+[R] regelbasiert
+[P] Plausibilität
+[A] Anomalie
+[X] benötigt Zusatzdaten
+
+die KI beurteilt nur die Kandidaten, die sich nicht in Regeln fassen lassen 
+(sachfremde Buchungen, Privatveranlassung, Aktivierungs- und Cut-off-Fragen). 
+Prüfungen, die weitere Datenquellen erfordern, weist der Bericht als solche 
+aus – sie werden aktiv, sobald die Quelle angeliefert wird.
 
 ## Architektur
 
