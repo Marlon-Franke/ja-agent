@@ -102,7 +102,7 @@ JA-Prüfungen laufen.
    USt-/VSt-Verprobung.
 3. **OPOS (empfohlen):** OP-Liste als CSV mit Konto, Betrag,
    Belegdatum/Fälligkeit. Aktiviert die Altposten-Prüfung.
-4. **Kontenbeschriftungen:** Export Kat. 20 in denselben Ordner legen –
+4. **Kontenplan:** Export Kat. 20 in denselben Ordner legen –
    wird automatisch erkannt, Bericht zeigt dann Kontonamen.
 
 ## Konfiguration
