@@ -13,10 +13,10 @@ vier Prüfebenen
 
 und nach Prüfungstyp 
 
-[R] regelbasiert
-[P] Plausibilität
-[A] Anomalie
-[X] benötigt Zusatzdaten
+- [R] regelbasiert
+- [P] Plausibilität
+- [A] Anomalie
+- [X] benötigt Zusatzdaten
 
 die KI beurteilt nur die Kandidaten, die sich nicht in Regeln fassen lassen 
 (sachfremde Buchungen, Privatveranlassung, Aktivierungs- und Cut-off-Fragen). 
