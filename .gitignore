@@ -1,0 +1,11 @@
+# Generierte Prüfläufe und Pakete
+testdaten/ausgabe/
+JA-Pruefung/
+dist/
+
+# Python
+__pycache__/
+*.pyc
+
+# Office-Lock-Dateien
+~$*
