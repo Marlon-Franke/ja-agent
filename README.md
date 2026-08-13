@@ -3,39 +3,33 @@
 Prüft DATEV-Buchungsstapel wie ein erfahrener Abschlussprüfer und liefert
 einen strukturierten Excel-Prüfbericht – bereit zur Durchsicht, kein
 Textblock. Kernprinzip: **Regeln, die eindeutig sind, gehören in Code, nicht
-ins Prompt.** 66 Checks laufen deterministisch in Python, klassifiziert in
-vier Prüfebenen
-
-1. technische Integrität
-2. Regelprüfung
-3. Plausibilität,
-4. Anomalie) 
-
-und nach Prüfungstyp 
-
-[R] regelbasiert | [P] Plausibilität | [A] Anomalie | [X] benötigt Zusatzdaten
-
-die KI beurteilt nur die Kandidaten, die sich nicht in Regeln fassen lassen 
-(sachfremde Buchungen, Privatveranlassung, Aktivierungs- und Cut-off-Fragen). 
-Prüfungen, die weitere Datenquellen erfordern, weist der Bericht als solche 
-aus – sie werden aktiv, sobald die Quelle angeliefert wird.
+ins Prompt.** 68 Checks laufen deterministisch in Python, klassifiziert in
+vier Prüfebenen (1 technische Integrität, 2 Regelprüfung, 3 Plausibilität,
+4 Anomalie) und nach Prüfungstyp ([R] regelbasiert, [P] Plausibilität,
+[A] Anomalie, [X] benötigt Zusatzdaten); die KI beurteilt nur die
+Kandidaten, die sich nicht in Regeln fassen lassen (sachfremde Buchungen,
+Privatveranlassung, Aktivierungs- und Cut-off-Fragen). Prüfungen, die
+weitere Datenquellen erfordern, weist der Bericht als solche aus – sie
+werden aktiv, sobald die Quelle angeliefert wird.
 
 ## Architektur
 
 ```
 DATEV-Exporte (EXTF/DTVF-CSV)
-   Buchungsstapel (Pflicht) · SuSa (optional) · OPOS (optional) · Kontenbeschriftungen (optional)
+   Buchungsstapel (Pflicht) · SuSa aktuelles Jahr und Vorjahr (optional)
+   · OPOS (optional) · Kontenplan/Kontenbeschriftungen (optional)
         │
         ▼
 werkzeuge/ja_pruefung.py          deterministische Pipeline (Python, ohne LLM)
    ├─ datev_parser.py             EXTF/DTVF-Parser (Kat. 21/20), SuSa-/OPOS-Leser
    ├─ kontenplan.py               SKR03/SKR04-Erkennung, Kontengruppen, Steuerableitung
-   ├─ checks.py / checks_erweitert.py / statistik.py   66 Checks in 4 Ebenen
+   ├─ checks.py / checks_erweitert.py / checks_vorjahr.py / statistik.py   68 Checks in 4 Ebenen
    └─ excel_report.py             Excel-Prüfbericht (openpyxl, inkl. OPOS-Alterung)
         │
         ├─ Pruefbericht_<Mandant>_<Jahr>.xlsx   (Übersicht, Befunde je Bereich, Salden)
         ├─ befunde.json                         (maschinenlesbar)
-        └─ llm_kandidaten.json                  (max. 200 Buchungen für die KI)
+        └─ llm_kandidaten.json                  (kriterienbasierte KI-Kandidaten,
+        │                                        unbegrenzt; optionaler Kostendeckel)
         ▼
 KI-Schicht (Claude, Skill „ja-pruefung“)        beurteilt NUR die Kandidaten
         │   llm_beurteilung.json
@@ -53,17 +47,19 @@ Katalogpunkt mit Status und ggf. benötigter Datenquelle):
 ## Schnellstart (lokal, ohne Plugin-Installation)
 
 ```bash
-py werkzeuge/ja_pruefung.py --stapel <Ordner-mit-EXTF-Dateien> --susa susa.csv --opos opos.csv --mandant "Mustermann GmbH"
+py werkzeuge/ja_pruefung.py --stapel <Ordner-mit-EXTF-Dateien> --susa susa.csv --susa-vorjahr susa_vj.csv --opos opos.csv --mandant "Mustermann GmbH"
 ```
 
-Demo mit synthetischen Daten (alle Fehlerbilder eingebaut):
+Demo mit synthetischen Daten (alle Fehlerbilder eingebaut; die beiden
+SuSa-Dateien sind Bilanz und GuV des Prüfjahres und des Vorjahres auf
+Kontenebene):
 
 ```bash
 py testdaten/erzeuge_testdaten.py
 ```
 
 ```bash
-py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH & Co. KG" --ausgabe testdaten/ausgabe
+py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH & Co. KG" --ausgabe testdaten/ausgabe
 ```
 
 Voraussetzungen: Python 3.10+ mit `openpyxl` (`py -m pip install openpyxl`).
@@ -94,13 +90,53 @@ JA-Prüfungen laufen.
 1. **Buchungsstapel:** Rechnungswesen → Bestände → Exportieren →
    Buchungsstapel im DATEV-Format; gesamtes Wirtschaftsjahr, EB-Buchungen
    mitnehmen. Mehrere Monatsdateien sind in Ordnung – den Ordner übergeben.
-2. **SuSa (empfohlen):** Summen- und Saldenliste als CSV mit Spalten
-   `Konto;Saldo` (Soll positiv). Aktiviert Bestandsabgleich und
-   USt-/VSt-Verprobung.
-3. **OPOS (empfohlen):** OP-Liste als CSV mit Konto, Betrag,
-   Belegdatum/Fälligkeit. Aktiviert die Altposten-Prüfung.
-4. **Kontenplan:** Export Kat. 20 in denselben Ordner legen –
-   wird automatisch erkannt, Bericht zeigt dann Kontonamen.
+   (Quellen: [DATEV-Dokument 1003221 – Dateibeschreibung
+   DATEV-Format](https://wissensplattform.apps.datev.de/help/document/1003221),
+   [Developer-Portal: DATEV-Format,
+   Buchungsstapel](https://developer.datev.de/de/file-format/details/datev-format/format-description/booking-batch);
+   Kategorien-Nachweise im
+   [Prüfkatalog](skills/ja-pruefung/references/pruefkatalog.md).)
+2. **SuSa aktuelles Jahr (empfohlen):** die Auswertung Summen- und
+   Saldenliste als CSV/ASCII ausgeben (Spalten `Konto;Saldo`, Soll
+   positiv; in Kanzlei-Rechnungswesen wie in DATEV Unternehmen online
+   möglich). Aktiviert Bestandsabgleich und USt-/VSt-Verprobung.
+   (Quellen: [DATEV-Dokument 9304958 – SuSa des
+   Geschäftsjahrs](https://wissensplattform.apps.datev.de/help/document/9304958),
+   [DATEV-Dokument 9226355 – Checkliste ASCII Summen und
+   Salden](https://wissensplattform.apps.datev.de/help/document/9226355),
+   [Praxis-Exportanleitung
+   (PDF)](https://www.sparkasse-muelheim-ruhr.de/content/dam/myif/spk-muelheim/work/dokumente/pdf/fk_service_eigenes/BWA/Exportanleitung.pdf?stref=iconbox).)
+3. **SuSa Vorjahr (empfohlen):** dieselbe Auswertung mit umgestelltem
+   Geschäftsjahr → `--susa-vorjahr`. Aktiviert den EB-Abgleich
+   (Bilanzidentität: Schlussbilanz Vorjahr = EB-Werte) und den
+   GuV-Vorjahresvergleich je Konto. Eine separate Bilanz-/GuV-Auswertung
+   ist nicht erforderlich: Bilanz und GuV stecken kontengenau in Stapel
+   und SuSa beider Jahre; die Überleitung auf ausgewiesene
+   Bilanz-/GuV-Positionen ist Ausbaustufe (Positions-Zuordnung nötig).
+4. **OPOS (empfohlen):** OP-Liste als CSV mit Konto, Betrag,
+   Belegdatum/Fälligkeit. Aktiviert Altposten-Prüfung, Nebenbuch-Abgleich
+   und Alterungsanalyse.
+5. **Kontenplan des Mandanten:** DATEV-Export „Kontenbeschriftungen"
+   (Formatkategorie 20, `EXTF_Sachkontobeschriftungen`) in denselben
+   Ordner legen – wird automatisch erkannt (alternativ `--kontenplan`).
+   Begriffliche Einordnung der drei Ebenen:
+   - **Kontenrahmen** (SKR03/SKR04, die Norm): funktionale Semantik –
+     was ist Kasse, Automatikkonto, AfA-Bereich. Im Agenten:
+     `werkzeuge/konten_config.json` (an Kanzlei-Abweichungen anpassen).
+   - **Kontenplan** (die im Mandanten angelegten Konten): genau das
+     liefert die Schlüsselspalte des Kat.-20-Exports – einen separaten
+     Datei-Export „Kontenplan" gibt es in DATEV nicht, der
+     Kontenplan-Druck enthält dieselben Paare. Der Agent prüft dagegen:
+     bebuchte Konten ohne Anlage (`DV-03`), Bezeichnungs-Dubletten
+     (`SD-01`), Nutzungsgrad als Kennzahl in der Übersicht.
+     (Quellen: [DATEV-Dokument 1071499 – Sachkonten verwalten und
+     importieren](https://wissensplattform.apps.datev.de/help/document/1071499),
+     Kopfzeile `Konto;Kontobeschriftung`; [DATEV-Dokument 1036116 –
+     Konto/Kontenstapel drucken bzw.
+     exportieren](https://wissensplattform.apps.datev.de/help/document/1036116).)
+   - **Kontenbeschriftung** (Bezeichnung je Kontonummer): die
+     Wertspalte derselben Datei; macht Bericht und KI-Kandidaten
+     lesbar (Text-Konto-Passung).
 
 ## Konfiguration
 
@@ -110,6 +146,21 @@ DATEV-Standardannahmen und **vor Produktiveinsatz gegen den
 Kanzlei-Kontenplan zu prüfen** (v. a. Grund und Boden, Automatikkonten,
 uWA-/Verbindlichkeitskonten). Bei individuellen Kontenplänen Kopie der
 Config anlegen und mit `--config` übergeben.
+
+## Skalierung und KI-Kandidaten
+
+Die Kandidatenmenge für die KI wächst nicht mit der Buchungszahl, sondern
+mit den Auffälligkeiten: Kandidat wird nur, was ein deterministischer
+Check markiert oder was auf Risiko-Kontenbereichen über der
+Wesentlichkeitsschwelle (`llm_kandidat_min_eur`) liegt – bei 1.000 wie
+bei 1 Mio. Buchungen. Einen pauschalen Deckel gibt es bewusst nicht
+(`llm_kandidaten_max = 0`); wer aus Kostengründen deckeln will, setzt den
+Parameter, und die Pipeline weist die Abschneidung in Übersicht und JSON
+aus (Betrags-Priorisierung – nichts fällt still weg). Große
+Kandidatenmengen beurteilt die KI-Schicht in Batches. Einzelbefund-Listen
+je Check sind über `liste_max_je_check` (Default 50) begrenzt; darüber
+hinausgehende Fälle erscheinen als Sammelzeile mit Anzahl – ebenfalls
+kein stilles Kappen.
 
 ## Prüfkatalog (Abdeckungsstand)
 
@@ -157,10 +208,10 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
 **Jahresübernahme**
 
-- [ ] [R] EB-Werte = Schlussbilanz Vorjahr, je Bilanzkonto ➕ Vorjahresdaten
+- [x] [R] EB-Werte = Schlussbilanz Vorjahr, je Bilanzkonto → `VJ-01` (mit `--susa-vorjahr`)
 - [x] [R] keine EB-Buchungen auf GuV-Konten → `DV-02`
 - [x] [R] Saldenvorträge saldieren auf null → `SB-06`
-- [ ] [P] neue Bilanzkonten ohne Anfangsbestand / verschwundene Vorjahreskonten ➕ Vorjahresdaten
+- [x] [P] neue Bilanzkonten ohne Anfangsbestand / verschwundene Vorjahreskonten mit Restbestand → `VJ-01`
 
 ### 2. Journal- und Buchungsprüfung
 
@@ -251,7 +302,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
 ### 9. GuV- und Kontenplausibilitäten
 
-- [ ] [P] jedes GuV-Konto gegen Vorjahr/Vorperiode, Vorzeichenwechsel, erstmalig bebucht / plötzlich leer ➕ Vorjahres-SuSa
+- [x] [P] jedes GuV-Konto gegen Vorjahr: starke Veränderung, Vorzeichenwechsel, erstmalig bebucht, weggefallen → `VJ-02` (mit `--susa-vorjahr`); Vorperioden-/Monatsreihen des Vorjahres ➕ Vorjahres-Buchungsstapel
 - [x] [A] Monatsverlauf, ungewöhnliche Monatsspitzen → `GV-01`
 - [x] [P] Verhältniskennzahlen (Material-, Personal-, Raum-, Werbe-, Kfz-Quote, Rohertrag) → Kennzahlen-Ausweis; Benchmarking ➕ Vorjahr/Branche
 - [x] [A] ungewöhnliche Gegenkonten → `GV-03`
@@ -331,7 +382,8 @@ Nur Risikosignale, keine Fehlernachweise (Ausweis stets auf Ebene 4).
 - [x] Umsatzsteuerkonten ↔ rechnerische USt/VSt → `US-06`/`US-07`
 - [x] Sachkonten ↔ OPOS-Nebenbuch → `OP-05`
 - [x] OPOS ↔ Altersstruktur → Blatt „OPOS-Alterung"
-- [ ] Schlussbilanz Vorjahr ↔ EB, Vorjahresvergleiche ➕ Vorjahresdaten
+- [x] Schlussbilanz Vorjahr ↔ Eröffnungsbilanz → `VJ-01`; GuV-Vorjahresvergleich je Konto → `VJ-02`
+- [ ] Stapel ↔ ausgewiesene Bilanz-/GuV-Positionen (Überleitung) ➕ Positions-Zuordnungstabelle
 - [ ] Anlagen-/Lohnbuchhaltung, Bank, Kassenbuch, UStVA, ZM, Inventur, Verträge, Intercompany ➕ jeweilige Datenquelle (siehe 20.)
 
 ### 18. Kontenspezifische Erwartungslogik
@@ -359,7 +411,7 @@ KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
 |---|---|---|
 | 1 | Buchungsstapel (EXTF/DTVF Kat. 21) | ✔ Pflichtquelle |
 | 2 | Summen- und Saldenliste | ✔ optional (`--susa`) → SB-05, US-06/07 |
-| 3 | Kontenbeschriftungen (Kat. 20) | ✔ optional, automatisch erkannt → DV-03, SD-01 |
+| 3 | Kontenplan des Mandanten (= Kontenbeschriftungen, Kat. 20) | ✔ optional, automatisch erkannt bzw. `--kontenplan` → DV-03, SD-01, Nutzungsgrad |
 | 4/5 | Debitoren-/Kreditorenstammdaten | ➕ IBAN-/Adress-/Dubletten-Prüfungen |
 | 6/7 | OPOS Debitoren/Kreditoren | ✔ optional (`--opos`) → OP-03/05/06, Alterung |
 | 8 | Anlagenbuchhaltung | ➕ AfA-Einzelprüfungen je Wirtschaftsgut |
@@ -371,7 +423,7 @@ KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
 | 14 | Benutzer-/Erfassungsinfos (GDPdU-Journal) | ➕ User-/Zeit-/Rückdatierungs-Checks |
 | 15 | Lohnbuchhaltung | ➕ Lohnjournal-Abstimmung |
 | 16/17 | UStVA / USt-Jahreswerte | ➕ Erklärungsabgleich |
-| 18/19 | Vorjahres-/Mehrjahresdaten | ➕ Zeitreihen-, EB- und Kennzahlenvergleiche |
+| 18/19 | Vorjahres-/Mehrjahresdaten | ✔ Vorjahres-SuSa optional (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; Mehrjahresreihen ➕ |
 | 20 | Intercompany-Daten | ➕ Spiegelbild-Abstimmungen |
 
 ## Grenzen und Ausbaustufen
@@ -388,8 +440,8 @@ KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
   Prüfkatalog Kap. 20): Anlagenspiegel → AfA-Einzelprüfungen je
   Wirtschaftsgut; GDPdU-Journal → Rückdatierung, User-/Uhrzeit-Muster;
   Bankbewegungen → Bank-/Zahlungsabgleich; Lohnjournal → Lohn-Abstimmung;
-  UStVA-Werte → Erklärungsabgleich; Vorjahres-SuSa → Zeitreihen- und
-  EB-Vergleiche; Stammdaten → IBAN-/Adress-Dubletten. Ferner Roadmap:
+  UStVA-Werte → Erklärungsabgleich; Mehrjahresdaten → Zeitreihen;
+  Stammdaten → IBAN-/Adress-Dubletten. Ferner Roadmap:
   DATEV-connect-online-Anbindung statt CSV-Export.
 
 ## Datenschutz und Verantwortung
@@ -400,3 +452,80 @@ ausschließlich die Kandidatenzeilen aus `llm_kandidaten.json`
 begrenzten Umfang; Einsatz im Rahmen der kanzleiinternen KI- und
 Auftragsverarbeitungsregeln. Der Bericht ist eine Arbeitshilfe und ersetzt
 keine fachliche Würdigung durch Berufsträger.
+
+## Quellen und Referenzen
+
+**DATEV-Format und Exportwege**
+
+- [DATEV-Dokument 1003221 – Dateibeschreibung
+  DATEV-Format](https://wissensplattform.apps.datev.de/help/document/1003221):
+  Feldbeschreibungen für Buchungsstapel (Umsatz, Soll/Haben-Kz, Konto,
+  Gegenkonto, BU-Schlüssel, Belegdatum TTMM), wiederkehrende Buchungen,
+  Kontenbeschriftungen, Debitoren-/Kreditorenstammdaten.
+- [DATEV Developer-Portal:
+  DATEV-Format](https://developer.datev.de/de/file-format/details/datev-format/format-description/booking-batch):
+  Header-Beschreibung mit den Datenkategorie-Codes in Feld 3
+  (u. a. 21 = Buchungsstapel, 20 = Kontenbeschriftungen,
+  16 = Debitoren-/Kreditorenstammdaten); Detailseiten teils erst nach
+  Portal-Anmeldung. Jede Exportdatei belegt ihre Kategorie zudem selbst
+  (Header-Feld 3 + 4, z. B. `"EXTF";700;21;"Buchungsstapel";…`).
+- SuSa-Export je Geschäftsjahr:
+  [Dokument 9304958](https://wissensplattform.apps.datev.de/help/document/9304958),
+  [Dokument 9226355](https://wissensplattform.apps.datev.de/help/document/9226355).
+- Kontenplan/Kontenbeschriftungen:
+  [Dokument 1071499](https://wissensplattform.apps.datev.de/help/document/1071499),
+  [Dokument 1036116](https://wissensplattform.apps.datev.de/help/document/1036116).
+
+**Rechtsgrundlagen der Checks** (Normzitate stehen jeweils in der
+Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
+
+- AO: [§ 146](https://www.gesetze-im-internet.de/ao_1977/__146.html)
+  Kassenaufzeichnung (SB-01/07/08, ST-04),
+  [§ 162](https://www.gesetze-im-internet.de/ao_1977/__162.html)
+  Schätzung, [§ 160](https://www.gesetze-im-internet.de/ao_1977/__160.html)
+  Empfängerbenennung (KI-Schicht).
+- HGB: [§ 246](https://www.gesetze-im-internet.de/hgb/__246.html)
+  Vollständigkeit/Saldierungsverbot (OP-01/02/04),
+  [§ 249](https://www.gesetze-im-internet.de/hgb/__249.html)
+  Rückstellungen (BL-02),
+  [§ 250](https://www.gesetze-im-internet.de/hgb/__250.html) RAP (BL-01),
+  [§ 252](https://www.gesetze-im-internet.de/hgb/__252.html)
+  Bilanzidentität (DV-02, SB-06, VJ-01),
+  [§ 253](https://www.gesetze-im-internet.de/hgb/__253.html)
+  Bewertung/planmäßige Abschreibung (AfA-Checks, BL-02).
+- EStG: [§ 4](https://www.gesetze-im-internet.de/estg/__4.html)
+  Abs. 5, 5b, 7 – Abzugsverbote und getrennte Aufzeichnung (US-04,
+  ET-01/02); Geschenke-Grenze 50 EUR ab 2024 (zuvor 35 EUR) durch das
+  Wachstumschancengesetz v. 27.03.2024 (BGBl. I Nr. 108);
+  [§ 6](https://www.gesetze-im-internet.de/estg/__6.html) Abs. 1 Nr. 1a
+  anschaffungsnaher Aufwand (AF-05), Abs. 2/2a GWG und Sammelposten
+  (AF-04, ST-07);
+  [§ 7](https://www.gesetze-im-internet.de/estg/__7.html) AfA (AF-01).
+- UStG: [§ 14](https://www.gesetze-im-internet.de/ustg_1980/__14.html)
+  Abs. 4 Nr. 4 fortlaufende Rechnungsnummer (RE-01/02),
+  [§ 14a](https://www.gesetze-im-internet.de/ustg_1980/__14a.html),
+  [§ 15](https://www.gesetze-im-internet.de/ustg_1980/__15.html)
+  Vorsteuerabzug (US-01/10),
+  [§ 13b](https://www.gesetze-im-internet.de/ustg_1980/__13b.html),
+  [§ 14c](https://www.gesetze-im-internet.de/ustg_1980/__14c.html),
+  [§ 15a](https://www.gesetze-im-internet.de/ustg_1980/__15a.html),
+  [§ 17](https://www.gesetze-im-internet.de/ustg_1980/__17.html)
+  (Ausbaustufen, siehe Katalog Kap. 10); 16-%-Sätze 07–12/2020:
+  [§ 28](https://www.gesetze-im-internet.de/ustg_1980/__28.html) UStG
+  i. d. F. Zweites Corona-Steuerhilfegesetz (US-03).
+- GoBD: BMF-Schreiben vom 28.11.2019, BStBl I 2019, 1269
+  (Nachvollziehbarkeit, Vollständigkeit, Belegwesen: ST-05, RE-01, DQ-01).
+
+**Methodik**
+
+- Benford-Screening (ST-08): Nigrini, „Benford's Law", Wiley 2012 –
+  MAD-Konformitätsgrenzen für die Erstziffer (Nichtkonformität > 0,015;
+  Parameter `benford_mad_grenze`).
+- Ausreißer über Median/MAD, modifizierter z-Score (ST-02, SB-09):
+  Iglewicz/Hoaglin, „How to Detect and Handle Outliers", ASQC 1993
+  (Empfehlung |M| > 3,5; hier bewusst konservativer Default 6,
+  Parameter `ausreisser_z`).
+
+## Lizenz
+
+MIT – siehe [LICENSE](LICENSE).
