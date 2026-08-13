@@ -1,6 +1,6 @@
 # JA-Agent – Jahresabschluss-Prüfplugin (DATEV)
 
-Deterministische Prüf-Pipeline (Python) + KI-Beurteilungsschicht + Excel-Bericht + Power BI Report.
+Deterministische Prüf-Pipeline (Python) + KI-Beurteilungsschicht + Excel-Bericht.
 Architektur, Katalog und Bedienung: README.md und skills/ja-pruefung/.
 
 ## Regeln für Arbeiten in diesem Projekt
@@ -17,9 +17,14 @@ Architektur, Katalog und Bedienung: README.md und skills/ja-pruefung/.
 - Verifikation nach Änderungen: `py testdaten/erzeuge_testdaten.py`, dann
   `py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH" --rechtsform kapitalgesellschaft --ausgabe testdaten/ausgabe`
   und stdout mit dem Erwartungsbild in `testdaten/erwartung.md` abgleichen
-  (jeder gesäte Fehler genau einmal; keine neuen Scheinbefunde). Negativtest DQ-02: derselbe Aufruf
+  (jeder gesäte Fehler genau einmal; keine neuen Scheinbefunde; nie eine
+  `WARNUNG: Bilanzprobe`-Zeile). Negativtest DQ-02: derselbe Aufruf
   mit `--rechtsform personengesellschaft` muss zwei Hoch-Befunde liefern
-  (Namens-Kürzel „GmbH" und KSt-Indizien widersprechen). Demo-Mandant ist
+  (Namens-Kürzel „GmbH" und KSt-Indizien widersprechen). Zusatztest
+  CO-02: derselbe Aufruf zusätzlich mit
+  `--stapel-folgejahr testdaten/folgejahr` muss genau einen
+  CO-02-Hinweis liefern (ohne die Option: begründeter Skip, kein
+  Mangel). Demo-Mandant ist
   eine GmbH
   (Projektvorgabe): Privatkonten-Buchungen sind dort PP-04-Befunde,
   PP-01/02 und SB-10 zeigen den Rechtsform-Skip; PersG-Spezifika
