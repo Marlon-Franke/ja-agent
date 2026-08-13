@@ -1,6 +1,6 @@
 # JA-Agent – Jahresabschluss-Prüfplugin (DATEV)
 
-Deterministische Prüf-Pipeline (Python) + KI-Beurteilungsschicht + Excel-Bericht.
+Deterministische Prüf-Pipeline (Python) + KI-Beurteilungsschicht + Excel-Bericht + Power BI Report.
 Architektur, Katalog und Bedienung: README.md und skills/ja-pruefung/.
 
 ## Regeln für Arbeiten in diesem Projekt
