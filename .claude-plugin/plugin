@@ -1,7 +1,7 @@
 {
   "name": "jahresabschluss-agent",
-  "version": "0.2.0",
-  "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln: deterministische Prüf-Pipeline (72 Checks in 4 Prüfebenen, Python) + KI-Beurteilungsschicht + strukturierter Excel-Prüfbericht",
+  "version": "0.4.1",
+  "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln: deterministische Prüf-Pipeline (73 Checks in 4 Prüfebenen, Python) + KI-Beurteilungsschicht + strukturierter Excel-Prüfbericht + Power BI Bericht",
   "license": "MIT",
   "keywords": ["datev", "jahresabschluss", "pruefung", "steuerberatung", "audit"]
 }
