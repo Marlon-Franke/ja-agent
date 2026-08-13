@@ -1,10 +1,7 @@
 {
   "name": "jahresabschluss-agent",
-  "version": "0.1.0",
-  "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln: deterministische Prüf-Pipeline (68 Checks in 4 Prüfebenen, Python) + KI-Beurteilungsschicht + strukturierter Excel-Prüfbericht",
+  "version": "0.2.0",
+  "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln: deterministische Prüf-Pipeline (72 Checks in 4 Prüfebenen, Python) + KI-Beurteilungsschicht + strukturierter Excel-Prüfbericht",
   "license": "MIT",
-  "author": {
-    "name": "Marlon Franke"
-  },
   "keywords": ["datev", "jahresabschluss", "pruefung", "steuerberatung", "audit"]
 }
