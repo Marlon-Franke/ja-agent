@@ -1,3 +1,12 @@
+> **Referenzdokument des JA-Agenten** (internes Arbeitsdokument,
+> Stand 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
+> Klassifikation des Agenten ausrichten. Den Umsetzungsstand je
+> Katalogpunkt weist die Abdeckungsmatrix
+> ([skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md))
+> aus; Quellen zu Format- und Rechtsbezügen führt die
+> [README](README.md) im Abschnitt „Quellen und Referenzen". Kein
+> Rechtsrat – Normbezüge vor Anwendung prüfen.
+
 ## Legende
 
 - **[R] Rule-based:** objektiv anhand definierter Regeln prüfbar
