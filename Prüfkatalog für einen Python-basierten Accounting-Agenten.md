@@ -1,11 +1,23 @@
 > **Referenzdokument des JA-Agenten** (internes Arbeitsdokument,
-> Stand August 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
+> Stand 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
 > Klassifikation des Agenten ausrichten. Den Umsetzungsstand je
 > Katalogpunkt weist die Abdeckungsmatrix
 > ([skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md))
 > aus; Quellen zu Format- und Rechtsbezügen führt die
 > [README](README.md) im Abschnitt „Quellen und Referenzen". Kein
 > Rechtsrat – Normbezüge vor Anwendung prüfen.
+>
+> **Redaktionelle Klarstellungen zu Kap. 20 (Projektstand):**
+> 1. Bilanz und GuV gehen aus dem Buchungsstapel hervor – der Stapel ist
+>    die primäre, reichere Quelle. Als eigene Datenquelle sind Bilanz/GuV
+>    nur für die Überleitung auf ausgewiesene Positionen relevant
+>    (Positions-Zuordnung, Kap. 17).
+> 2. Kostenstellen/Kostenträger sind optional, nicht unverzichtbar: Sie
+>    erweitern Anomalie-Auswertungen je KOST, sind für die
+>    Jahresabschluss-Prüfung aber keine Voraussetzung.
+> 3. Vergleichsjahre: Das Minimum ist das Vorjahr (im Agenten über die
+>    Vorjahres-SuSa umgesetzt, Checks VJ-01/02); zwei bis fünf Jahre sind
+>    die Kür für Zeitreihenanalysen.
 
 ## Legende
 
