@@ -1,5 +1,5 @@
 > **Referenzdokument des JA-Agenten** (internes Arbeitsdokument,
-> Stand 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
+> Stand August 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
 > Klassifikation des Agenten ausrichten. Den Umsetzungsstand je
 > Katalogpunkt weist die Abdeckungsmatrix
 > ([skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md))
