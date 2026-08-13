@@ -1,0 +1,13 @@
+{
+  "name": "ja-agent",
+  "owner": {
+    "name": "Marlon Franke"
+  },
+  "plugins": [
+    {
+      "name": "jahresabschluss-agent",
+      "source": "./",
+      "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln (deterministische Pipeline + KI-Schicht + Excel-Bericht)"
+    }
+  ]
+}
