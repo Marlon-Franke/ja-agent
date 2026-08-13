@@ -3,7 +3,7 @@
 Prüft DATEV-Buchungsstapel wie ein erfahrener Abschlussprüfer und liefert
 einen strukturierten Excel-Prüfbericht – bereit zur Durchsicht, kein
 Textblock. Kernprinzip: **Regeln, die eindeutig sind, gehören in Code, nicht
-ins Prompt.** 72 Checks laufen deterministisch in Python, klassifiziert in
+ins Prompt.** 73 Checks laufen deterministisch in Python, klassifiziert in
 vier Prüfebenen (1 technische Integrität, 2 Regelprüfung, 3 Plausibilität,
 4 Anomalie) und nach Prüfungstyp ([R] regelbasiert, [P] Plausibilität,
 [A] Anomalie, [X] benötigt Zusatzdaten); die KI beurteilt nur die
@@ -23,16 +23,18 @@ DATEV-Exporte (EXTF/DTVF-CSV)
 werkzeuge/ja_pruefung.py          deterministische Pipeline (Python, ohne LLM)
    ├─ datev_parser.py             EXTF/DTVF-Parser (Kat. 21/20), SuSa-/OPOS-Leser
    ├─ kontenplan.py               SKR03/SKR04-Erkennung, Kontengruppen, Steuerableitung
-   ├─ checks.py / checks_erweitert.py / checks_vorjahr.py / statistik.py   72 Checks in 4 Ebenen
+   ├─ checks.py / checks_erweitert.py / checks_vorjahr.py / statistik.py   73 Checks in 4 Ebenen
    └─ excel_report.py             Excel-Prüfbericht (openpyxl, inkl. OPOS-Alterung)
         │
         ├─ Pruefbericht_<Mandant>_<Jahr>.xlsx   (Cockpit, Übersicht, Anleitung,
         │                                        Befunde je Bereich, Bilanz/GuV
-        │                                        formelverknüpft, Salden)
-        ├─ befunde.json / befunde.csv / salden.csv   (maschinenlesbar; CSVs =
+        │                                        formelverknüpft, Salden,
+        │                                        Buchungsjournal mit Quelle-Links)
+        ├─ befunde.json + CSVs: befunde, salden, buchungen (je Kontoseite),
+        │       opos, ki_kandidaten             (maschinenlesbar; CSVs =
         │                                        Power-BI-/Pivot-Datenbasis)
-        ├─ PowerBI/ (nur mit --pbi)             (PBIP-Projekt: verknüpftes Modell
-        │                                        befunde ↔ salden + Cockpit-Seite)
+        ├─ PowerBI/ (nur mit --pbi)             (PBIP-Projekt: 5 verknüpfte
+        │                                        Tabellen, 7 Berichtsseiten)
         └─ llm_kandidaten.json                  (kriterienbasierte KI-Kandidaten,
         │                                        unbegrenzt; optionaler Kostendeckel)
         ▼
@@ -73,6 +75,10 @@ py testdaten/erzeuge_testdaten.py
 ```bash
 py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH" --rechtsform kapitalgesellschaft --ausgabe testdaten/ausgabe
 ```
+
+Cut-off-Nachlaufprüfung `CO-02` (aufwandsseitig nach WJ-Ende): derselbe
+Aufruf zusätzlich mit `--stapel-folgejahr testdaten/folgejahr` – ohne
+diese Option wird `CO-02` mit Begründung übersprungen (kein Mangel).
 
 Voraussetzungen: Python 3.10+ mit `openpyxl` (`py -m pip install openpyxl`).
 
@@ -147,6 +153,15 @@ JA-Prüfungen laufen.
    - **Kontenbeschriftung** (Bezeichnung je Kontonummer): die
      Wertspalte derselben Datei; macht Bericht und KI-Kandidaten
      lesbar (Text-Konto-Passung).
+6. **Folgejahres-Stapel (optional, aktiviert `CO-02`):** derselbe
+   Exportweg wie Punkt 1 für den Beginn des Folgejahres (mindestens die
+   ersten `cutoff_fenster_nach_tage` = 14 Tage nach dem WJ-Ende; ein
+   Monatsstapel Januar genügt). Getrennt vom Prüfjahres-Ordner halten
+   und über `--stapel-folgejahr` übergeben – nie in den
+   `--stapel`-Ordner legen, sonst verschöbe er Zeitraum und
+   WJ-Ende-Anker des Prüfjahres (die Pipeline warnt bei gemischten
+   WJ-Beginn-Werten). Ohne Lieferung wird `CO-02` mit Begründung
+   übersprungen (kein Mangel: der Prüfjahres-Stapel endet am WJ-Ende).
 
 ## Konfiguration
 
@@ -183,9 +198,16 @@ Begründung übersprungen; bei Einzelunternehmen/Personengesellschaften
 gilt es umgekehrt. Bei Kapitalgesellschaften weist die Übersicht
 zusätzlich eine Größenklassen-Indikation aus (§ 267, § 267a HGB;
 Bilanzsumme näherungsweise und Umsatzerlöse aus den Daten, die
-Ø-Arbeitnehmerzahl ist beizusteuern); die Demo bildet die
-EK-Gliederung des § 266 Abs. 3 A HGB auf Kontenebene ab (Gezeichnetes
-Kapital, Kapitalrücklage, Gewinnvortrag). Die Mitunternehmer-Spezifika
+Ø-Arbeitnehmerzahl ist beizusteuern). Der Eigenkapital-Ausweis der
+Bilanz (Excel wie Power BI) folgt der Rechtsform: Kapitalgesellschaften
+nach § 266 Abs. 3 A HGB (A.I gezeichnetes Kapital bis A.V
+Jahresüberschuss/Jahresfehlbetrag), Personengesellschaften mit
+Kapitalanteilen je Haftungsgruppe (DATEV-Kontenwelt Festkapital /
+variables Kapital / Kommanditkapital, KKE-Konten der Klasse 9 als
+Sammelposition), Einzelunternehmen als eine Position (§ 247 Abs. 1
+HGB); Kontenzuordnung mit DATEV-Quellen im
+[Prüfkatalog](skills/ja-pruefung/references/pruefkatalog.md),
+Abschnitt „Kontenzuordnung Eigenkapital". Die Mitunternehmer-Spezifika
 von Personengesellschaften (Kapitalkontenentwicklung je Gesellschafter,
 Ergänzungs- und Sonderbilanzen, § 15a EStG) sind zusätzliche Prüfungen
 mit eigenen Datenquellen (Katalog Kap. 8 und 14). Die Zuordnungen sind
@@ -218,31 +240,74 @@ je Prüfebene – Datentabellen bleiben daneben sichtbar) sowie
 nach § 266/§ 275 HGB, per `SUMIF`-Formeln **live verknüpft** mit dem
 Blatt „Salden je Konto" (dessen neue Spalte „Bilanz-/GuV-Position" füllt
 die Pipeline deterministisch je Konto, [werkzeuge/bilanz.py](werkzeuge/bilanz.py)).
-Überleitungszeilen (Jahresergebnis lt. GuV, Saldenvortrags-Differenz →
-SB-06) lassen die Bilanz exakt aufgehen; eine Kontrollzeile prüft
-Aktiva = Passiva.
+Vorjahreskonten ohne Berichtsjahresbewegung stehen mit ihrem
+Vorjahressaldo ebenfalls im Saldenblatt und in `salden.csv` (Buchungen
+0, Position nach Vorjahres-Saldenlage) – nur so sind die
+Vorjahresspalten von Bilanz und GuV vollständig und auch die
+**Vorjahresbilanz geht auf**.
+Das Eigenkapital ist rechtsformabhängig untergliedert (siehe
+„Konfiguration"); „A.V. Jahresüberschuss/Jahresfehlbetrag" steht als
+Formelzeile live auf dem GuV-Blatt, die Saldenvortrags-Differenz
+(SB-06) als eigene Passivzeile – die Bilanz geht damit in beiden
+Jahren exakt auf. Eine Kontrollzeile prüft Aktiva = Passiva, und die
+Pipeline verprobt dieselbe Identität bei jedem Lauf als Kennzahl
+**„Bilanzprobe Aktiva − Passiva"** (stderr-WARNUNG bei Abweichung >
+0,01 EUR). Das Blatt **„Buchungsjournal"** führt alle
+Buchungszeilen des Stapels 1:1 (AutoFilter in der Kopfzeile); die
+Spalte „Quelle" der Befund- und KI-Kandidaten-Blätter verlinkt bei
+buchungsgenauen Befunden direkt auf die zugehörige Journalzeile.
 
 **Power BI (`--pbi`):** Der Ersteller wählt das Format – mit dem Flag
 erzeugt die Pipeline im Ausgabeordner ein **PBIP-Projekt** (Microsofts
 offenes Power-BI-Projektformat), das direkt mit Power BI Desktop
-geöffnet wird: ein **verknüpftes Datenmodell** aus `befunde.csv` und
-`salden.csv` (Beziehung über die Kontonummer – der eigentliche
-PBI-Mehrwert: Befunde, Salden, Positionen und Vorjahreswerte gemeinsam
-auswertbar), Pfad-Parameter `BefundeCsvPfad`/`SaldenCsvPfad`, Measures
-(Befunde gesamt/hoch/mittel/hinweis, KI-Kandidaten, Saldo-Summen sowie
-Aktiva/Passiva, Jahresergebnis, Vortragsdifferenz und
-GuV-Ergebnisbeiträge inkl. Vorjahr) und **drei vorbereitete
-Berichtsseiten in fester Reihenfolge: 1. Bilanz** (Kacheln Aktiva,
-Passiva vor Jahresergebnis, Jahresergebnis, Vortragsdifferenz → SB-06;
-Aktiv-/Passiv-Matrix je Position mit Vorjahresspalte), **2. GuV**
-(Staffel 1.–9. je Position mit Vorjahr und Delta, Ergebnisbeitrags-
-Diagramm; Erträge +, Aufwendungen −), **3. Cockpit** (Befundlage).
-Hinweis: Das Template ist hier
-ohne Power BI Desktop erzeugt und dort nicht gegengetestet – beim ersten
-Öffnen bitte prüfen; das Semantikmodell ist der stabile Kern, Visuals
-lassen sich notfalls in Minuten nachziehen. (Formatreferenz:
-[Microsoft Learn – Power BI Desktop-Projekte
-(PBIP)](https://learn.microsoft.com/de-de/power-bi/developer/projects/projects-overview).)
+geöffnet wird. Das **verknüpfte Datenmodell** umfasst fünf Tabellen:
+`befunde`, `salden`, `buchungen` (Einzelbuchungen, eine Zeile je
+Kontoseite – `betrag` ist der vorzeichenrichtige Saldo-Beitrag, die
+Summe je Konto ergibt den Brutto-Saldo), `opos` (Einzelposten mit
+Aging-Stufe) und `ki_kandidaten`; alle sind über die Kontonummer an
+`salden` gebunden (Pfad-Parameter `BefundeCsvPfad`, `SaldenCsvPfad`,
+`BuchungenCsvPfad`, `OposCsvPfad`, `KiKandidatenCsvPfad`). Die
+Beziehung befunde ↔ salden filtert in beide Richtungen
+(`crossFilteringBehavior: bothDirections`, [Microsoft Learn – Beziehungen
+in tabellarischen Modellen (TMSL/BIM)](https://learn.microsoft.com/de-de/analysis-services/tabular-models/relationships-ssas-tabular)):
+ein Klick auf einen Befund filtert über das Konto die zugehörigen
+Einzelbuchungen. **Sieben Berichtsseiten:** **1. Bilanz** (Kacheln
+Bilanzsumme, Bilanzsumme Vorjahr, Jahresergebnis, Kontrolle
+Aktiva − Passiva; Positions-Matrix Aktiva und Passiva inkl.
+Vorjahresspalte – die Passiva-Matrix enthält die
+EK-Untergliederung, „A.V. Jahresüberschuss/Jahresfehlbetrag" und die
+Saldenvortrags-Differenz, ihre Gesamtzeile IST die Bilanzsumme; ein
+Klick auf eine Position filtert die Konten-Detailtabelle darunter,
+Aktiva und Passiva kreuzfiltern sich bewusst nicht gegenseitig und
+lassen die Kacheln unberührt),
+**2. GuV** (Staffel 1.–9. mit Vorjahr und Delta), **3. Cockpit**
+(Befundlage), **4. Befund-Explorer** (Slicer Bereich/Schwere/Check,
+alle Befundspalten des Excel-Berichts, darunter die Einzelbuchungen
+zur Auswahl), **5. Einzelbuchungen** (Slicer Konto/Bilanzposition über
+dem vollständigen Journal), **6. OPOS** (Alterungs-Matrix je Stufe +
+Einzelposten), **7. KI-Kandidaten** (Exportliste). Natives
+Rechtsklick-Drillthrough lässt sich ergänzen, indem in Desktop auf der
+Seite „Einzelbuchungen" die Felder `salden[konto]` und
+`salden[position]` in den Bereich „Drillthrough" gezogen werden
+([Microsoft Learn – Drillthrough
+einrichten](https://learn.microsoft.com/de-de/power-bi/create-reports/desktop-drillthrough));
+die Vorlage verdrahtet bewusst nur dokumentierte Modell-/
+Report-Strukturen. Hinweis: Ein PBIP speichert keine importierten
+Daten – beim ersten Öffnen sind Kacheln und Tabellen daher leer
+(„(Leer)", dazu die Meldungen zu unvollständigen Daten und zur
+Beziehung); erst **„Aktualisieren"** lädt alle fünf CSVs über die
+Pfad-Parameter, danach verschwinden die Meldungen. Die
+Typkonvertierung im Modell nutzt den expliziten Kulturparameter
+`en-US`, weil die Pipeline die CSVs kulturinvariant schreibt
+(Dezimalpunkt, ISO-Datum); ohne ihn läse eine `de-DE`-Auswertung den
+Punkt als Tausendertrenner und verfälschte die Beträge still.
+(Formatreferenzen: [Microsoft Learn – Power BI Desktop-Projekte
+(PBIP)](https://learn.microsoft.com/de-de/power-bi/developer/projects/projects-overview),
+[Microsoft Learn – Table.TransformColumnTypes, Parameter
+culture](https://learn.microsoft.com/de-de/powerquery-m/table-transformcolumntypes),
+Visual-Typnamen wie `barChart`/`clusteredBarChart` gemäß
+[Microsoft Learn – Berichtsdesigns/visualStyles
+(Visual-Namensliste)](https://learn.microsoft.com/de-de/power-bi/create-reports/desktop-report-themes).)
 
 ## Prüfkatalog (Abdeckungsstand)
 
@@ -303,7 +368,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [P] gleicher Betrag + gleicher Partner + gleiches Datum → `ST-01`
 - [x] [P] gleiche Rechnungsnummer mehrfach gebucht → `RE-02` (Ausgang), `KR-01` (je Kreditor)
 - [x] [P] Buchung und Storno ohne Anlass, Mehrfachstorno → `FR-01`
-- [x] [P] ungewöhnlich viele Abschluss-/Nachtragsbuchungen → `GV-01`, `CO-01`
+- [x] [P] ungewöhnlich viele Abschluss-/Nachtragsbuchungen → `GV-01`, `CO-01`/`CO-02`
 - [x] [P] rückdatierte Buchungen (Indiz über Nummernfolge) → `RE-03`; vollständig ➕ Journal mit Erfassungsdatum
 - [ ] [P] großer Abstand Beleg-/Buchungsdatum ➕ Journal
 - [ ] [A] Buchungen zu ungewöhnlichen Zeiten / je Benutzer ➕ Journal mit User und Zeitstempel
@@ -369,7 +434,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 ### 7. Vorräte und Waren
 
 - [x] [P] Warenaufwand vs. Umsatzentwicklung → Kennzahlen (Material-/Rohertragsquote)
-- [x] [P] auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag → `CO-01`
+- [x] [P] auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag → `CO-01` (erlös-/forderungsseitig); aufwandsseitiger Nachlauf → `CO-02` (`--stapel-folgejahr`)
 - [ ] [X] Inventurlisten, Mengendaten, Reichweiten, Niederstwert-Indikatoren ➕ Inventur-/Warenwirtschaftsdaten
 
 ### 8. Sonstige Bilanzkonten
@@ -397,7 +462,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [A] sachfremde Buchungstexte → **KI**
 - [x] [P] außergewöhnlich hohe Einzelbuchungen → `ST-02`
 - [x] [P] ungewöhnlich viele glatte Beträge → `ST-03`, `FR-04`
-- [x] [P] außergewöhnliche Beträge kurz vor Periodenende → `CO-01`
+- [x] [P] außergewöhnliche Beträge kurz vor Periodenende → `CO-01` (Erlösseite; betragsgroße Einzelfälle zudem `ST-02`)
 - [x] [P] starke Gegenbuchungen auf einseitigen Konten, hohe Gutschriften → `GV-02`
 
 ### 10. Umsatzsteuer
@@ -436,9 +501,10 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
 ### 13. Periodenabgrenzung und Cut-off
 
-- [x] [P] große Erlös-/Aufwandsbuchungen in den letzten Tagen des Jahres → `CO-01`
+- [x] [P] große Erlösbuchungen im Fenster vor WJ-Ende (`cutoff_fenster_vor_tage` = 14; Anker strikt WJ-Ende aus dem DATEV-Header, WJ ≠ Kalenderjahr möglich) → `CO-01`
+- [x] [P/X] große Aufwandsbuchungen im Fenster nach WJ-Ende inkl. verspäteter Eingangsrechnungen (`cutoff_fenster_nach_tage` = 14; Datenquelle optionaler Folgejahres-Stapel `--stapel-folgejahr`, ohne Lieferung begründeter Skip) → `CO-02`
 - [x] [P] wiederkehrende Jahreskosten/-erlöse ohne Abgrenzung → `BL-01`
-- [ ] [P/X] Rechnungsdatum/Buchungsdatum über die Jahresgrenze, Stornos nach Jahresende, verspätete Eingangsrechnungen, Leistungsdatum gegen Periode ➕ Folgeperioden-Stapel/Journal/Belege
+- [ ] [P/X] Rechnungsdatum/Buchungsdatum über die Jahresgrenze, Stornos nach Jahresende, Leistungsdatum gegen Periode ➕ Folgeperioden-Journal mit Erfassungsdatum/Belege
 
 ### 14. Intercompany und Gesellschafter
 
@@ -463,7 +529,7 @@ Nur Risikosignale, keine Fehlernachweise (Ausweis stets auf Ebene 4).
 - [x] [A] hohe Stornoquote, Mehrfachstornos → `FR-01`
 - [x] [A] Lieferanten mit nur einer großen Transaktion → `FR-02`
 - [x] [A] ungewöhnliche Freitexte und Kontierungswege → `GV-03` + **KI**
-- [x] [A] außergewöhnliche Buchungen unmittelbar vor Abschluss → `CO-01`
+- [x] [A] außergewöhnliche Buchungen unmittelbar vor Abschluss → `CO-01` (erlösseitig), `CO-02` (aufwandsseitig nach WJ-Ende, fakultativ)
 - [ ] [A] User-/Uhrzeit-/IBAN-Muster, Storno unmittelbar nach Stichtag ➕ Journal mit User/Zeit, Stammdaten, Folgeperiode
 
 ### 17. Gesamtabschluss und Cross-Checks
@@ -593,8 +659,15 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
   [§ 274](https://www.gesetze-im-internet.de/hgb/__274.html)/[§ 274a](https://www.gesetze-im-internet.de/hgb/__274a.html)
   latente Steuern und Erleichterungen (BL-05),
   [§ 266](https://www.gesetze-im-internet.de/hgb/__266.html)/[§ 275](https://www.gesetze-im-internet.de/hgb/__275.html)
-  Bilanz-/GuV-Gliederung (EK-Struktur der Demo; Positions-Überleitung
-  Ausbaustufe),
+  Bilanz-/GuV-Gliederung (EK-Untergliederung A.I–A.V bei KapG),
+  [§ 268](https://www.gesetze-im-internet.de/hgb/__268.html) Ausweis
+  vor/nach Ergebnisverwendung (A.IV/A.V vs. Bilanzgewinn),
+  [§ 247](https://www.gesetze-im-internet.de/hgb/__247.html)
+  EK-Einposten-Ausweis beim Einzelunternehmen; DATEV-Kontenzuordnung
+  des Eigenkapitals je Rechtsform (Dok. 1029917, 1040025, 1040067,
+  1029158, 1029213) im
+  [Prüfkatalog](skills/ja-pruefung/references/pruefkatalog.md),
+  Abschnitt „Kontenzuordnung Eigenkapital",
   [§ 267](https://www.gesetze-im-internet.de/hgb/__267.html)/[§ 267a](https://www.gesetze-im-internet.de/hgb/__267a.html)
   Größenklassen (Kennzahlen-Indikation),
   [§§ 284 ff.](https://www.gesetze-im-internet.de/hgb/__284.html)
