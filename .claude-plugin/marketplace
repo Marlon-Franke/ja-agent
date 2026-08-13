@@ -7,7 +7,7 @@
     {
       "name": "jahresabschluss-agent",
       "source": "./",
-      "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln (deterministische Pipeline + KI-Schicht + Excel-Bericht + Power BI Report)"
+      "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln (deterministische Pipeline + KI-Schicht + Excel-Bericht + Power BI Bericht)"
     }
   ]
 }
