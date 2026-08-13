@@ -1,0 +1,8 @@
+"EXTF";700;21;"Buchungsstapel";12;20260812090000000;;"RE";"";"";12345;67890;20260101;4;20260101;20260131;"Demo 2026-01";"MF";1;0;0;"EUR";;"";;;"";;"";;""
+"Umsatz (ohne Soll/Haben-Kz)";"Soll/Haben-Kennzeichen";"WKZ Umsatz";"Kurs";"Basis-Umsatz";"WKZ Basis-Umsatz";"Konto";"Gegenkonto (ohne BU-Schlüssel)";"BU-Schlüssel";"Belegdatum";"Belegfeld 1";"Belegfeld 2";"Skonto";"Buchungstext";"KOST1-Kostenstelle";"KOST2-Kostenstelle"
+45000,00;"S";"EUR";;;;1200;9000;"";101;"";"";;"EB Bank";"";""
+2000,00;"S";"EUR";;;;4210;1200;"";101;"";"";;"Miete Büro 01/2026";"";""
+6500,00;"S";"EUR";;;;3400;70001;"9";801;"ER-2026-015";"";;"Wareneinkauf Lieferung 29.12.2025";"";""
+120,00;"S";"EUR";;;;4930;1000;"";901;"BAR-2026-01";"";;"Büromaterial bar";"";""
+7140,00;"S";"EUR";;;;10001;8400;"";1001;"RE2026-001";"";;"Ausgangsrechnung 01/2026";"";""
+6500,00;"S";"EUR";;;;4120;1200;"";2801;"";"";;"Gehälter 01/2026";"";""

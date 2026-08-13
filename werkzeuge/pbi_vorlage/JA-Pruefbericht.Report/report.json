@@ -1,0 +1,408 @@
+{
+  "config": "{\"version\":\"5.43\",\"themeCollection\":{},\"activeSectionIndex\":0,\"defaultDrillFilterOtherVisuals\":true}",
+  "layoutOptimization": 0,
+  "resourcePackages": [],
+  "sections": [
+    {
+      "name": "bilanz",
+      "displayName": "Bilanz",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{\"visualInteractions\":[{\"source\":\"matAktiva\",\"target\":\"matPassiva\",\"type\":3},{\"source\":\"matPassiva\",\"target\":\"matAktiva\",\"type\":3},{\"source\":\"matAktiva\",\"target\":\"kpiBilanzsumme\",\"type\":3},{\"source\":\"matAktiva\",\"target\":\"kpiBilanzsummeVJ\",\"type\":3},{\"source\":\"matAktiva\",\"target\":\"kpiErgebnisB\",\"type\":3},{\"source\":\"matAktiva\",\"target\":\"kpiKontrolle\",\"type\":3},{\"source\":\"matPassiva\",\"target\":\"kpiBilanzsumme\",\"type\":3},{\"source\":\"matPassiva\",\"target\":\"kpiBilanzsummeVJ\",\"type\":3},{\"source\":\"matPassiva\",\"target\":\"kpiErgebnisB\",\"type\":3},{\"source\":\"matPassiva\",\"target\":\"kpiKontrolle\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"matAktiva\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"matPassiva\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"kpiBilanzsumme\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"kpiBilanzsummeVJ\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"kpiErgebnisB\",\"type\":3},{\"source\":\"tblKontenBilanz\",\"target\":\"kpiKontrolle\",\"type\":3}]}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiBilanzsumme\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Bilanzsumme\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Bilanzsumme\"},\"Name\":\"salden.Bilanzsumme\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiBilanzsummeVJ\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Bilanzsumme Vorjahr\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Bilanzsumme Vorjahr\"},\"Name\":\"salden.Bilanzsumme Vorjahr\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648.0,
+          "y": 16.0,
+          "z": 2.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiErgebnisB\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":16,\"z\":2,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Jahresergebnis\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Jahresergebnis\"},\"Name\":\"salden.Jahresergebnis\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 964.0,
+          "y": 16.0,
+          "z": 3.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiKontrolle\",\"layouts\":[{\"id\":0,\"position\":{\"x\":964,\"y\":16,\"z\":3,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Kontrolle Aktiva minus Passiva\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Kontrolle Aktiva minus Passiva\"},\"Name\":\"salden.Kontrolle Aktiva minus Passiva\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 128.0,
+          "z": 4.0,
+          "width": 616.0,
+          "height": 44.0,
+          "config": "{\"name\":\"txtAktiva\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":128,\"z\":4,\"width\":616,\"height\":44}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Aktiva\",\"textStyle\":{\"fontWeight\":\"bold\",\"fontSize\":\"16pt\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648.0,
+          "y": 128.0,
+          "z": 5.0,
+          "width": 616.0,
+          "height": 44.0,
+          "config": "{\"name\":\"txtPassiva\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":128,\"z\":5,\"width\":616,\"height\":44}}],\"singleVisual\":{\"visualType\":\"textbox\",\"drillFilterOtherVisuals\":true,\"objects\":{\"general\":[{\"properties\":{\"paragraphs\":[{\"textRuns\":[{\"value\":\"Passiva\",\"textStyle\":{\"fontWeight\":\"bold\",\"fontSize\":\"16pt\"}}]}]}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 176.0,
+          "z": 6.0,
+          "width": 616.0,
+          "height": 352.0,
+          "config": "{\"name\":\"matAktiva\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":176,\"z\":6,\"width\":616,\"height\":352}}],\"singleVisual\":{\"visualType\":\"pivotTable\",\"projections\":{\"Rows\":[{\"queryRef\":\"salden.position\"}],\"Values\":[{\"queryRef\":\"salden.Saldo netto gesamt\"},{\"queryRef\":\"salden.Saldo Vorjahr gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Saldo netto gesamt\"},\"Name\":\"salden.Saldo netto gesamt\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Saldo Vorjahr gesamt\"},\"Name\":\"salden.Saldo Vorjahr gesamt\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"salden.position\":{\"displayName\":\"Bilanzposition\"},\"salden.Saldo netto gesamt\":{\"displayName\":\"Berichtsjahr (EUR)\"},\"salden.Saldo Vorjahr gesamt\":{\"displayName\":\"Vorjahr (EUR)\"}}}}",
+          "filters": "[{\"name\":\"fAktiva\",\"expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"salden\"}},\"Property\":\"position\"}},\"filter\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'A. Anlagevermögen'\"}}],[{\"Literal\":{\"Value\":\"'B.I. Forderungen aus Lieferungen und Leistungen'\"}}],[{\"Literal\":{\"Value\":\"'B.II. Forderungen gegen Gesellschafter'\"}}],[{\"Literal\":{\"Value\":\"'B.III. Kasse, Bank, Geldtransit'\"}}],[{\"Literal\":{\"Value\":\"'C. Aktive Rechnungsabgrenzung'\"}}],[{\"Literal\":{\"Value\":\"'D. Aktive latente Steuern'\"}}],[{\"Literal\":{\"Value\":\"'E. Sonstige Aktiva'\"}}]]}}}]},\"type\":\"Categorical\"}]"
+        },
+        {
+          "x": 648.0,
+          "y": 176.0,
+          "z": 7.0,
+          "width": 616.0,
+          "height": 352.0,
+          "config": "{\"name\":\"matPassiva\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":176,\"z\":7,\"width\":616,\"height\":352}}],\"singleVisual\":{\"visualType\":\"pivotTable\",\"projections\":{\"Rows\":[{\"queryRef\":\"salden.position\"}],\"Values\":[{\"queryRef\":\"salden.Passiva Betrag\"},{\"queryRef\":\"salden.Passiva Betrag Vorjahr\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Passiva Betrag\"},\"Name\":\"salden.Passiva Betrag\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Passiva Betrag Vorjahr\"},\"Name\":\"salden.Passiva Betrag Vorjahr\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"salden.position\":{\"displayName\":\"Bilanzposition\"},\"salden.Passiva Betrag\":{\"displayName\":\"Berichtsjahr (EUR)\"},\"salden.Passiva Betrag Vorjahr\":{\"displayName\":\"Vorjahr (EUR)\"}}}}",
+          "filters": "[{\"name\":\"fPassiva\",\"expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"salden\"}},\"Property\":\"position\"}},\"filter\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'A. Eigenkapital (Einzelunternehmen)'\"}}],[{\"Literal\":{\"Value\":\"'A.I. Gezeichnetes Kapital'\"}}],[{\"Literal\":{\"Value\":\"'A.I. Kapitalanteile persönlich haftende Gesellschafter'\"}}],[{\"Literal\":{\"Value\":\"'A.II. Kapitalrücklage'\"}}],[{\"Literal\":{\"Value\":\"'A.II. Kapitalanteile Kommanditisten'\"}}],[{\"Literal\":{\"Value\":\"'A.III. Gewinnrücklagen'\"}}],[{\"Literal\":{\"Value\":\"'A.III. Rücklagen'\"}}],[{\"Literal\":{\"Value\":\"'A.IV. Gewinn-/Verlustvortrag'\"}}],[{\"Literal\":{\"Value\":\"'A.V. Jahresüberschuss/Jahresfehlbetrag'\"}}],[{\"Literal\":{\"Value\":\"'A.VI. Übriges Eigenkapital (Privat-/sonstige EK-Konten)'\"}}],[{\"Literal\":{\"Value\":\"'A.VII. KKE-/Umbuchungskonten Kapital (Klasse 9)'\"}}],[{\"Literal\":{\"Value\":\"'B. Rückstellungen'\"}}],[{\"Literal\":{\"Value\":\"'C.I. Verbindlichkeiten gegenüber Kreditinstituten'\"}}],[{\"Literal\":{\"Value\":\"'C.II. Verbindlichkeiten aus Lieferungen und Leistungen'\"}}],[{\"Literal\":{\"Value\":\"'C.III. Verbindlichkeiten gegenüber Gesellschaftern'\"}}],[{\"Literal\":{\"Value\":\"'C.IV. Sonstige Verbindlichkeiten'\"}}],[{\"Literal\":{\"Value\":\"'D. Passive Rechnungsabgrenzung'\"}}],[{\"Literal\":{\"Value\":\"'E. Passive latente Steuern'\"}}],[{\"Literal\":{\"Value\":\"'Z. Saldenvortrags-Differenz (SB-06)'\"}}]]}}}]},\"type\":\"Categorical\"}]"
+        },
+        {
+          "x": 16.0,
+          "y": 536.0,
+          "z": 8.0,
+          "width": 1248.0,
+          "height": 168.0,
+          "config": "{\"name\":\"tblKontenBilanz\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":536,\"z\":8,\"width\":1248,\"height\":168}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.konto\"},{\"queryRef\":\"salden.bezeichnung\"},{\"queryRef\":\"salden.position\"},{\"queryRef\":\"salden.saldo_netto\"},{\"queryRef\":\"salden.saldo_vorjahr\"},{\"queryRef\":\"salden.buchungen\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"konto\"},\"Name\":\"salden.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"bezeichnung\"},\"Name\":\"salden.bezeichnung\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"saldo_netto\"},\"Name\":\"salden.saldo_netto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"saldo_vorjahr\"},\"Name\":\"salden.saldo_vorjahr\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"buchungen\"},\"Name\":\"salden.buchungen\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"salden.konto\":{\"displayName\":\"Konto\"},\"salden.bezeichnung\":{\"displayName\":\"Bezeichnung\"},\"salden.position\":{\"displayName\":\"Bilanzposition\"},\"salden.saldo_netto\":{\"displayName\":\"Saldo netto (EUR)\"},\"salden.saldo_vorjahr\":{\"displayName\":\"Saldo Vorjahr (EUR)\"},\"salden.buchungen\":{\"displayName\":\"Buchungen\"}},\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'Konten zur ausgewählten Bilanzposition (Klick in Aktiva/Passiva filtert; Saldo netto: Soll +, Haben −)'\"}}}}}]}}}",
+          "filters": "[{\"name\":\"fKontenBilanz\",\"expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"salden\"}},\"Property\":\"position\"}},\"filter\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'A. Anlagevermögen'\"}}],[{\"Literal\":{\"Value\":\"'B.I. Forderungen aus Lieferungen und Leistungen'\"}}],[{\"Literal\":{\"Value\":\"'B.II. Forderungen gegen Gesellschafter'\"}}],[{\"Literal\":{\"Value\":\"'B.III. Kasse, Bank, Geldtransit'\"}}],[{\"Literal\":{\"Value\":\"'C. Aktive Rechnungsabgrenzung'\"}}],[{\"Literal\":{\"Value\":\"'D. Aktive latente Steuern'\"}}],[{\"Literal\":{\"Value\":\"'E. Sonstige Aktiva'\"}}],[{\"Literal\":{\"Value\":\"'A. Eigenkapital (Einzelunternehmen)'\"}}],[{\"Literal\":{\"Value\":\"'A.I. Gezeichnetes Kapital'\"}}],[{\"Literal\":{\"Value\":\"'A.I. Kapitalanteile persönlich haftende Gesellschafter'\"}}],[{\"Literal\":{\"Value\":\"'A.II. Kapitalrücklage'\"}}],[{\"Literal\":{\"Value\":\"'A.II. Kapitalanteile Kommanditisten'\"}}],[{\"Literal\":{\"Value\":\"'A.III. Gewinnrücklagen'\"}}],[{\"Literal\":{\"Value\":\"'A.III. Rücklagen'\"}}],[{\"Literal\":{\"Value\":\"'A.IV. Gewinn-/Verlustvortrag'\"}}],[{\"Literal\":{\"Value\":\"'A.V. Jahresüberschuss/Jahresfehlbetrag'\"}}],[{\"Literal\":{\"Value\":\"'A.VI. Übriges Eigenkapital (Privat-/sonstige EK-Konten)'\"}}],[{\"Literal\":{\"Value\":\"'A.VII. KKE-/Umbuchungskonten Kapital (Klasse 9)'\"}}],[{\"Literal\":{\"Value\":\"'B. Rückstellungen'\"}}],[{\"Literal\":{\"Value\":\"'C.I. Verbindlichkeiten gegenüber Kreditinstituten'\"}}],[{\"Literal\":{\"Value\":\"'C.II. Verbindlichkeiten aus Lieferungen und Leistungen'\"}}],[{\"Literal\":{\"Value\":\"'C.III. Verbindlichkeiten gegenüber Gesellschaftern'\"}}],[{\"Literal\":{\"Value\":\"'C.IV. Sonstige Verbindlichkeiten'\"}}],[{\"Literal\":{\"Value\":\"'D. Passive Rechnungsabgrenzung'\"}}],[{\"Literal\":{\"Value\":\"'E. Passive latente Steuern'\"}}],[{\"Literal\":{\"Value\":\"'Z. Saldenvortrags-Differenz (SB-06)'\"}}]]}}}]},\"type\":\"Categorical\"}]"
+        }
+      ]
+    },
+    {
+      "name": "guv",
+      "displayName": "GuV",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiErgebnis\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Jahresergebnis\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Jahresergebnis\"},\"Name\":\"salden.Jahresergebnis\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 100.0,
+          "config": "{\"name\":\"kpiErgebnisVJ\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":100}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.Jahresergebnis Vorjahr\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Jahresergebnis Vorjahr\"},\"Name\":\"salden.Jahresergebnis Vorjahr\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 132.0,
+          "z": 2.0,
+          "width": 616.0,
+          "height": 572.0,
+          "config": "{\"name\":\"matGuv\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":132,\"z\":2,\"width\":616,\"height\":572}}],\"singleVisual\":{\"visualType\":\"pivotTable\",\"projections\":{\"Rows\":[{\"queryRef\":\"salden.position\"}],\"Values\":[{\"queryRef\":\"salden.GuV Ergebnisbeitrag\"},{\"queryRef\":\"salden.GuV Ergebnisbeitrag Vorjahr\"},{\"queryRef\":\"salden.GuV Delta zum Vorjahr\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"GuV Ergebnisbeitrag\"},\"Name\":\"salden.GuV Ergebnisbeitrag\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"GuV Ergebnisbeitrag Vorjahr\"},\"Name\":\"salden.GuV Ergebnisbeitrag Vorjahr\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"GuV Delta zum Vorjahr\"},\"Name\":\"salden.GuV Delta zum Vorjahr\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[{\"name\":\"fGuv\",\"expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"salden\"}},\"Property\":\"position\"}},\"filter\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'1. Umsatzerlöse'\"}}],[{\"Literal\":{\"Value\":\"'2. Erlösschmälerungen'\"}}],[{\"Literal\":{\"Value\":\"'3. Sonstige betriebliche Erträge'\"}}],[{\"Literal\":{\"Value\":\"'4. Materialaufwand'\"}}],[{\"Literal\":{\"Value\":\"'5. Personalaufwand'\"}}],[{\"Literal\":{\"Value\":\"'6. Abschreibungen'\"}}],[{\"Literal\":{\"Value\":\"'7. Sonstige betriebliche Aufwendungen'\"}}],[{\"Literal\":{\"Value\":\"'8. Zinsen und ähnliche Aufwendungen'\"}}],[{\"Literal\":{\"Value\":\"'9. Steuern vom Einkommen und vom Ertrag'\"}}]]}}}]},\"type\":\"Categorical\"}]"
+        },
+        {
+          "x": 648.0,
+          "y": 132.0,
+          "z": 3.0,
+          "width": 616.0,
+          "height": 572.0,
+          "config": "{\"name\":\"chartGuv\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":132,\"z\":3,\"width\":616,\"height\":572}}],\"singleVisual\":{\"visualType\":\"clusteredBarChart\",\"projections\":{\"Category\":[{\"queryRef\":\"salden.position\"}],\"Y\":[{\"queryRef\":\"salden.GuV Ergebnisbeitrag\"},{\"queryRef\":\"salden.GuV Ergebnisbeitrag Vorjahr\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"GuV Ergebnisbeitrag\"},\"Name\":\"salden.GuV Ergebnisbeitrag\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"GuV Ergebnisbeitrag Vorjahr\"},\"Name\":\"salden.GuV Ergebnisbeitrag Vorjahr\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[{\"name\":\"fGuvChart\",\"expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Entity\":\"salden\"}},\"Property\":\"position\"}},\"filter\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'1. Umsatzerlöse'\"}}],[{\"Literal\":{\"Value\":\"'2. Erlösschmälerungen'\"}}],[{\"Literal\":{\"Value\":\"'3. Sonstige betriebliche Erträge'\"}}],[{\"Literal\":{\"Value\":\"'4. Materialaufwand'\"}}],[{\"Literal\":{\"Value\":\"'5. Personalaufwand'\"}}],[{\"Literal\":{\"Value\":\"'6. Abschreibungen'\"}}],[{\"Literal\":{\"Value\":\"'7. Sonstige betriebliche Aufwendungen'\"}}],[{\"Literal\":{\"Value\":\"'8. Zinsen und ähnliche Aufwendungen'\"}}],[{\"Literal\":{\"Value\":\"'9. Steuern vom Einkommen und vom Ertrag'\"}}]]}}}]},\"type\":\"Categorical\"}]"
+        }
+      ]
+    },
+    {
+      "name": "cockpit",
+      "displayName": "Cockpit",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 120.0,
+          "config": "{\"name\":\"kpiGesamt\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":120}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.Befunde gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"Befunde gesamt\"},\"Name\":\"befunde.Befunde gesamt\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 120.0,
+          "config": "{\"name\":\"kpiHoch\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":120}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.Befunde hoch\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"Befunde hoch\"},\"Name\":\"befunde.Befunde hoch\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 152.0,
+          "z": 2.0,
+          "width": 620.0,
+          "height": 536.0,
+          "config": "{\"name\":\"bereichChart\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":152,\"z\":2,\"width\":620,\"height\":536}}],\"singleVisual\":{\"visualType\":\"barChart\",\"projections\":{\"Category\":[{\"queryRef\":\"befunde.bereich\"}],\"Series\":[{\"queryRef\":\"befunde.schwere\"}],\"Y\":[{\"queryRef\":\"befunde.Befunde gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"bereich\"},\"Name\":\"befunde.bereich\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"schwere\"},\"Name\":\"befunde.schwere\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"Befunde gesamt\"},\"Name\":\"befunde.Befunde gesamt\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 652.0,
+          "y": 152.0,
+          "z": 3.0,
+          "width": 612.0,
+          "height": 250.0,
+          "config": "{\"name\":\"ebeneChart\",\"layouts\":[{\"id\":0,\"position\":{\"x\":652,\"y\":152,\"z\":3,\"width\":612,\"height\":250}}],\"singleVisual\":{\"visualType\":\"clusteredBarChart\",\"projections\":{\"Category\":[{\"queryRef\":\"befunde.ebene\"}],\"Y\":[{\"queryRef\":\"befunde.Befunde gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"ebene\"},\"Name\":\"befunde.ebene\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"Befunde gesamt\"},\"Name\":\"befunde.Befunde gesamt\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 652.0,
+          "y": 418.0,
+          "z": 4.0,
+          "width": 612.0,
+          "height": 270.0,
+          "config": "{\"name\":\"befundTabelle\",\"layouts\":[{\"id\":0,\"position\":{\"x\":652,\"y\":418,\"z\":4,\"width\":612,\"height\":270}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.check_id\"},{\"queryRef\":\"befunde.schwere\"},{\"queryRef\":\"befunde.konto\"},{\"queryRef\":\"befunde.text\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"check_id\"},\"Name\":\"befunde.check_id\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"schwere\"},\"Name\":\"befunde.schwere\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"konto\"},\"Name\":\"befunde.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"text\"},\"Name\":\"befunde.text\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "befundexplorer",
+      "displayName": "Befund-Explorer",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"expBereich\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.bereich\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"bereich\"},\"Name\":\"befunde.bereich\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"expSchwere\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.schwere\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"schwere\"},\"Name\":\"befunde.schwere\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648.0,
+          "y": 16.0,
+          "z": 2.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"expCheck\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":16,\"z\":2,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.check_id\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"check_id\"},\"Name\":\"befunde.check_id\"}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"befunde.check_id\":{\"displayName\":\"Check\"}}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 964.0,
+          "y": 16.0,
+          "z": 3.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"expGesamt\",\"layouts\":[{\"id\":0,\"position\":{\"x\":964,\"y\":16,\"z\":3,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.Befunde gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"Befunde gesamt\"},\"Name\":\"befunde.Befunde gesamt\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 142.0,
+          "z": 4.0,
+          "width": 1248.0,
+          "height": 370.0,
+          "config": "{\"name\":\"expBefunde\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":142,\"z\":4,\"width\":1248,\"height\":370}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.check_id\"},{\"queryRef\":\"befunde.check\"},{\"queryRef\":\"befunde.bereich\"},{\"queryRef\":\"befunde.ebene\"},{\"queryRef\":\"befunde.klasse\"},{\"queryRef\":\"befunde.schwere\"},{\"queryRef\":\"befunde.konto\"},{\"queryRef\":\"salden.bezeichnung\"},{\"queryRef\":\"befunde.gegenkonto\"},{\"queryRef\":\"befunde.datum\"},{\"queryRef\":\"befunde.betrag\"},{\"queryRef\":\"befunde.beleg\"},{\"queryRef\":\"befunde.buchungstext\"},{\"queryRef\":\"befunde.text\"},{\"queryRef\":\"befunde.empfehlung\"},{\"queryRef\":\"befunde.quelle\"},{\"queryRef\":\"befunde.llm_kandidat\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0},{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"check_id\"},\"Name\":\"befunde.check_id\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"check\"},\"Name\":\"befunde.check\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"bereich\"},\"Name\":\"befunde.bereich\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"ebene\"},\"Name\":\"befunde.ebene\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"klasse\"},\"Name\":\"befunde.klasse\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"schwere\"},\"Name\":\"befunde.schwere\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"konto\"},\"Name\":\"befunde.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"bezeichnung\"},\"Name\":\"salden.bezeichnung\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"gegenkonto\"},\"Name\":\"befunde.gegenkonto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"datum\"},\"Name\":\"befunde.datum\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"betrag\"},\"Name\":\"befunde.betrag\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"beleg\"},\"Name\":\"befunde.beleg\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"buchungstext\"},\"Name\":\"befunde.buchungstext\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"text\"},\"Name\":\"befunde.text\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"empfehlung\"},\"Name\":\"befunde.empfehlung\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"quelle\"},\"Name\":\"befunde.quelle\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"llm_kandidat\"},\"Name\":\"befunde.llm_kandidat\"}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"salden.bezeichnung\":{\"displayName\":\"Kontobezeichnung\"}},\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'Befunde (alle Spalten des Prüfberichts – Klick filtert die Einzelbuchungen unten)'\"}}}}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 528.0,
+          "z": 5.0,
+          "width": 1248.0,
+          "height": 176.0,
+          "config": "{\"name\":\"expBuchungen\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":528,\"z\":5,\"width\":1248,\"height\":176}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"buchungen.quelle_zeile\"},{\"queryRef\":\"buchungen.seite\"},{\"queryRef\":\"buchungen.konto\"},{\"queryRef\":\"buchungen.konto_name\"},{\"queryRef\":\"buchungen.partnerkonto\"},{\"queryRef\":\"buchungen.datum\"},{\"queryRef\":\"buchungen.betrag\"},{\"queryRef\":\"buchungen.bu\"},{\"queryRef\":\"buchungen.beleg\"},{\"queryRef\":\"buchungen.buchungstext\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"u\",\"Entity\":\"buchungen\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"quelle_zeile\"},\"Name\":\"buchungen.quelle_zeile\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"seite\"},\"Name\":\"buchungen.seite\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"konto\"},\"Name\":\"buchungen.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"konto_name\"},\"Name\":\"buchungen.konto_name\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"partnerkonto\"},\"Name\":\"buchungen.partnerkonto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"datum\"},\"Name\":\"buchungen.datum\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"betrag\"},\"Name\":\"buchungen.betrag\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"bu\"},\"Name\":\"buchungen.bu\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"beleg\"},\"Name\":\"buchungen.beleg\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"buchungstext\"},\"Name\":\"buchungen.buchungstext\"}]},\"drillFilterOtherVisuals\":true,\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'Einzelbuchungen zur Auswahl (Befund-Klick oder Slicer; eine Zeile je Kontoseite)'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "einzelbuchungen",
+      "displayName": "Einzelbuchungen",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 140.0,
+          "config": "{\"name\":\"ebKonto\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":140}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.konto\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"konto\"},\"Name\":\"salden.konto\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 140.0,
+          "config": "{\"name\":\"ebPosition\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":140}}],\"singleVisual\":{\"visualType\":\"slicer\",\"projections\":{\"Values\":[{\"queryRef\":\"salden.position\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"s\",\"Entity\":\"salden\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"position\"},\"Name\":\"salden.position\"}]},\"drillFilterOtherVisuals\":true,\"columnProperties\":{\"salden.position\":{\"displayName\":\"Bilanzposition\"}}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 648.0,
+          "y": 16.0,
+          "z": 2.0,
+          "width": 300.0,
+          "height": 140.0,
+          "config": "{\"name\":\"ebSumme\",\"layouts\":[{\"id\":0,\"position\":{\"x\":648,\"y\":16,\"z\":2,\"width\":300,\"height\":140}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"buchungen.Bewegungssumme (brutto)\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"u\",\"Entity\":\"buchungen\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"Bewegungssumme (brutto)\"},\"Name\":\"buchungen.Bewegungssumme (brutto)\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 964.0,
+          "y": 16.0,
+          "z": 3.0,
+          "width": 300.0,
+          "height": 140.0,
+          "config": "{\"name\":\"ebZeilen\",\"layouts\":[{\"id\":0,\"position\":{\"x\":964,\"y\":16,\"z\":3,\"width\":300,\"height\":140}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"buchungen.Stapelzeilen\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"u\",\"Entity\":\"buchungen\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"Stapelzeilen\"},\"Name\":\"buchungen.Stapelzeilen\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 172.0,
+          "z": 4.0,
+          "width": 1248.0,
+          "height": 532.0,
+          "config": "{\"name\":\"ebTabelle\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":172,\"z\":4,\"width\":1248,\"height\":532}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"buchungen.quelle_zeile\"},{\"queryRef\":\"buchungen.seite\"},{\"queryRef\":\"buchungen.konto\"},{\"queryRef\":\"buchungen.konto_name\"},{\"queryRef\":\"buchungen.partnerkonto\"},{\"queryRef\":\"buchungen.partnerkonto_name\"},{\"queryRef\":\"buchungen.datum\"},{\"queryRef\":\"buchungen.betrag\"},{\"queryRef\":\"buchungen.umsatz\"},{\"queryRef\":\"buchungen.sh\"},{\"queryRef\":\"buchungen.storno\"},{\"queryRef\":\"buchungen.bu\"},{\"queryRef\":\"buchungen.beleg\"},{\"queryRef\":\"buchungen.buchungstext\"},{\"queryRef\":\"buchungen.kost1\"},{\"queryRef\":\"buchungen.eb\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"u\",\"Entity\":\"buchungen\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"quelle_zeile\"},\"Name\":\"buchungen.quelle_zeile\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"seite\"},\"Name\":\"buchungen.seite\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"konto\"},\"Name\":\"buchungen.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"konto_name\"},\"Name\":\"buchungen.konto_name\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"partnerkonto\"},\"Name\":\"buchungen.partnerkonto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"partnerkonto_name\"},\"Name\":\"buchungen.partnerkonto_name\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"datum\"},\"Name\":\"buchungen.datum\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"betrag\"},\"Name\":\"buchungen.betrag\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"umsatz\"},\"Name\":\"buchungen.umsatz\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"sh\"},\"Name\":\"buchungen.sh\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"storno\"},\"Name\":\"buchungen.storno\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"bu\"},\"Name\":\"buchungen.bu\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"beleg\"},\"Name\":\"buchungen.beleg\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"buchungstext\"},\"Name\":\"buchungen.buchungstext\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"kost1\"},\"Name\":\"buchungen.kost1\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"u\"}},\"Property\":\"eb\"},\"Name\":\"buchungen.eb\"}]},\"drillFilterOtherVisuals\":true,\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'Buchungsjournal (eine Zeile je Kontoseite; betrag = vorzeichenrichtiger Saldo-Beitrag)'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "opos",
+      "displayName": "OPOS",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"opSumme\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"opos.OPOS offen gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"o\",\"Entity\":\"opos\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"OPOS offen gesamt\"},\"Name\":\"opos.OPOS offen gesamt\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"opAnzahl\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"opos.OPOS Posten\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"o\",\"Entity\":\"opos\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"OPOS Posten\"},\"Name\":\"opos.OPOS Posten\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 142.0,
+          "z": 2.0,
+          "width": 1248.0,
+          "height": 280.0,
+          "config": "{\"name\":\"opAging\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":142,\"z\":2,\"width\":1248,\"height\":280}}],\"singleVisual\":{\"visualType\":\"pivotTable\",\"projections\":{\"Rows\":[{\"queryRef\":\"opos.konto\"},{\"queryRef\":\"opos.bezeichnung\"}],\"Columns\":[{\"queryRef\":\"opos.stufe\"}],\"Values\":[{\"queryRef\":\"opos.OPOS offen gesamt\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"o\",\"Entity\":\"opos\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"konto\"},\"Name\":\"opos.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"bezeichnung\"},\"Name\":\"opos.bezeichnung\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"stufe\"},\"Name\":\"opos.stufe\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"OPOS offen gesamt\"},\"Name\":\"opos.OPOS offen gesamt\"}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"konto\"}}}]},\"drillFilterOtherVisuals\":true,\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'OPOS-Alterung (offener Betrag je Stufe; Stichtag = Ende Buchungszeitraum)'\"}}}}}]}}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 438.0,
+          "z": 3.0,
+          "width": 1248.0,
+          "height": 266.0,
+          "config": "{\"name\":\"opPosten\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":438,\"z\":3,\"width\":1248,\"height\":266}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"opos.konto\"},{\"queryRef\":\"opos.bezeichnung\"},{\"queryRef\":\"opos.art\"},{\"queryRef\":\"opos.betrag\"},{\"queryRef\":\"opos.belegdatum\"},{\"queryRef\":\"opos.faellig\"},{\"queryRef\":\"opos.alter_tage\"},{\"queryRef\":\"opos.stufe\"},{\"queryRef\":\"opos.beleg\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"o\",\"Entity\":\"opos\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"konto\"},\"Name\":\"opos.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"bezeichnung\"},\"Name\":\"opos.bezeichnung\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"art\"},\"Name\":\"opos.art\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"betrag\"},\"Name\":\"opos.betrag\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"belegdatum\"},\"Name\":\"opos.belegdatum\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"faellig\"},\"Name\":\"opos.faellig\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"alter_tage\"},\"Name\":\"opos.alter_tage\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"stufe\"},\"Name\":\"opos.stufe\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"o\"}},\"Property\":\"beleg\"},\"Name\":\"opos.beleg\"}]},\"drillFilterOtherVisuals\":true,\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'OPOS-Einzelposten (leer, wenn keine OPOS-Liste übergeben wurde – Aufruf mit --opos)'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    },
+    {
+      "name": "kikandidaten",
+      "displayName": "KI-Kandidaten",
+      "displayOption": 1,
+      "height": 720.0,
+      "width": 1280.0,
+      "config": "{}",
+      "filters": "[]",
+      "visualContainers": [
+        {
+          "x": 16.0,
+          "y": 16.0,
+          "z": 0.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"kiAnzahl\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":16,\"z\":0,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"ki_kandidaten.KI-Kandidaten exportiert\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"k\",\"Entity\":\"ki_kandidaten\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"KI-Kandidaten exportiert\"},\"Name\":\"ki_kandidaten.KI-Kandidaten exportiert\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 332.0,
+          "y": 16.0,
+          "z": 1.0,
+          "width": 300.0,
+          "height": 110.0,
+          "config": "{\"name\":\"kiBefundbasiert\",\"layouts\":[{\"id\":0,\"position\":{\"x\":332,\"y\":16,\"z\":1,\"width\":300,\"height\":110}}],\"singleVisual\":{\"visualType\":\"card\",\"projections\":{\"Values\":[{\"queryRef\":\"befunde.KI-Kandidaten\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"b\",\"Entity\":\"befunde\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"b\"}},\"Property\":\"KI-Kandidaten\"},\"Name\":\"befunde.KI-Kandidaten\"}]},\"drillFilterOtherVisuals\":true}}",
+          "filters": "[]"
+        },
+        {
+          "x": 16.0,
+          "y": 142.0,
+          "z": 2.0,
+          "width": 1248.0,
+          "height": 562.0,
+          "config": "{\"name\":\"kiTabelle\",\"layouts\":[{\"id\":0,\"position\":{\"x\":16,\"y\":142,\"z\":2,\"width\":1248,\"height\":562}}],\"singleVisual\":{\"visualType\":\"tableEx\",\"projections\":{\"Values\":[{\"queryRef\":\"ki_kandidaten.id\"},{\"queryRef\":\"ki_kandidaten.grund\"},{\"queryRef\":\"ki_kandidaten.konto\"},{\"queryRef\":\"ki_kandidaten.konto_name\"},{\"queryRef\":\"ki_kandidaten.gegenkonto\"},{\"queryRef\":\"ki_kandidaten.datum\"},{\"queryRef\":\"ki_kandidaten.betrag\"},{\"queryRef\":\"ki_kandidaten.bu\"},{\"queryRef\":\"ki_kandidaten.beleg\"},{\"queryRef\":\"ki_kandidaten.buchungstext\"},{\"queryRef\":\"ki_kandidaten.quelle\"}]},\"prototypeQuery\":{\"Version\":2,\"From\":[{\"Name\":\"k\",\"Entity\":\"ki_kandidaten\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"id\"},\"Name\":\"ki_kandidaten.id\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"grund\"},\"Name\":\"ki_kandidaten.grund\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"konto\"},\"Name\":\"ki_kandidaten.konto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"konto_name\"},\"Name\":\"ki_kandidaten.konto_name\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"gegenkonto\"},\"Name\":\"ki_kandidaten.gegenkonto\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"datum\"},\"Name\":\"ki_kandidaten.datum\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"betrag\"},\"Name\":\"ki_kandidaten.betrag\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"bu\"},\"Name\":\"ki_kandidaten.bu\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"beleg\"},\"Name\":\"ki_kandidaten.beleg\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"buchungstext\"},\"Name\":\"ki_kandidaten.buchungstext\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"k\"}},\"Property\":\"quelle\"},\"Name\":\"ki_kandidaten.quelle\"}]},\"drillFilterOtherVisuals\":true,\"objects\":{\"title\":[{\"properties\":{\"visible\":{\"expr\":{\"Literal\":{\"Value\":\"true\"}}},\"text\":{\"expr\":{\"Literal\":{\"Value\":\"'KI-Kandidaten (Export an die KI-Beurteilungsschicht; Urteile stehen nach der Durchsicht im Excel-Bericht)'\"}}}}}]}}}",
+          "filters": "[]"
+        }
+      ]
+    }
+  ]
+}
