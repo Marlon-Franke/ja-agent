@@ -1,0 +1,129 @@
+{
+  "name": "JA-Pruefbericht",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "de-DE",
+    "defaultPowerBIDataSourceVersion": "powerBI_V3",
+    "sourceQueryCulture": "de-DE",
+    "expressions": [
+      {
+        "name": "BefundeCsvPfad",
+        "kind": "m",
+        "expression": "\"__CSV_PFAD__\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      },
+      {
+        "name": "SaldenCsvPfad",
+        "kind": "m",
+        "expression": "\"__SALDEN_PFAD__\" meta [IsParameterQuery=true, Type=\"Text\", IsParameterQueryRequired=true]",
+        "annotations": [
+          {
+            "name": "PBI_ResultType",
+            "value": "Text"
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "befunde_zu_salden",
+        "fromTable": "befunde",
+        "fromColumn": "konto",
+        "toTable": "salden",
+        "toColumn": "konto"
+      }
+    ],
+    "tables": [
+      {
+        "name": "befunde",
+        "columns": [
+          { "name": "check_id", "dataType": "string", "sourceColumn": "check_id" },
+          { "name": "check", "dataType": "string", "sourceColumn": "check" },
+          { "name": "bereich", "dataType": "string", "sourceColumn": "bereich" },
+          { "name": "ebene", "dataType": "int64", "sourceColumn": "ebene" },
+          { "name": "klasse", "dataType": "string", "sourceColumn": "klasse" },
+          { "name": "schwere", "dataType": "string", "sourceColumn": "schwere" },
+          { "name": "konto", "dataType": "string", "sourceColumn": "konto" },
+          { "name": "gegenkonto", "dataType": "string", "sourceColumn": "gegenkonto" },
+          { "name": "datum", "dataType": "dateTime", "sourceColumn": "datum", "formatString": "dd.mm.yyyy" },
+          { "name": "betrag", "dataType": "double", "sourceColumn": "betrag", "formatString": "#,0.00" },
+          { "name": "beleg", "dataType": "string", "sourceColumn": "beleg" },
+          { "name": "buchungstext", "dataType": "string", "sourceColumn": "buchungstext" },
+          { "name": "text", "dataType": "string", "sourceColumn": "text" },
+          { "name": "empfehlung", "dataType": "string", "sourceColumn": "empfehlung" },
+          { "name": "quelle", "dataType": "string", "sourceColumn": "quelle" },
+          { "name": "llm_kandidat", "dataType": "string", "sourceColumn": "llm_kandidat" }
+        ],
+        "partitions": [
+          {
+            "name": "befunde",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Quelle = Csv.Document(File.Contents(BefundeCsvPfad), [Delimiter = \";\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),\n    Kopfzeile = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),\n    Leerwerte = Table.ReplaceValue(Kopfzeile, \"\", null, Replacer.ReplaceValue, {\"betrag\", \"datum\", \"konto\", \"gegenkonto\"}),\n    Typen = Table.TransformColumnTypes(Leerwerte, {{\"ebene\", Int64.Type}, {\"betrag\", type number}, {\"datum\", type date}})\nin\n    Typen"
+            }
+          }
+        ],
+        "measures": [
+          { "name": "Befunde gesamt", "expression": "COUNTROWS('befunde')", "formatString": "0" },
+          { "name": "Befunde hoch", "expression": "CALCULATE(COUNTROWS('befunde'), 'befunde'[schwere] = \"hoch\")", "formatString": "0" },
+          { "name": "Befunde mittel", "expression": "CALCULATE(COUNTROWS('befunde'), 'befunde'[schwere] = \"mittel\")", "formatString": "0" },
+          { "name": "Befunde Hinweis", "expression": "CALCULATE(COUNTROWS('befunde'), 'befunde'[schwere] = \"hinweis\")", "formatString": "0" },
+          { "name": "KI-Kandidaten", "expression": "CALCULATE(COUNTROWS('befunde'), 'befunde'[llm_kandidat] = \"True\")", "formatString": "0" }
+        ]
+      },
+      {
+        "name": "salden",
+        "columns": [
+          { "name": "konto", "dataType": "string", "sourceColumn": "konto" },
+          { "name": "bezeichnung", "dataType": "string", "sourceColumn": "bezeichnung" },
+          { "name": "gruppen", "dataType": "string", "sourceColumn": "gruppen" },
+          { "name": "soll", "dataType": "double", "sourceColumn": "soll", "formatString": "#,0.00" },
+          { "name": "haben", "dataType": "double", "sourceColumn": "haben", "formatString": "#,0.00" },
+          { "name": "saldo", "dataType": "double", "sourceColumn": "saldo", "formatString": "#,0.00" },
+          { "name": "saldo_netto", "dataType": "double", "sourceColumn": "saldo_netto", "formatString": "#,0.00" },
+          { "name": "saldo_vorjahr", "dataType": "double", "sourceColumn": "saldo_vorjahr", "formatString": "#,0.00" },
+          { "name": "buchungen", "dataType": "int64", "sourceColumn": "buchungen" },
+          { "name": "position", "dataType": "string", "sourceColumn": "position" }
+        ],
+        "partitions": [
+          {
+            "name": "salden",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Quelle = Csv.Document(File.Contents(SaldenCsvPfad), [Delimiter = \";\", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),\n    Kopfzeile = Table.PromoteHeaders(Quelle, [PromoteAllScalars = true]),\n    Leerwerte = Table.ReplaceValue(Kopfzeile, \"\", null, Replacer.ReplaceValue, {\"saldo_vorjahr\"}),\n    Typen = Table.TransformColumnTypes(Leerwerte, {{\"soll\", type number}, {\"haben\", type number}, {\"saldo\", type number}, {\"saldo_netto\", type number}, {\"saldo_vorjahr\", type number}, {\"buchungen\", Int64.Type}})\nin\n    Typen"
+            }
+          }
+        ],
+        "measures": [
+          { "name": "Saldo netto gesamt", "expression": "SUM('salden'[saldo_netto])", "formatString": "#,0.00" },
+          { "name": "Saldo Vorjahr gesamt", "expression": "SUM('salden'[saldo_vorjahr])", "formatString": "#,0.00" },
+          { "name": "Aktiva gesamt", "expression": "CALCULATE(SUM('salden'[saldo_netto]), 'salden'[position] IN {\"A. Anlagevermögen\", \"B.I. Forderungen aus Lieferungen und Leistungen\", \"B.II. Forderungen gegen Gesellschafter\", \"B.III. Kasse, Bank, Geldtransit\", \"C. Aktive Rechnungsabgrenzung\", \"D. Aktive latente Steuern\", \"E. Sonstige Aktiva\"})", "formatString": "#,0.00" },
+          { "name": "Aktiva Vorjahr", "expression": "CALCULATE(SUM('salden'[saldo_vorjahr]), 'salden'[position] IN {\"A. Anlagevermögen\", \"B.I. Forderungen aus Lieferungen und Leistungen\", \"B.II. Forderungen gegen Gesellschafter\", \"B.III. Kasse, Bank, Geldtransit\", \"C. Aktive Rechnungsabgrenzung\", \"D. Aktive latente Steuern\", \"E. Sonstige Aktiva\"})", "formatString": "#,0.00" },
+          { "name": "Passiva (vor Jahresergebnis)", "expression": "-CALCULATE(SUM('salden'[saldo_netto]), 'salden'[position] IN {\"A. Eigenkapital\", \"B. Rückstellungen\", \"C.I. Verbindlichkeiten gegenüber Kreditinstituten\", \"C.II. Verbindlichkeiten aus Lieferungen und Leistungen\", \"C.III. Verbindlichkeiten gegenüber Gesellschaftern\", \"C.IV. Sonstige Verbindlichkeiten\", \"D. Passive Rechnungsabgrenzung\", \"E. Passive latente Steuern\"})", "formatString": "#,0.00" },
+          { "name": "Passiva Vorjahr", "expression": "-CALCULATE(SUM('salden'[saldo_vorjahr]), 'salden'[position] IN {\"A. Eigenkapital\", \"B. Rückstellungen\", \"C.I. Verbindlichkeiten gegenüber Kreditinstituten\", \"C.II. Verbindlichkeiten aus Lieferungen und Leistungen\", \"C.III. Verbindlichkeiten gegenüber Gesellschaftern\", \"C.IV. Sonstige Verbindlichkeiten\", \"D. Passive Rechnungsabgrenzung\", \"E. Passive latente Steuern\"})", "formatString": "#,0.00" },
+          { "name": "Passiva Betrag", "expression": "-SUM('salden'[saldo_netto])", "formatString": "#,0.00" },
+          { "name": "Passiva Betrag Vorjahr", "expression": "-SUM('salden'[saldo_vorjahr])", "formatString": "#,0.00" },
+          { "name": "Jahresergebnis", "expression": "-CALCULATE(SUM('salden'[saldo_netto]), 'salden'[position] IN {\"1. Umsatzerlöse\", \"2. Erlösschmälerungen\", \"3. Sonstige betriebliche Erträge\", \"4. Materialaufwand\", \"5. Personalaufwand\", \"6. Abschreibungen\", \"7. Sonstige betriebliche Aufwendungen\", \"8. Zinsen und ähnliche Aufwendungen\", \"9. Steuern vom Einkommen und vom Ertrag\"})", "formatString": "#,0.00" },
+          { "name": "Jahresergebnis Vorjahr", "expression": "-CALCULATE(SUM('salden'[saldo_vorjahr]), 'salden'[position] IN {\"1. Umsatzerlöse\", \"2. Erlösschmälerungen\", \"3. Sonstige betriebliche Erträge\", \"4. Materialaufwand\", \"5. Personalaufwand\", \"6. Abschreibungen\", \"7. Sonstige betriebliche Aufwendungen\", \"8. Zinsen und ähnliche Aufwendungen\", \"9. Steuern vom Einkommen und vom Ertrag\"})", "formatString": "#,0.00" },
+          { "name": "Vortragsdifferenz", "expression": "CALCULATE(SUM('salden'[saldo_netto]), 'salden'[position] = \"(Saldenvortrags-Differenz)\")", "formatString": "#,0.00" },
+          { "name": "GuV Ergebnisbeitrag", "expression": "-SUM('salden'[saldo_netto])", "formatString": "#,0.00" },
+          { "name": "GuV Ergebnisbeitrag Vorjahr", "expression": "-SUM('salden'[saldo_vorjahr])", "formatString": "#,0.00" },
+          { "name": "GuV Delta zum Vorjahr", "expression": "[GuV Ergebnisbeitrag] - [GuV Ergebnisbeitrag Vorjahr]", "formatString": "+#,0.00;-#,0.00;0.00" }
+        ]
+      }
+    ],
+    "annotations": [
+      {
+        "name": "__PBI_TimeIntelligenceEnabled",
+        "value": "0"
+      }
+    ]
+  }
+}
