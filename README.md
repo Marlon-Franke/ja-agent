@@ -3,7 +3,7 @@
 Prüft DATEV-Buchungsstapel wie ein erfahrener Abschlussprüfer und liefert
 einen strukturierten Excel-Prüfbericht – bereit zur Durchsicht, kein
 Textblock. Kernprinzip: **Regeln, die eindeutig sind, gehören in Code, nicht
-ins Prompt.** 68 Checks laufen deterministisch in Python, klassifiziert in
+ins Prompt.** 72 Checks laufen deterministisch in Python, klassifiziert in
 vier Prüfebenen (1 technische Integrität, 2 Regelprüfung, 3 Plausibilität,
 4 Anomalie) und nach Prüfungstyp ([R] regelbasiert, [P] Plausibilität,
 [A] Anomalie, [X] benötigt Zusatzdaten); die KI beurteilt nur die
@@ -23,11 +23,16 @@ DATEV-Exporte (EXTF/DTVF-CSV)
 werkzeuge/ja_pruefung.py          deterministische Pipeline (Python, ohne LLM)
    ├─ datev_parser.py             EXTF/DTVF-Parser (Kat. 21/20), SuSa-/OPOS-Leser
    ├─ kontenplan.py               SKR03/SKR04-Erkennung, Kontengruppen, Steuerableitung
-   ├─ checks.py / checks_erweitert.py / checks_vorjahr.py / statistik.py   68 Checks in 4 Ebenen
+   ├─ checks.py / checks_erweitert.py / checks_vorjahr.py / statistik.py   72 Checks in 4 Ebenen
    └─ excel_report.py             Excel-Prüfbericht (openpyxl, inkl. OPOS-Alterung)
         │
-        ├─ Pruefbericht_<Mandant>_<Jahr>.xlsx   (Übersicht, Befunde je Bereich, Salden)
-        ├─ befunde.json                         (maschinenlesbar)
+        ├─ Pruefbericht_<Mandant>_<Jahr>.xlsx   (Cockpit, Übersicht, Anleitung,
+        │                                        Befunde je Bereich, Bilanz/GuV
+        │                                        formelverknüpft, Salden)
+        ├─ befunde.json / befunde.csv / salden.csv   (maschinenlesbar; CSVs =
+        │                                        Power-BI-/Pivot-Datenbasis)
+        ├─ PowerBI/ (nur mit --pbi)             (PBIP-Projekt: verknüpftes Modell
+        │                                        befunde ↔ salden + Cockpit-Seite)
         └─ llm_kandidaten.json                  (kriterienbasierte KI-Kandidaten,
         │                                        unbegrenzt; optionaler Kostendeckel)
         ▼
@@ -47,19 +52,26 @@ Katalogpunkt mit Status und ggf. benötigter Datenquelle):
 ## Schnellstart (lokal, ohne Plugin-Installation)
 
 ```bash
-py werkzeuge/ja_pruefung.py --stapel <Ordner-mit-EXTF-Dateien> --susa susa.csv --susa-vorjahr susa_vj.csv --opos opos.csv --mandant "Mustermann GmbH"
+py werkzeuge/ja_pruefung.py --stapel <Ordner-mit-EXTF-Dateien> --susa susa.csv --susa-vorjahr susa_vj.csv --opos opos.csv --mandant "Mustermann GmbH" --rechtsform kapitalgesellschaft
 ```
 
 Demo mit synthetischen Daten (alle Fehlerbilder eingebaut; die beiden
 SuSa-Dateien sind Bilanz und GuV des Prüfjahres und des Vorjahres auf
-Kontenebene):
+Kontenebene). Der Demo-Mandant ist eine **GmbH** – der Standardfall ohne
+die Mitunternehmer-Komplexität einer GmbH & Co. KG (Kapitalkonten je
+Gesellschafter, Ergänzungs-/Sonderbilanzen, § 15a EStG; im Katalog als
+zusätzliche Prüfungen mit Datenquellen ausgewiesen). Die im Bestand
+gesäten Privatkonten-Buchungen werden bei der GmbH zum Befund `PP-04`
+(vGA-Risiko), die Entnahme-Checks (`PP-01/02`, `SB-10`) zeigen den
+begründeten Rechtsform-Skip, und das Gesellschafterdarlehen läuft über
+`GS-01`:
 
 ```bash
 py testdaten/erzeuge_testdaten.py
 ```
 
 ```bash
-py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH & Co. KG" --ausgabe testdaten/ausgabe
+py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH" --rechtsform kapitalgesellschaft --ausgabe testdaten/ausgabe
 ```
 
 Voraussetzungen: Python 3.10+ mit `openpyxl` (`py -m pip install openpyxl`).
@@ -73,7 +85,7 @@ der Skill `/ja-pruefung` zur Verfügung.
 **Claude Code (CLI):**
 
 ```bash
-claude plugin marketplace add "C:\Users\MarlonFranke\Documents\#Claude Code Projects\JA-Agent"
+claude plugin marketplace add <pfad-zum-lokalen-repository>
 ```
 
 ```bash
@@ -103,9 +115,7 @@ JA-Prüfungen laufen.
    (Quellen: [DATEV-Dokument 9304958 – SuSa des
    Geschäftsjahrs](https://wissensplattform.apps.datev.de/help/document/9304958),
    [DATEV-Dokument 9226355 – Checkliste ASCII Summen und
-   Salden](https://wissensplattform.apps.datev.de/help/document/9226355),
-   [Praxis-Exportanleitung
-   (PDF)](https://www.sparkasse-muelheim-ruhr.de/content/dam/myif/spk-muelheim/work/dokumente/pdf/fk_service_eigenes/BWA/Exportanleitung.pdf?stref=iconbox).)
+   Salden](https://wissensplattform.apps.datev.de/help/document/9226355).)
 3. **SuSa Vorjahr (empfohlen):** dieselbe Auswertung mit umgestelltem
    Geschäftsjahr → `--susa-vorjahr`. Aktiviert den EB-Abgleich
    (Bilanzidentität: Schlussbilanz Vorjahr = EB-Werte) und den
@@ -141,7 +151,44 @@ JA-Prüfungen laufen.
 ## Konfiguration
 
 `werkzeuge/konten_config.json` enthält alle Parameter (Schwellwerte,
-Zeitfenster, GWG-Grenze) und die Kontenbereiche je SKR. Die Zuordnungen sind
+Zeitfenster, GWG-Grenze) und die Kontenbereiche je SKR.
+
+**Rechtsform:** Der Parameter `rechtsform` (bzw. CLI-Flag
+`--rechtsform einzelunternehmen|personengesellschaft|kapitalgesellschaft`)
+steuert die rechtsformabhängigen Checks. Die Angabe wird nicht blind
+übernommen: `DQ-02` gleicht sie gegen das Rechtsform-Kürzel im
+Mandantennamen und gegen das Kontenbild ab (KSt-/gezeichnetes-Kapital-
+Konten = KapG-Indiz, Privatkonten = PersG/EU-Indiz; Widerspruch = Befund
+hoch, fehlende Angabe = Befund mittel plus Warnhinweis im Berichtskopf).
+Die Klassifizierung der Unternehmensformen ist konfigurierbar
+(`rechtsformen_erkennung` in `konten_config.json`, Reihenfolge =
+Priorität, zusammengesetzte Formen zuerst):
+
+| Formen (Kürzel im Mandantennamen) | Klasse |
+|---|---|
+| e.K., e.Kfm., e.Kfr., Einzelunternehmen, „Inh."-Zusatz | einzelunternehmen |
+| GbR/eGbR, OHG, KG, PartG, PartG mbB, EWIV | personengesellschaft |
+| GmbH & Co. KG, UG & Co. KG, AG & Co. KG, SE & Co. KG, Stiftung & Co. KG, GmbH & Co. OHG | personengesellschaft |
+| GmbH, gGmbH, UG (haftungsbeschränkt), AG, SE, InvAG | kapitalgesellschaft |
+| KGaA ([§ 278 AktG](https://www.gesetze-im-internet.de/aktg/__278.html): handelsrechtlich KapG; steuerliche Besonderheiten Komplementär) | kapitalgesellschaft |
+| eG, e.V., Stiftung, VVaG (Körperschaften: KSt-Subjekt, keine Privatkonten) | funktional wie kapitalgesellschaft |
+
+Sonderfall optierende Personengesellschaft
+([§ 1a KStG](https://www.gesetze-im-internet.de/kstg_1977/__1a.html)):
+zahlt KSt trotz PersG-Klasse – der KSt-Indiz-Befund von `DQ-02` nennt
+diese Ausnahme ausdrücklich. Bei Kapitalgesellschaften wird
+jede Buchung auf Privatkonten zum Befund (`PP-04`, vGA-Risiko § 8 Abs. 3
+Satz 2 KStG) und die Entnahme-Checks (`PP-01/02`, `SB-10`) werden mit
+Begründung übersprungen; bei Einzelunternehmen/Personengesellschaften
+gilt es umgekehrt. Bei Kapitalgesellschaften weist die Übersicht
+zusätzlich eine Größenklassen-Indikation aus (§ 267, § 267a HGB;
+Bilanzsumme näherungsweise und Umsatzerlöse aus den Daten, die
+Ø-Arbeitnehmerzahl ist beizusteuern); die Demo bildet die
+EK-Gliederung des § 266 Abs. 3 A HGB auf Kontenebene ab (Gezeichnetes
+Kapital, Kapitalrücklage, Gewinnvortrag). Die Mitunternehmer-Spezifika
+von Personengesellschaften (Kapitalkontenentwicklung je Gesellschafter,
+Ergänzungs- und Sonderbilanzen, § 15a EStG) sind zusätzliche Prüfungen
+mit eigenen Datenquellen (Katalog Kap. 8 und 14). Die Zuordnungen sind
 DATEV-Standardannahmen und **vor Produktiveinsatz gegen den
 Kanzlei-Kontenplan zu prüfen** (v. a. Grund und Boden, Automatikkonten,
 uWA-/Verbindlichkeitskonten). Bei individuellen Kontenplänen Kopie der
@@ -161,6 +208,41 @@ Kandidatenmengen beurteilt die KI-Schicht in Batches. Einzelbefund-Listen
 je Check sind über `liste_max_je_check` (Default 50) begrenzt; darüber
 hinausgehende Fälle erscheinen als Sammelzeile mit Anzahl – ebenfalls
 kein stilles Kappen.
+
+## Cockpit, Bilanz/GuV und BI-Anbindung
+
+Der Excel-Bericht enthält ein **Cockpit-Blatt** (KPI-Block plus native
+Excel-Diagramme: Befunde je Bereich gestapelt nach Schweregrad, Befunde
+je Prüfebene – Datentabellen bleiben daneben sichtbar) sowie
+**Bilanz- und GuV-Blätter mit Vorjahresspalte**: vereinfachte Gliederung
+nach § 266/§ 275 HGB, per `SUMIF`-Formeln **live verknüpft** mit dem
+Blatt „Salden je Konto" (dessen neue Spalte „Bilanz-/GuV-Position" füllt
+die Pipeline deterministisch je Konto, [werkzeuge/bilanz.py](werkzeuge/bilanz.py)).
+Überleitungszeilen (Jahresergebnis lt. GuV, Saldenvortrags-Differenz →
+SB-06) lassen die Bilanz exakt aufgehen; eine Kontrollzeile prüft
+Aktiva = Passiva.
+
+**Power BI (`--pbi`):** Der Ersteller wählt das Format – mit dem Flag
+erzeugt die Pipeline im Ausgabeordner ein **PBIP-Projekt** (Microsofts
+offenes Power-BI-Projektformat), das direkt mit Power BI Desktop
+geöffnet wird: ein **verknüpftes Datenmodell** aus `befunde.csv` und
+`salden.csv` (Beziehung über die Kontonummer – der eigentliche
+PBI-Mehrwert: Befunde, Salden, Positionen und Vorjahreswerte gemeinsam
+auswertbar), Pfad-Parameter `BefundeCsvPfad`/`SaldenCsvPfad`, Measures
+(Befunde gesamt/hoch/mittel/hinweis, KI-Kandidaten, Saldo-Summen sowie
+Aktiva/Passiva, Jahresergebnis, Vortragsdifferenz und
+GuV-Ergebnisbeiträge inkl. Vorjahr) und **drei vorbereitete
+Berichtsseiten in fester Reihenfolge: 1. Bilanz** (Kacheln Aktiva,
+Passiva vor Jahresergebnis, Jahresergebnis, Vortragsdifferenz → SB-06;
+Aktiv-/Passiv-Matrix je Position mit Vorjahresspalte), **2. GuV**
+(Staffel 1.–9. je Position mit Vorjahr und Delta, Ergebnisbeitrags-
+Diagramm; Erträge +, Aufwendungen −), **3. Cockpit** (Befundlage).
+Hinweis: Das Template ist hier
+ohne Power BI Desktop erzeugt und dort nicht gegengetestet – beim ersten
+Öffnen bitte prüfen; das Semantikmodell ist der stabile Kern, Visuals
+lassen sich notfalls in Minuten nachziehen. (Formatreferenz:
+[Microsoft Learn – Power BI Desktop-Projekte
+(PBIP)](https://learn.microsoft.com/de-de/power-bi/developer/projects/projects-overview).)
 
 ## Prüfkatalog (Abdeckungsstand)
 
@@ -205,6 +287,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [P] Lücken/Sprünge in Rechnungsnummern (Ausgang) → `RE-01` (Eingangsnummern bewusst ausgenommen: fremdvergeben)
 - [ ] [R] identische technische Buchungs-IDs ➕ Journal mit Buchungs-IDs
 - [x] [R] inkonsistente Buchungssätze (Konto = Gegenkonto) → `DV-01`
+- [x] [R] Rechtsform-Konsistenz: Mandantenname ↔ Angabe ↔ Kontenbild (KSt-/Kapital- vs. Privatkonten) → `DQ-02`
 
 **Jahresübernahme**
 
@@ -238,6 +321,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [P] ungewöhnlich viele glatte Bargeldbeträge → `SB-10`, `ST-03`
 - [ ] [P] nachträgliche Kassenbuchungen ➕ Journal (Erfassungsdatum)
 - [x] [P] größere zeitliche Lücken in der Kassenführung → `SB-08`
+- [x] [R] Geldtransit gleicht sich zum Stichtag aus → `SB-03`
 - [ ] [X] Kassenbuch gegen Finanzbuchhaltung ➕ Kassenbuch-Export
 - [ ] [X] Banksaldo/-bewegungen gegen Kontoauszug, ungeklärte Posten, Transfers zwischen eigenen Konten ➕ Bankbewegungen (CAMT/CSV)
 - [x] [R] gleiche Zahlung mehrfach verbucht → `ST-01`
@@ -290,21 +374,25 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
 ### 8. Sonstige Bilanzkonten
 
-- [x] [P] wiederkehrende Zahlungen ohne RAP / RAP aus Vorjahr nicht aufgelöst → `BL-01`
+- [x] [P] wiederkehrende Zahlungen ohne RAP / ARAP bzw. PRAP aus Vorjahr nicht aufgelöst (getrennt je Richtung, § 250 Abs. 1/2 HGB) → `BL-01`; Saldenvorzeichen ARAP/PRAP → `SB-02`
 - [ ] [P] ungewöhnlich alte RAP-Positionen, RAP-Veränderungen ➕ Vorjahresdaten
 - [x] [P] Vorjahresrückstellung ohne jede Bewegung → `BL-02`
-- [ ] [P] jährlich identische Rückstellungen, starke Schwankungen, Abzinsung ➕ Vorjahr/Verträge
+- [x] [P] jährlich identische Rückstellungsbeträge → `BL-02` (mit `--susa-vorjahr`); starke Schwankungen, Abzinsung ➕ Vorjahr/Verträge
+- [x] [P] latente Steuern: Bestand/Ansatz und Steuersatz-Staffel (KSt-Senkung ab 2028; § 274, § 274a HGB) → `BL-05` (Kontenbereiche `latente_steuern` konfigurieren); Bewertung der Differenzen ➕ Steuerbilanz/Überleitungsrechnung
 - [x] [P] Darlehen ohne Zinsbuchungen → `BL-03`
 - [ ] [R/X] Darlehenssaldo gegen Tilgungsplan, Zinsaufwand gegen Zinssatz, Fristigkeiten ➕ Darlehensverträge
 - [x] [P] Buchungen unmittelbar auf EK-Konten, unterjährig auf Gewinnvortrag → `BL-04`
+- [x] [R] Interims-/Verrechnungskonten und durchlaufende Posten zum Stichtag ausgeglichen → `SB-04`
 - [ ] [R] Vortrag des Vorjahres, Ergebnisverwendung ➕ Vorjahresdaten
 - [x] [P] ungewöhnliche Einlagen/Entnahmen, Gesellschafterkonten → `PP-02`, `SB-10`, `GS-01`
+- [x] [R] Privatkonten bei Kapitalgesellschaft bebucht → `PP-04` (mit `--rechtsform`)
+- [ ] [R/X] Kapitalkontenentwicklung je Gesellschafter (PersG: Kapitalkonten I/II, Verlust-/Darlehenskonten), verrechenbare Verluste § 15a EStG ➕ Kapitalkontenentwicklung, Gesellschaftsvertrag
 
 ### 9. GuV- und Kontenplausibilitäten
 
 - [x] [P] jedes GuV-Konto gegen Vorjahr: starke Veränderung, Vorzeichenwechsel, erstmalig bebucht, weggefallen → `VJ-02` (mit `--susa-vorjahr`); Vorperioden-/Monatsreihen des Vorjahres ➕ Vorjahres-Buchungsstapel
 - [x] [A] Monatsverlauf, ungewöhnliche Monatsspitzen → `GV-01`
-- [x] [P] Verhältniskennzahlen (Material-, Personal-, Raum-, Werbe-, Kfz-Quote, Rohertrag) → Kennzahlen-Ausweis; Benchmarking ➕ Vorjahr/Branche
+- [x] [P] Verhältniskennzahlen (Material-, Personal-, Mietkosten-, Werbekostenquote, Rohertrag) → Kennzahlen-Ausweis; Fahrzeugkosten bewusst nicht als Quote (unüblich; geprüft über `PP-01`, `ST-02`); weitere Quoten (Fremdleistungen, AfA/AV, Zins/FK) und Benchmarking ➕ Kontenzuordnung/Vorjahr/Branche
 - [x] [A] ungewöhnliche Gegenkonten → `GV-03`
 - [x] [A] sachfremde Buchungstexte → **KI**
 - [x] [P] außergewöhnlich hohe Einzelbuchungen → `ST-02`
@@ -315,7 +403,8 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 ### 10. Umsatzsteuer
 
 - [x] [R] Erlös-/Aufwandskonto ↔ Steuerschlüssel plausibel → `US-05`, `US-08`
-- [x] [R] Steuerbetrag mathematisch, Steuersatz gegen Schlüssel → `US-06`/`US-07` (Verprobung mit SuSa), Schlüsselkatalog
+- [x] [R] USt-Verprobung: rechnerische USt aus Erlösen und Schlüsseln gegen Steuerkonten → `US-06` (mit SuSa), Schlüsselkatalog
+- [x] [R] VSt-Verprobung: rechnerische VSt aus Aufwand und Schlüsseln gegen Steuerkonten → `US-07` (mit SuSa)
 - [x] [P] Steuerschlüssel je Geschäftspartner verändert → `US-09`
 - [x] [R/P] falsches Vorzeichen auf Steuerkonten, Direktbuchungen → `US-02`, `GV-02`
 - [ ] [R] Abstimmung gegen UStVA und USt-Jahreserklärung ➕ UStVA-/Erklärungswerte
@@ -355,6 +444,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
 - [x] [P] Bewegungen auf Gesellschafterkonten, privat wirkende Aufwendungen mit Gesellschafterbezug → `GS-01` + **KI**
 - [ ] [R/X] Spiegelbild-Abstimmungen (Forderung A = Verbindlichkeit B, Zins/Zins, IC-Salden) ➕ Daten der Gegenseite
+- [ ] [X] Sonder-/Ergänzungsbilanzen und Sondervergütungen (§ 15 Abs. 1 Satz 1 Nr. 2 EStG) bei Mitunternehmerschaften ➕ Sonder-/Ergänzungsbilanzen, Gewinnfeststellung
 
 ### 15. Stammdatenprüfung
 
@@ -383,7 +473,8 @@ Nur Risikosignale, keine Fehlernachweise (Ausweis stets auf Ebene 4).
 - [x] Sachkonten ↔ OPOS-Nebenbuch → `OP-05`
 - [x] OPOS ↔ Altersstruktur → Blatt „OPOS-Alterung"
 - [x] Schlussbilanz Vorjahr ↔ Eröffnungsbilanz → `VJ-01`; GuV-Vorjahresvergleich je Konto → `VJ-02`
-- [ ] Stapel ↔ ausgewiesene Bilanz-/GuV-Positionen (Überleitung) ➕ Positions-Zuordnungstabelle
+- [x] Stapel ↔ Bilanz/GuV: vereinfachte Bilanz- und GuV-Blätter mit Vorjahresspalte, formelverknüpft mit „Salden je Konto" (Positions-Spalte, Kontrolle Aktiva = Passiva); amtliche Gliederungstiefe § 266/§ 275 ➕ Positions-Zuordnungstabelle je Konto
+- [ ] Anhangangaben und größenabhängige Erleichterungen (§§ 284–288, § 274a, § 276 HGB) ➕ Anhang-Checkliste je Größenklasse; Größenklassen-Indikation (§ 267, § 267a HGB) läuft bereits als Kennzahl (ohne Ø-Arbeitnehmerzahl)
 - [ ] Anlagen-/Lohnbuchhaltung, Bank, Kassenbuch, UStVA, ZM, Inventur, Verträge, Intercompany ➕ jeweilige Datenquelle (siehe 20.)
 
 ### 18. Kontenspezifische Erwartungslogik
@@ -419,12 +510,13 @@ KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
 | 10 | Kassenbuch | ➕ Kassenbuch-Abstimmung |
 | 11 | digitale Belege | ➕ §§ 14/15-Rechnungsprüfung |
 | 12 | Steuerschlüssel-Katalog | ✔ `konten_config.json` (erweiterbar) |
-| 13 | Kostenstellen | ✔ Feld wird gelesen (Auswertung Ausbaustufe) |
+| 13 | Kostenstellen/Kostenträger | optional (nicht unverzichtbar) – Feld wird gelesen; KOST-Auswertung Ausbaustufe |
 | 14 | Benutzer-/Erfassungsinfos (GDPdU-Journal) | ➕ User-/Zeit-/Rückdatierungs-Checks |
 | 15 | Lohnbuchhaltung | ➕ Lohnjournal-Abstimmung |
 | 16/17 | UStVA / USt-Jahreswerte | ➕ Erklärungsabgleich |
-| 18/19 | Vorjahres-/Mehrjahresdaten | ✔ Vorjahres-SuSa optional (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; Mehrjahresreihen ➕ |
+| 18/19 | Vorjahres-/Mehrjahresdaten | Minimum = Vorjahr: ✔ Vorjahres-SuSa (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; 2–5 Jahre Zeitreihen ➕ |
 | 20 | Intercompany-Daten | ➕ Spiegelbild-Abstimmungen |
+| – | Kapitalkontenentwicklung, Sonder-/Ergänzungsbilanzen (PersG) | ➕ Mitunternehmer-Prüfungen (§ 15a EStG, Sondervergütungen) |
 
 ## Grenzen und Ausbaustufen
 
@@ -475,6 +567,11 @@ keine fachliche Würdigung durch Berufsträger.
 - Kontenplan/Kontenbeschriftungen:
   [Dokument 1071499](https://wissensplattform.apps.datev.de/help/document/1071499),
   [Dokument 1036116](https://wissensplattform.apps.datev.de/help/document/1036116).
+- SKR-Kontenzuordnungen (Kontenzwecke/-funktionen, Basis der
+  `konten_config.json`-Startwerte):
+  [DATEV-Dokument 1038737 – SKR03/SKR04 aktuelle Kontenrahmen](https://help-center.apps.datev.de/documents/1038737),
+  [DATEV-Dokument 0907816 – DATEV-Kontenrahmen 2025](https://wissensplattform.apps.datev.de/documents/0907816),
+  [DATEV: Standard-Kontenrahmen SKR 03 und SKR 04](https://www.datev.de/web/de/m/ueber-datev/datev-im-web/datev-von-a-z/skr-standard-kontenrahmen/).
 
 **Rechtsgrundlagen der Checks** (Normzitate stehen jeweils in der
 Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
@@ -492,7 +589,23 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
   [§ 252](https://www.gesetze-im-internet.de/hgb/__252.html)
   Bilanzidentität (DV-02, SB-06, VJ-01),
   [§ 253](https://www.gesetze-im-internet.de/hgb/__253.html)
-  Bewertung/planmäßige Abschreibung (AfA-Checks, BL-02).
+  Bewertung/planmäßige Abschreibung (AfA-Checks, BL-02),
+  [§ 274](https://www.gesetze-im-internet.de/hgb/__274.html)/[§ 274a](https://www.gesetze-im-internet.de/hgb/__274a.html)
+  latente Steuern und Erleichterungen (BL-05),
+  [§ 266](https://www.gesetze-im-internet.de/hgb/__266.html)/[§ 275](https://www.gesetze-im-internet.de/hgb/__275.html)
+  Bilanz-/GuV-Gliederung (EK-Struktur der Demo; Positions-Überleitung
+  Ausbaustufe),
+  [§ 267](https://www.gesetze-im-internet.de/hgb/__267.html)/[§ 267a](https://www.gesetze-im-internet.de/hgb/__267a.html)
+  Größenklassen (Kennzahlen-Indikation),
+  [§§ 284 ff.](https://www.gesetze-im-internet.de/hgb/__284.html)
+  Anhang (Ausbaustufe).
+- KSt-Satzsenkung: Gesetz für ein steuerliches Investitionssofortprogramm
+  zur Stärkung des Wirtschaftsstandorts Deutschland vom 14.07.2025,
+  [BGBl. 2025 I Nr. 161 vom 18.07.2025](https://www.recht.bund.de/bgbl/1/2025/161/VO.html)
+  – [§ 23 Abs. 1 KStG](https://www.gesetze-im-internet.de/kstg_1977/__23.html):
+  15 % → ab VZ 2028 jährlich −1 Prozentpunkt auf 10 % ab VZ 2032;
+  latente Steuern sind bereits ab dem Abschluss 2025 mit dem Satz des
+  erwarteten Umkehrjahres zu bewerten (§ 274 Abs. 2 HGB, BL-05).
 - EStG: [§ 4](https://www.gesetze-im-internet.de/estg/__4.html)
   Abs. 5, 5b, 7 – Abzugsverbote und getrennte Aufzeichnung (US-04,
   ET-01/02); Geschenke-Grenze 50 EUR ab 2024 (zuvor 35 EUR) durch das
@@ -513,6 +626,10 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
   (Ausbaustufen, siehe Katalog Kap. 10); 16-%-Sätze 07–12/2020:
   [§ 28](https://www.gesetze-im-internet.de/ustg_1980/__28.html) UStG
   i. d. F. Zweites Corona-Steuerhilfegesetz (US-03).
+- KStG: [§ 8](https://www.gesetze-im-internet.de/kstg_1977/__8.html)
+  Abs. 3 Satz 2 – verdeckte Gewinnausschüttung (PP-04, KI-Schicht);
+  EStG [§ 15a](https://www.gesetze-im-internet.de/estg/__15a.html)
+  verrechenbare Verluste bei Kommanditisten (Ausbaustufe, Katalog Kap. 8).
 - GoBD: BMF-Schreiben vom 28.11.2019, BStBl I 2019, 1269
   (Nachvollziehbarkeit, Vollständigkeit, Belegwesen: ST-05, RE-01, DQ-01).
 
@@ -520,7 +637,11 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
 
 - Benford-Screening (ST-08): Nigrini, „Benford's Law", Wiley 2012 –
   MAD-Konformitätsgrenzen für die Erstziffer (Nichtkonformität > 0,015;
-  Parameter `benford_mad_grenze`).
+  Parameter `benford_mad_grenze`). Der Mindestumfang (`benford_min_n`,
+  Default 300 GuV-Buchungen) ist eine bewusst konservative projekteigene
+  Kalibrierung – bei kleinen Stichproben verliert der Erstziffern-Test an
+  Aussagekraft (Nigrini a. a. O. zur Stichprobenabhängigkeit der
+  MAD-Grenzen); der Lauf weist den Skip mit Begründung aus.
 - Ausreißer über Median/MAD, modifizierter z-Score (ST-02, SB-09):
   Iglewicz/Hoaglin, „How to Detect and Handle Outliers", ASQC 1993
   (Empfehlung |M| > 3,5; hier bewusst konservativer Default 6,
