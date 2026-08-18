@@ -2,6 +2,12 @@
   "name": "jahresabschluss-agent",
   "version": "0.4.1",
   "description": "Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln: deterministische Prüf-Pipeline (73 Checks in 4 Prüfebenen, Python) + KI-Beurteilungsschicht + strukturierter Excel-Prüfbericht + Power BI Bericht",
+  "author": {
+    "name": "Marlon Franke",
+    "url": "https://github.com/Marlon-Franke"
+  },
+  "homepage": "https://github.com/Marlon-Franke/ja-agent",
+  "repository": "https://github.com/Marlon-Franke/ja-agent",
   "license": "MIT",
   "keywords": ["datev", "jahresabschluss", "pruefung", "steuerberatung", "audit"]
 }

@@ -1,0 +1,4 @@
+# Laufzeitabhaengigkeit der Pruef-Pipeline (Excel-Berichtserzeugung).
+# Getestete Untergrenze; Obergrenze bewusst offen, bis eine Testmatrix
+# (docs/test-strategy) eine gepruefte Spanne festschreibt.
+openpyxl>=3.1
