@@ -78,7 +78,11 @@ def _lies(rel: Path, fehler: list[str]) -> str | None:
     if not pfad.is_file():
         fehler.append(f"{rel.as_posix()} fehlt")
         return None
-    return pfad.read_text(encoding="utf-8")
+    try:
+        return pfad.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as e:
+        fehler.append(f"{rel.as_posix()}: nicht lesbar ({e})")
+        return None
 
 
 def _json_objekt(rel: Path, fehler: list[str]) -> dict | None:

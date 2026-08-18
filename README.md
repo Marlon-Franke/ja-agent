@@ -90,9 +90,12 @@ py -m pip install -r requirements.txt
 ## Plugin-Installation
 
 **Paket bauen (einmalig bzw. nach Änderungen):** `dist/` ist nicht im
-Repository enthalten, sondern wird lokal erzeugt – der Bau validiert dabei
-Manifeste, Versionsgleichlauf (`plugin.json` ↔ `VERSION` in
-`ja_pruefung.py`), Skill-Frontmatter und Archivinhalt und bricht bei
+Repository enthalten, sondern wird lokal aus einem **Git-Klon** erzeugt
+(die Dateiliste kommt aus dem Git-Index; ein entpacktes „Download ZIP"
+ohne `.git` reicht nicht). Der Bau validiert dabei Manifeste,
+Versionsgleichlauf (`plugin.json` ↔ `VERSION` in `ja_pruefung.py`),
+Checkzahl (`<n> Checks` in README/SKILL.md/plugin.json =
+`len(befunde.KATALOG)`), Skill-Frontmatter und Archivinhalt und bricht bei
 Abweichung ab:
 
 ```bash
@@ -104,16 +107,21 @@ in den Chat ziehen bzw. über die Plugin-Verwaltung hinzufügen. Danach steht
 der Skill `/jahresabschluss-agent:ja-pruefung` (Plugin-Namensraum
 `jahresabschluss-agent`, Skill `ja-pruefung`) zur Verfügung.
 
-**Claude Code (CLI):** Marketplace direkt aus GitHub oder aus einem lokalen
-Klon hinzufügen, dann das Plugin installieren:
+**Claude Code (CLI):** Marketplace **einmal** hinzufügen – entweder
+(A) direkt aus GitHub (Kurzform `owner/repo`; klont per Default über SSH,
+HTTPS mit `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`):
 
 ```bash
 claude plugin marketplace add Marlon-Franke/ja-agent
 ```
 
+oder (B) aus einem lokalen Klon:
+
 ```bash
 claude plugin marketplace add <pfad-zum-lokalen-repository>
 ```
+
+danach das Plugin installieren:
 
 ```bash
 claude plugin install jahresabschluss-agent@ja-agent
