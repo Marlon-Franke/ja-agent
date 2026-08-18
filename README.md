@@ -80,15 +80,36 @@ Cut-off-Nachlaufprüfung `CO-02` (aufwandsseitig nach WJ-Ende): derselbe
 Aufruf zusätzlich mit `--stapel-folgejahr testdaten/folgejahr` – ohne
 diese Option wird `CO-02` mit Begründung übersprungen (kein Mangel).
 
-Voraussetzungen: Python 3.10+ mit `openpyxl` (`py -m pip install openpyxl`).
+Voraussetzungen: Python 3.10+; Laufzeitabhängigkeiten aus
+`requirements.txt` (derzeit nur `openpyxl`):
+
+```bash
+py -m pip install -r requirements.txt
+```
 
 ## Plugin-Installation
 
+**Paket bauen (einmalig bzw. nach Änderungen):** `dist/` ist nicht im
+Repository enthalten, sondern wird lokal erzeugt – der Bau validiert dabei
+Manifeste, Versionsgleichlauf (`plugin.json` ↔ `VERSION` in
+`ja_pruefung.py`), Skill-Frontmatter und Archivinhalt und bricht bei
+Abweichung ab:
+
+```bash
+py werkzeuge/baue_dist.py
+```
+
 **Claude Desktop / Cowork:** die Datei `dist/jahresabschluss-agent.plugin`
 in den Chat ziehen bzw. über die Plugin-Verwaltung hinzufügen. Danach steht
-der Skill `/ja-pruefung` zur Verfügung.
+der Skill `/jahresabschluss-agent:ja-pruefung` (Plugin-Namensraum
+`jahresabschluss-agent`, Skill `ja-pruefung`) zur Verfügung.
 
-**Claude Code (CLI):**
+**Claude Code (CLI):** Marketplace direkt aus GitHub oder aus einem lokalen
+Klon hinzufügen, dann das Plugin installieren:
+
+```bash
+claude plugin marketplace add Marlon-Franke/ja-agent
+```
 
 ```bash
 claude plugin marketplace add <pfad-zum-lokalen-repository>
@@ -97,6 +118,9 @@ claude plugin marketplace add <pfad-zum-lokalen-repository>
 ```bash
 claude plugin install jahresabschluss-agent@ja-agent
 ```
+
+(Aufruf- und Namenskonventionen: [Claude Code – Plugins](https://code.claude.com/docs/en/plugins),
+[Claude Code – Plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).)
 
 Kontext-Fußabdruck: Das Plugin lädt pro Sitzung nur die einzeilige
 Skill-Beschreibung; Katalog und Werkzeuge werden erst bei Nutzung gelesen.
@@ -312,7 +336,8 @@ Visual-Typnamen wie `barChart`/`clusteredBarChart` gemäß
 ## Prüfkatalog (Abdeckungsstand)
 
 Struktur und Klassifikation folgen dem Referenzkatalog
-([Prüfkatalog für einen Python-basierten Accounting-Agenten.md](Prüfkatalog%20für%20einen%20Python-basierten%20Accounting-Agenten.md));
+([Prüfkatalog für einen Python-basierten Accounting-Agenten.md](https://github.com/Marlon-Franke/ja-agent/blob/main/Pr%C3%BCfkatalog%20f%C3%BCr%20einen%20Python-basierten%20Accounting-Agenten.md)
+– absoluter Link, weil die Referenzdatei nicht Teil des Plugin-Pakets ist);
 die tabellarische Fassung mit Details liegt in
 [skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md).
 
