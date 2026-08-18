@@ -1,7 +1,9 @@
 {
   "name": "ja-agent",
+  "description": "Marketplace des JA-Agent: Jahresabschluss-Plausibilitätsprüfung auf DATEV-Buchungsstapeln (deterministische Prüf-Pipeline + KI-Beurteilungsschicht + Excel-Bericht + Power BI Bericht)",
   "owner": {
-    "name": "JA-Agent"
+    "name": "Marlon-Franke",
+    "url": "https://github.com/Marlon-Franke"
   },
   "plugins": [
     {
