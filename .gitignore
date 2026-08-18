@@ -1,6 +1,9 @@
 # Generierte Prüfläufe und Pakete
 testdaten/ausgabe/
 JA-Pruefung/
+# core.ignorecase (Windows/macOS) liesse das Muster auch auf den
+# Skill-Ordner skills/ja-pruefung/ greifen - ausdruecklich re-inkludieren:
+!skills/ja-pruefung/
 dist/
 
 # Python

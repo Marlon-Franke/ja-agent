@@ -343,7 +343,7 @@ Visual-Typnamen wie `barChart`/`clusteredBarChart` gemäß
 
 ## Prüfkatalog (Abdeckungsstand)
 
-Struktur und Klassifikation folgen dem Referenzkatalog
+Struktur und Klassifikation der Katalogpunkte folgen dem Referenzkatalog
 ([Prüfkatalog für einen Python-basierten Accounting-Agenten.md](https://github.com/Marlon-Franke/ja-agent/blob/main/Pr%C3%BCfkatalog%20f%C3%BCr%20einen%20Python-basierten%20Accounting-Agenten.md)
 – absoluter Link, weil die Referenzdatei nicht Teil des Plugin-Pakets ist);
 die tabellarische Fassung mit Details liegt in
@@ -355,6 +355,14 @@ die tabellarische Fassung mit Details liegt in
 - **[P] Plausibilität:** Schwellenwert-/Vergleichsprüfung
 - **[A] Anomalie:** statistischer oder datengetriebener Auffälligkeitsscore
 - **[X] Zusatzdaten:** Prüfung benötigt mehr als den Buchungsstapel
+
+Die Tags sind die Klasse des **Soll-Katalogpunkts** (1:1 aus dem
+Referenzkatalog). Ebene und Klasse des **implementierten Checks** – die
+Werte, die jeder Befund im Bericht trägt – führt allein `befunde.KATALOG`;
+sie stehen im generierten Check-Register der
+[Abdeckungsmatrix](skills/ja-pruefung/references/pruefkatalog.md) und
+dürfen von der Katalogpunkt-Klasse abweichen (ein Plausibilitäts-Check kann
+einen [R]-Katalogpunkt abdecken).
 
 Status: angehakt = umgesetzt (→ `CHECK-ID` bzw. **KI** =
 KI-Beurteilungsschicht) · offen = **zusätzliche Prüfung**, wird aktiv,

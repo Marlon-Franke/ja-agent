@@ -7,6 +7,32 @@ steht synchron in `.claude-plugin/plugin.json` und `VERSION` in
 Gleichlauf. Git-Tags/GitHub-Releases gibt es ab 0.4.2; ältere Stände sind
 aus `testdaten/erwartung.md` rekonstruiert (Datum = Repository-Upload).
 
+## [0.4.3] – 2026-08-18
+
+Klärung der Klassifikationsdrift (Release-Readiness-Report Befunde 5–9);
+keine Änderung an Prüflogik oder Erwartungsbildern.
+
+### Geändert
+- Semantik festgelegt: Die `[R]/[P]/[A]/[X]`-Tags an den Katalogpunkten in
+  README und Abdeckungsmatrix sind die Klasse des Soll-Katalogpunkts (1:1 aus
+  dem Referenzkatalog); Ebene und Klasse des implementierten Checks führt
+  allein `befunde.KATALOG` – beides darf abweichen. README (Legende) und
+  Matrix benennen das jetzt ausdrücklich.
+- Abdeckungsmatrix: Ebenen-Tabelle wird aus `befunde.KATALOG` generiert;
+  dabei korrigiert: RE-03 (Ebene 3 statt 2), ST-03 (Ebene 4 statt 3).
+
+### Behoben
+- `.gitignore`: `JA-Pruefung/` (Standard-Ausgabeordner) griff auf
+  case-insensitiven Dateisystemen (Windows/macOS) auch auf den Skill-Ordner
+  `skills/ja-pruefung/` – neue Skill-Dateien wären dort still ignoriert
+  worden; ausdrücklich re-inkludiert.
+
+### Hinzugefügt
+- `werkzeuge/katalog_doku.py` (`--write`/`--check`): generiert Ebenen-Tabelle
+  und ein neues Check-Register (ID, Name, Bereich, Ebene, Klasse) in
+  `skills/ja-pruefung/references/pruefkatalog.md`; `baue_dist.py` prüft die
+  Aktualität als Build-Gate (damit auch CI).
+
 ## [0.4.2] – 2026-08-18
 
 Release-Readiness-Runde (Report vom 18.08.2026, PRs #1, #2 und dieses
