@@ -12,6 +12,10 @@ Architektur, Katalog und Bedienung: README.md und skills/ja-pruefung/.
   Checkzahl-Angaben in README (2×), SKILL.md und plugin.json folgen
   `len(befunde.KATALOG)`; Excel-Deckblatt und stdout-Kopf zählen
   automatisch.
+- Ebenen-Tabelle und Check-Register in `pruefkatalog.md` sind generiert
+  (`py werkzeuge/katalog_doku.py --write`, Gate im Build) – nicht von Hand
+  editieren; Klassifikation ändern heißt `befunde.KATALOG` ändern.
+  `[R]/[P]/[A]`-Tags an Katalogpunkten = Soll-Klasse des Referenzkatalogs.
 - Schwellwerte/Kontenbereiche nie hartkodieren – immer über
   `werkzeuge/konten_config.json`.
 - Verifikation nach Änderungen: `py testdaten/erzeuge_testdaten.py`, dann

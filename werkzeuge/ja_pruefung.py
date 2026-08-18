@@ -36,7 +36,7 @@ from excel_report import AGING_STUFEN, aging_stufe, schreibe_bericht
 from kontenplan import Kontenplan, erkenne_skr
 from statistik import ALLE_STATISTIK
 
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 
 
 def sammle_dateien(pfade: list[str]) -> list[Path]:

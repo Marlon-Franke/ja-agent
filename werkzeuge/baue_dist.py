@@ -18,7 +18,8 @@ Vor dem Bau laeuft eine Release-Validierung: Pflichtmanifeste
 und gueltiges JSON, Pluginname in beiden Manifesten identisch, Version in
 plugin.json synchron zu VERSION in werkzeuge/ja_pruefung.py, SKILL.md mit
 Frontmatter vorhanden, Checkzahl-Angaben ("<n> Checks") in README, SKILL.md
-und plugin.json gleich len(befunde.KATALOG) (Regel aus CLAUDE.md). Nach dem
+und plugin.json gleich len(befunde.KATALOG) (Regel aus CLAUDE.md), generierte
+Matrix-Bloecke aktuell (katalog_doku.pruefe). Nach dem
 Bau wird der Plugin-Archivinhalt geprueft (Pflichteintraege inkl.
 PBIP-Vorlage enthalten, Ausschluesse nicht enthalten). Jeder Verstoss
 bricht mit Exit-Code 1 ab - ein erfolgreicher Build garantiert damit die
@@ -166,6 +167,16 @@ def validiere_repo() -> list[str]:
                     fehler.append(f"{SKILL.as_posix()}-Frontmatter: "
                                   f"'{feld}' fehlt")
 
+    # Katalog-Doku-Gate: generierte Matrix-Bloecke aktuell (katalog_doku.py)
+    sys.path.insert(0, str(BASIS / "werkzeuge"))
+    try:
+        import katalog_doku  # noqa: PLC0415
+        fehler.extend(katalog_doku.pruefe())
+    except Exception as e:  # noqa: BLE001
+        fehler.append(f"werkzeuge/katalog_doku.py nicht ausfuehrbar: {e}")
+    finally:
+        sys.path.pop(0)
+
     # Checkzahl-Gate: jede "<n> Checks"-Angabe muss len(befunde.KATALOG) sein
     soll = _katalog_groesse(fehler)
     if soll is not None:
@@ -255,7 +266,7 @@ def main() -> int:
             print(f"FEHLER: {f}", file=sys.stderr)
         return 1
     print("Release-Validierung: Manifeste, Versionsgleichlauf, Checkzahl, "
-          "SKILL-Frontmatter und Archivinhalt geprueft - keine Befunde.")
+          "SKILL-Frontmatter, Katalog-Doku und Archivinhalt geprueft - keine Befunde.")
     return 0
 
 

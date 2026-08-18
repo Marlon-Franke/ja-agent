@@ -26,14 +26,23 @@ Status je Katalogpunkt:
 
 Jeder Check trägt eine Ebene (im Bericht ausgewiesen), damit ein
 „verdächtig runder Betrag" nie auf derselben Stufe steht wie eine
-rechnerisch negative Kasse:
+rechnerisch negative Kasse. Die Tabelle und das Check-Register am Ende
+dieser Datei werden aus `befunde.KATALOG` generiert
+(`py werkzeuge/katalog_doku.py --write`; der Build prüft die Aktualität).
+Die `[R]/[P]/[A]/[X]`-Tags an den Katalogpunkten unten und im README sind
+dagegen die Klasse des **Soll-Katalogpunkts** (1:1 aus dem Referenzkatalog);
+Ebene und Klasse des **implementierten Checks** stehen allein im Register –
+beides darf voneinander abweichen (ein Plausibilitäts-Check kann einen als
+[R] klassifizierten Katalogpunkt abdecken):
 
+<!-- KATALOG:EBENEN:START -->
 | Ebene | Frage | Checks (Präfixe) |
 |---|---|---|
-| 1 – technische Integrität | Daten vollständig und konsistent? | DV, DQ-01/02, SB-05/06, OP-05, ST-05/06, VJ-01 |
-| 2 – Regelprüfung | Verstoß gegen eindeutige Buchungs-/Bilanz-/Steuerregel? | SB-01/03/04, AF-01/03/04, US-01/03/04/06/07/08, RE, KR, OP-01/02/04, PP-03/04, ET |
-| 3 – Plausibilität | Passt der Sachverhalt zu Schwellen, Struktur, Relationen? | SB-02/07/08/09, AF-02/05, US-02/10, OP-03/06/07, BL, VJ-02, CO, PP-01/02, GS, ST-01/03, FR-03, SD |
-| 4 – Anomalie | Statistisch/strukturell ungewöhnlich ohne konkreten Regelverstoß? | SB-10, US-05/09, GV, ST-02/04/07/08, FR-01/02/04 |
+| 1 – technische Integrität | Daten vollständig und konsistent? | DV, DQ, ST-05/06, SB-05/06, OP-05, VJ-01 |
+| 2 – Regelprüfung | Verstoß gegen eindeutige Buchungs-/Bilanz-/Steuerregel? | SB-01/03/04, AF-01/03/04, US-01/03/04/06/07/08, RE-01/02, OP-01/02/04, KR, ET, PP-03/04 |
+| 3 – Plausibilität | Passt der Sachverhalt zu Schwellen, Struktur, Relationen? | SB-02/07/08/09, AF-02/05, US-02/10, RE-03, OP-03/06/07, BL, VJ-02, CO, PP-01/02, GS, ST-01, FR-03, SD |
+| 4 – Anomalie | Statistisch/strukturell ungewöhnlich ohne konkreten Regelverstoß? | SB-10, US-05/09, GV, ST-02/03/04/07/08, FR-01/02/04 |
+<!-- KATALOG:EBENEN:END -->
 
 ---
 
@@ -404,3 +413,92 @@ Normzitate stehen jeweils in der Befund-Empfehlung des Checks; die
 vollständige Liste mit Links (AO, HGB, EStG, UStG, GoBD sowie
 Nigrini-Benford- und Iglewicz/Hoaglin-MAD-Referenz für ST-08, ST-02,
 SB-09) führt die README im Abschnitt „Quellen und Referenzen".
+
+---
+
+## Check-Register (implementierte Klassifikation, generiert)
+
+Quelle: `werkzeuge/befunde.py` (`KATALOG`), Reihenfolge = Katalogreihenfolge.
+Ebene 1–4 und Klasse (R/P/A, +X = benötigt Zusatzdaten) sind die Werte, die
+Bericht, Excel- und Power-BI-Ausweis je Befund tragen. Nicht von Hand
+ändern – `py werkzeuge/katalog_doku.py --write`.
+
+<!-- KATALOG:REGISTER:START -->
+| ID | Check | Bereich | Ebene | Klasse |
+|---|---|---|---|---|
+| DV-01 | Nullbeträge und Konto = Gegenkonto | Datenintegrität | 1 | R (Rule-based) |
+| DV-02 | EB-Buchungen auf GuV-Konten | Datenintegrität | 1 | R (Rule-based) |
+| DV-03 | Bebuchte Konten ohne Kontenbeschriftung | Datenintegrität | 1 | R (Rule-based) +X Zusatzdaten |
+| DQ-01 | Datenqualität Import | Datenintegrität | 1 | R (Rule-based) |
+| DQ-02 | Rechtsform-Konsistenz (Name/Angabe/Kontenbild) | Datenintegrität | 1 | R (Rule-based) |
+| ST-05 | Fehlende Belegnummern/Buchungstexte | Datenintegrität | 1 | P (Plausibilität) |
+| ST-06 | Belegdatum außerhalb des Zeitraums | Datenintegrität | 1 | R (Rule-based) |
+| SB-01 | Negative Kasse | Salden | 2 | R (Rule-based) |
+| SB-02 | Unplausibles Saldenvorzeichen | Salden | 3 | P (Plausibilität) |
+| SB-03 | Geldtransit nicht ausgeglichen | Salden | 2 | R (Rule-based) |
+| SB-04 | Interims-/Verrechnungskonten nicht ausgeglichen | Salden | 2 | R (Rule-based) |
+| SB-05 | Abweichung zur Summen- und Saldenliste | Salden | 1 | R (Rule-based) +X Zusatzdaten |
+| SB-06 | Saldenvorträge saldieren nicht auf null | Salden | 1 | R (Rule-based) |
+| SB-07 | Ungewöhnlich hoher Kassenbestand | Salden | 3 | P (Plausibilität) |
+| SB-08 | Lücken in der Kassenführung | Salden | 3 | P (Plausibilität) |
+| SB-09 | Ausreißer-Einzelbewegungen Kasse | Salden | 3 | P (Plausibilität) |
+| SB-10 | Glatte Barbewegungen Kasse/Privat | Salden | 4 | A (Anomalie) |
+| AF-01 | Anlagenzugänge ohne Abschreibung | AfA | 2 | R (Rule-based) |
+| AF-02 | Abschreibung ohne Anlagevermögen | AfA | 3 | P (Plausibilität) |
+| AF-03 | AfA auf nicht abnutzbares Anlagevermögen | AfA | 2 | R (Rule-based) |
+| AF-04 | GWG-Grenzen | AfA | 2 | R (Rule-based) |
+| AF-05 | Aktivierungspflicht-Kandidaten (Instandhaltung) | AfA | 3 | P (Plausibilität) |
+| US-01 | Vorsteuerschlüssel auf untypischem Konto | USt/VSt | 2 | R (Rule-based) |
+| US-02 | Direktbuchungen auf Steuerkonten | USt/VSt | 3 | P (Plausibilität) |
+| US-03 | Ungültige oder historische Steuerschlüssel | USt/VSt | 2 | R (Rule-based) |
+| US-04 | Bewirtung ohne nicht abziehbaren Anteil | USt/VSt | 2 | R (Rule-based) |
+| US-05 | Steuerschlüssel-Abweichler je Sachkonto | USt/VSt | 4 | A (Anomalie) |
+| US-06 | USt-Verprobung (Erlöse) | USt/VSt | 2 | R (Rule-based) +X Zusatzdaten |
+| US-07 | VSt-Verprobung (Aufwand) | USt/VSt | 2 | R (Rule-based) +X Zusatzdaten |
+| US-08 | Steuerschlüssel weicht von Automatikkonto ab | USt/VSt | 2 | R (Rule-based) |
+| US-09 | Steuerschlüssel-Wechsel je Geschäftspartner | USt/VSt | 4 | A (Anomalie) |
+| US-10 | Vorsteuerbuchungen ohne Belegnummer | USt/VSt | 3 | P (Plausibilität) |
+| RE-01 | Lücken in der Rechnungsnummernfolge | Ausgangsrechnungen | 2 | R (Rule-based) |
+| RE-02 | Doppelt vergebene Rechnungsnummern | Ausgangsrechnungen | 2 | R (Rule-based) |
+| RE-03 | Rechnungsdatum entgegen Nummernfolge | Ausgangsrechnungen | 3 | P (Plausibilität) |
+| OP-01 | Debitoren mit Habensaldo | OPOS/Kreditoren | 2 | R (Rule-based) |
+| OP-02 | Kreditoren mit Sollsaldo | OPOS/Kreditoren | 2 | R (Rule-based) |
+| OP-03 | Überfällige offene Posten | OPOS/Kreditoren | 3 | P (Plausibilität) +X Zusatzdaten |
+| OP-04 | Direktverrechnung Debitor/Kreditor | OPOS/Kreditoren | 2 | R (Rule-based) |
+| OP-05 | OPOS-Summen weichen vom Kontensaldo ab | OPOS/Kreditoren | 1 | R (Rule-based) +X Zusatzdaten |
+| OP-06 | Alte Kleinstposten und alte Gutschriften | OPOS/Kreditoren | 3 | P (Plausibilität) +X Zusatzdaten |
+| OP-07 | Konzentration auf einzelne Debitoren | OPOS/Kreditoren | 3 | P (Plausibilität) |
+| KR-01 | Gleiche Rechnungsnummer beim selben Kreditor | OPOS/Kreditoren | 2 | R (Rule-based) |
+| BL-01 | Rechnungsabgrenzung ohne Bewegung/Auflösung | Bilanz (sonstige) | 3 | P (Plausibilität) |
+| BL-02 | Rückstellungen ohne jede Bewegung | Bilanz (sonstige) | 3 | P (Plausibilität) |
+| BL-03 | Darlehen ohne Zinsaufwand | Bilanz (sonstige) | 3 | P (Plausibilität) |
+| BL-04 | Direktbuchungen auf Eigenkapitalkonten | Bilanz (sonstige) | 3 | P (Plausibilität) |
+| BL-05 | Latente Steuern (Ansatz und Steuersatz-Staffel) | Bilanz (sonstige) | 3 | P (Plausibilität) +X Zusatzdaten |
+| VJ-01 | EB-Werte gegen Schlussbilanz des Vorjahres | Vorjahresvergleich | 1 | R (Rule-based) +X Zusatzdaten |
+| VJ-02 | GuV-Konten gegen Vorjahr | Vorjahresvergleich | 3 | P (Plausibilität) +X Zusatzdaten |
+| GV-01 | Ungewöhnliche Monatsspitzen je Konto | GuV-Plausibilität | 4 | A (Anomalie) |
+| GV-02 | Gegenläufige Buchung auf richtungsstabilem Konto | GuV-Plausibilität | 4 | A (Anomalie) |
+| GV-03 | Seltene Konten-Gegenkonto-Kombination | GuV-Plausibilität | 4 | A (Anomalie) |
+| ET-01 | Geschenke über der Abzugsgrenze | Ertragsteuer | 2 | R (Rule-based) |
+| ET-02 | Steuersensible Buchungstexte auf untypischen Konten | Ertragsteuer | 2 | R (Rule-based) |
+| CO-01 | Wesentliche Erlösbuchungen im Cut-off-Fenster vor WJ-Ende | Cut-off | 3 | P (Plausibilität) |
+| CO-02 | Wesentliche Aufwandsbuchungen im Cut-off-Fenster nach WJ-Ende | Cut-off | 3 | P (Plausibilität) +X Zusatzdaten |
+| PP-01 | Kfz-Kosten ohne erkennbare Privatnutzung | Personal/Privat | 3 | P (Plausibilität) |
+| PP-02 | Privatbuchungen nur zum Jahresende | Personal/Privat | 3 | P (Plausibilität) |
+| PP-03 | Lohnaufwand ohne LSt-/SV-Verbindlichkeiten | Personal/Privat | 2 | R (Rule-based) |
+| PP-04 | Privatkonten bei Kapitalgesellschaft bebucht | Personal/Privat | 2 | R (Rule-based) |
+| GS-01 | Bewegungen auf Gesellschafterkonten | Gesellschafter | 3 | P (Plausibilität) |
+| ST-01 | Doppelbuchungs-Verdacht | Statistik | 3 | P (Plausibilität) |
+| ST-02 | Betragsausreißer je Konto | Statistik | 4 | A (Anomalie) |
+| ST-03 | Auffällig runde Beträge | Statistik | 4 | A (Anomalie) |
+| ST-04 | Kassenbuchungen an Sonn- und Feiertagen | Statistik | 4 | A (Anomalie) |
+| ST-07 | Schwellen-Splitting (GWG-Grenze) | Statistik | 4 | A (Anomalie) |
+| ST-08 | Benford-Analyse (erste Ziffer) | Statistik | 4 | A (Anomalie) |
+| FR-01 | Stornoquote und Storno-Wiederholungen | Fraud-Indikatoren | 4 | A (Anomalie) |
+| FR-02 | Einmal-Kreditoren mit wesentlichem Volumen | Fraud-Indikatoren | 4 | A (Anomalie) |
+| FR-03 | Beträge knapp unter Freigabegrenzen | Fraud-Indikatoren | 3 | P (Plausibilität) +X Zusatzdaten |
+| FR-04 | Häufung glatter Centbeträge (Endziffern) | Fraud-Indikatoren | 4 | A (Anomalie) |
+| SD-01 | Personenkonten mit identischer Bezeichnung | Stammdaten | 3 | P (Plausibilität) +X Zusatzdaten |
+
+73 Checks (= `len(befunde.KATALOG)`).
+<!-- KATALOG:REGISTER:END -->
