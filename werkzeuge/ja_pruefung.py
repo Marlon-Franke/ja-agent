@@ -25,6 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import abhaengigkeiten
 import bilanz
 from befunde import KATALOG_NAMEN, RANG, Kontext, eur
 from checks import ALLE_FACHLICH
@@ -32,11 +33,14 @@ from checks_erweitert import ALLE_ERWEITERT
 from checks_vorjahr import ALLE_VORJAHR
 from datev_parser import (lies_buchungsstapel, lies_header,
                           lies_kontenbeschriftungen, lies_opos, lies_susa)
-from excel_report import AGING_STUFEN, aging_stufe, schreibe_bericht
 from kontenplan import Kontenplan, erkenne_skr
 from statistik import ALLE_STATISTIK
 
-VERSION = "0.4.3"
+# excel_report (openpyxl) wird erst in main() nach dem Abhaengigkeits-
+# Preflight importiert: --help und die Fehlermeldung bei fehlendem Paket
+# funktionieren so ohne installierte Drittpakete (abhaengigkeiten.py).
+
+VERSION = "0.4.4"
 
 
 def sammle_dateien(pfade: list[str]) -> list[Path]:
@@ -156,6 +160,11 @@ def main(argv=None) -> int:
                         "Datenquelle = befunde.csv über Parameter "
                         "'BefundeCsvPfad')")
     args = p.parse_args(argv)
+
+    # Preflight: fehlende Drittpakete klar melden (Exit 2), nichts installieren.
+    abhaengigkeiten.pruefe_oder_beende()
+    from excel_report import (AGING_STUFEN, aging_stufe,  # noqa: PLC0415
+                              schreibe_bericht)
 
     dateien = sammle_dateien(args.stapel)
     infos, buchungen, warnungen = [], [], []

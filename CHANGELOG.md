@@ -7,6 +7,83 @@ steht synchron in `.claude-plugin/plugin.json` und `VERSION` in
 Gleichlauf. Git-Tags/GitHub-Releases gibt es ab 0.4.2; ältere Stände sind
 aus `testdaten/erwartung.md` rekonstruiert (Datum = Repository-Upload).
 
+## [0.4.4] – 2026-08-18
+
+Packaging-/Test-Gate-Release nach der Revisionsprüfung v0.4.3
+(Befunde P0.1–P2.6); keine Änderung an Prüflogik oder Erwartungsbildern
+(alle drei Referenzläufe unverändert).
+
+### Behoben
+- **P0.1** `requirements.txt` liegt jetzt im `.plugin`-Paket
+  (Pflichteintrag der Archivprüfung); `werkzeuge/abhaengigkeiten.py`
+  prüft `openpyxl` vor dem Import und meldet fehlende Pakete mit dem
+  konkreten `pip install -r …/requirements.txt`-Befehl (Exit 2, keine
+  automatische Installation) – `ja_pruefung.py --help` und
+  `llm_einarbeiten.py` funktionieren ohne installierte Drittpakete;
+  SKILL.md verlangt den Preflight vor dem ersten Pipelineaufruf.
+- `claude plugin validate .claude-plugin/plugin.json --strict` meldete
+  „CLAUDE.md at the plugin root is not loaded as project context" (die
+  Prüfung von `.` validiert nur das Marketplace-Manifest) → Projektanweisungen
+  nach `.claude/CLAUDE.md` verschoben (gleichwertiger Ort laut
+  Claude-Code-Doku „Memory"); Build-Gate gegen Rückfall.
+- Katalogdrift README ↔ Abdeckungsmatrix (Kap. 2: `ST-04` als Teilabdeckung
+  „ungewöhnliche Zeiten/Benutzer"; Kap. 8: Skip-Hinweis `PP-01/02`, `SB-10`
+  bei KapG) angeglichen – gefunden vom neuen ID-Konsistenz-Gate.
+- `requirements.txt`: Kommentar verwies auf ein nicht vorhandenes
+  `docs/test-strategy` → Datei existiert jetzt; getestete Spanne
+  `openpyxl>=3.1,<4`.
+- Ungenutzte Importe (`dataclasses.field`, `befunde.eur`) entfernt (ruff).
+
+### Hinzugefügt
+- **P1.1** `werkzeuge/release_check.py`: kanonischer Release-Check (ein
+  Befehl, ein Exit-Code) – Umgebung, Syntax, Sollstruktur, Testdaten,
+  drei Referenzläufe, Markdown-Links, `claude plugin validate --strict`
+  (beide Manifeste), reproduzierbarer Build, ruff/pip-audit; README,
+  `.claude/CLAUDE.md` und CI rufen denselben Befehl.
+- **P1.2** `testdaten/erwartung.json` + `werkzeuge/pruefe_erwartung.py`:
+  maschinenlesbares Erwartungsbild aller 73 Checks je Lauf (Status
+  aktiv/skip, Treffer je Schwere, Belege gesäter Fälle, Skip-Gründe,
+  Summen, KI-Kandidaten, stdout-Kopf) statt Summen-Grep; die bisher nicht
+  ausgewiesenen Nullbefunde AF-01, AF-02, BL-03, FR-01, FR-04, SB-07,
+  ST-06, US-06 sind damit explizit.
+- **P0.2** CI: Job `release-check` mit gepinnter Claude-Code-CLI (2.1.201)
+  und offizieller Strict-Validierung; Job `marketplace` (lokaler
+  Marketplace-Lebenszyklus add/install/list/details/update/uninstall mit
+  isoliertem `CLAUDE_CONFIG_DIR`); Job `paket` (entpacktes `.plugin` in
+  frischer venv, Negativtest ohne `openpyxl`, Lauf über den Paketpfad).
+- **P1.4** CI-Matrix Ubuntu/Windows/macOS × Python 3.10–3.14; Job
+  `reproduzierbarkeit` vergleicht die Archiv-Prüfsummen aller Zellen;
+  `docs/test-strategy.md` mit Kompatibilitäts- und Supportzusagen
+  (inkl. minimaler Claude-Code-Version).
+- **P1.5** `katalog_doku.pruefe_katalog_ids`: README-Checkliste,
+  Abdeckungsmatrix und `befunde.KATALOG` müssen je Kapitel dieselben
+  CHECK-IDs führen (Build-Gate).
+- **P2.1** Referenzkatalog trägt einen generierten Referenzstand-Block
+  (Version = `plugin.json`, Build-Gate) sowie fachlichen Rechtsstand und
+  Datum der letzten fachlichen Durchsicht.
+- **P2.2** `ruff.toml` (Fehlerklassen-Regelsatz), `requirements-dev.txt`
+  (ruff, pip-audit, pip-licenses), CI-Job `security` (gitleaks,
+  pip-audit, Lizenzprüfung).
+- **P2.3** `baue_dist.py` baut aus dem Git-Objektspeicher des Commits
+  (`git ls-tree`/`cat-file`, Commit-Zeitstempel, `ZIP_STORED`, feste
+  Rechte) → byteidentisch reproduzierbar auf allen Plattformen; sauberer
+  Arbeitsbaum erzwungen (`--erlaube-schmutzig`), `dist/SHA256SUMS.txt`
+  wird mitgeschrieben; `.gitattributes` fixiert Zeilenenden;
+  `.github/workflows/release.yml` baut bei Tag `v*` aus dem Tag und
+  veröffentlicht das GitHub-Release mit Artefakten und Prüfsummen
+  (`werkzeuge/release_notes.py` liefert die Notizen aus dem CHANGELOG).
+- **P2.4** README: Release-Download für Claude Desktop/Cowork an erster
+  Stelle, Marketplace für Claude Code, lokaler Build als
+  Contributor-Variante; Voraussetzungen (Python 3.10–3.14, `py`/`python3`,
+  Abhängigkeit, Claude-Code-Referenzversion); CI-/Release-Badges.
+- **P2.5** `CONTRIBUTING.md`, `SECURITY.md` (vertraulicher Meldeweg),
+  Issue-Vorlagen, PR-Vorlage, `CODEOWNERS`.
+
+### Offen (Repository-Einstellungen, nicht per Commit lösbar)
+- **P1.3** Branch-Schutz/Ruleset für `main` mit erforderlichen CI-Checks;
+  **P2.6** GitHub-Repositorybeschreibung und Topics – vom
+  Repository-Eigentümer zu setzen (docs/test-strategy.md, Abschnitt 2).
+
 ## [0.4.3] – 2026-08-18
 
 Klärung der Klassifikationsdrift (Release-Readiness-Report Befunde 5–9);

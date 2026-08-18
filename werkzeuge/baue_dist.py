@@ -1,29 +1,42 @@
-"""Baut die Distributionspakete in dist/ aus dem Repo-Stand.
+"""Baut die Distributionspakete in dist/ reproduzierbar aus einem Git-Commit.
 
-  py werkzeuge/baue_dist.py
+  py werkzeuge/baue_dist.py [--ref HEAD] [--erlaube-schmutzig]
 
 Erzeugt:
-  dist/jahresabschluss-agent_GitHub.zip  Repo-Abbild (alle von Git
+  dist/jahresabschluss-agent_GitHub.zip  Repo-Abbild (alle im Commit
                                          versionierten Dateien)
   dist/jahresabschluss-agent.plugin      Plugin-Paket (.claude-plugin,
-                                         skills, werkzeuge, README, LICENSE)
+                                         skills, werkzeuge, README, LICENSE,
+                                         requirements.txt)
+  dist/SHA256SUMS.txt                    Pruefsummen beider Archive
+                                         (Format `sha256sum -c`)
 
-Dateiquelle ist der Git-Index (`git ls-files`), nicht das Dateisystem:
-ungetrackte Streudateien im Arbeitsbaum (lokale Berichte, ZIPs, Prueflaeufe)
-gelangen dadurch nie in ein Paket. Ohne Git-Arbeitsverzeichnis bricht der
-Bau ab.
+Reproduzierbarkeit (Revisionsbefund P2.3): Dateiliste UND Inhalte kommen
+aus dem Git-Objektspeicher des Commits (`git ls-tree`, `git cat-file`),
+nicht aus dem Arbeitsbaum - uncommittete Aenderungen, ungetrackte
+Streudateien und plattformabhaengige Zeilenenden des Checkouts gelangen
+nie in ein Paket. Alle ZIP-Eintraege tragen den Commit-Zeitstempel, feste
+Unix-Rechte (0644) und werden unkomprimiert (ZIP_STORED) geschrieben,
+weil Deflate-Streams zwischen zlib-Varianten (zlib, zlib-ng) abweichen.
+Damit ergibt derselbe Commit auf jeder Plattform und jeder unterstuetzten
+Python-Version byteidentische Archive; die CI vergleicht die Pruefsummen
+ueber die Matrix (docs/test-strategy.md), das Release-Workflow baut aus
+dem Tag. Standardmaessig bricht der Bau ab, wenn versionierte Dateien im
+Arbeitsbaum uncommittete Aenderungen tragen (sie waeren nicht im Paket);
+`--erlaube-schmutzig` baut trotzdem aus dem Commit.
 
 Vor dem Bau laeuft eine Release-Validierung: Pflichtmanifeste
 .claude-plugin/plugin.json und .claude-plugin/marketplace.json vorhanden
 und gueltiges JSON, Pluginname in beiden Manifesten identisch, Version in
 plugin.json synchron zu VERSION in werkzeuge/ja_pruefung.py, SKILL.md mit
 Frontmatter vorhanden, Checkzahl-Angaben ("<n> Checks") in README, SKILL.md
-und plugin.json gleich len(befunde.KATALOG) (Regel aus CLAUDE.md), generierte
-Matrix-Bloecke aktuell (katalog_doku.pruefe). Nach dem
-Bau wird der Plugin-Archivinhalt geprueft (Pflichteintraege inkl.
-PBIP-Vorlage enthalten, Ausschluesse nicht enthalten). Jeder Verstoss
-bricht mit Exit-Code 1 ab - ein erfolgreicher Build garantiert damit die
-Sollstruktur der Claude-Code-Plugin-Spezifikation
+und plugin.json gleich len(befunde.KATALOG) (Regel aus .claude/CLAUDE.md),
+generierte Doku-Bloecke aktuell und Katalog-IDs in README/Matrix/KATALOG
+konsistent (katalog_doku.pruefe). Nach dem Bau wird der Plugin-Archivinhalt
+geprueft (Pflichteintraege inkl. PBIP-Vorlage und requirements.txt
+enthalten, Ausschluesse nicht enthalten). Jeder Verstoss bricht mit
+Exit-Code 1 ab - ein erfolgreicher Build garantiert damit die Sollstruktur
+der Claude-Code-Plugin-Spezifikation
 (https://code.claude.com/docs/en/plugins-reference).
 
 Grund fuer dieses Skript statt Compress-Archive (Windows PowerShell 5.1):
@@ -36,11 +49,14 @@ OEM-kodierte Umlaute, entpackt unter Linux/macOS fehlerhaft).
 
 from __future__ import annotations
 
+import argparse
+import hashlib
 import json
 import re
 import subprocess
 import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 BASIS = Path(__file__).resolve().parents[1]
@@ -50,7 +66,7 @@ DIST = BASIS / "dist"
 AUSSCHLUSS_ORDNER = {"__pycache__", "dist", ".git", "JA-Pruefung"}
 AUSSCHLUSS_PFADE = [("testdaten", "ausgabe")]  # generierte Prueflaeufe
 PLUGIN_WURZELN = {".claude-plugin", "skills", "werkzeuge"}
-PLUGIN_WURZELDATEIEN = {"README.md", "LICENSE"}
+PLUGIN_WURZELDATEIEN = {"README.md", "LICENSE", "requirements.txt"}
 MANIFEST_PLUGIN = Path(".claude-plugin") / "plugin.json"
 MANIFEST_MARKT = Path(".claude-plugin") / "marketplace.json"
 SKILL = Path("skills") / "ja-pruefung" / "SKILL.md"
@@ -67,11 +83,19 @@ PBI_PFLICHT = (
     PBI_VORLAGE / "JA-Pruefbericht.SemanticModel" / "definition.pbism",
     PBI_VORLAGE / "JA-Pruefbericht.SemanticModel" / "model.bim",
 )
+# requirements.txt ist Pflicht (Revisionsbefund P0.1): die Plugin-
+# Installation installiert keine Python-Pakete, der Skill verweist auf
+# ${CLAUDE_PLUGIN_ROOT}/requirements.txt.
 ARCHIV_PFLICHT = (MANIFEST_PLUGIN, MANIFEST_MARKT, SKILL, PIPELINE,
-                  Path("README.md"), Path("LICENSE"), *PBI_PFLICHT)
+                  Path("werkzeuge") / "abhaengigkeiten.py",
+                  Path("README.md"), Path("LICENSE"), Path("requirements.txt"),
+                  *PBI_PFLICHT)
 # Fundstellen der Checkzahl (CLAUDE.md: folgen len(befunde.KATALOG)).
 CHECKZAHL_DATEIEN = (Path("README.md"), SKILL, MANIFEST_PLUGIN)
 CHECKZAHL_MUSTER = re.compile(r"(\d+) Checks\b")
+ARCHIV_GITHUB = "jahresabschluss-agent_GitHub.zip"
+ARCHIV_PLUGIN = "jahresabschluss-agent.plugin"
+PRUEFSUMMEN = "SHA256SUMS.txt"
 
 
 def _lies(rel: Path, fehler: list[str]) -> str | None:
@@ -127,6 +151,12 @@ def validiere_repo() -> list[str]:
         if (BASIS / ".claude-plugin" / alt).exists():
             fehler.append(f".claude-plugin/{alt}: endungslose Manifestdatei "
                           f"- in {alt}.json umbenennen")
+    # CLAUDE.md an der Plugin-Wurzel = Warnung von `claude plugin validate
+    # --strict` (wird nicht als Plugin-Kontext geladen); Projektanweisungen
+    # liegen deshalb in .claude/CLAUDE.md (https://code.claude.com/docs/en/memory).
+    if (BASIS / "CLAUDE.md").exists():
+        fehler.append("CLAUDE.md an der Plugin-Wurzel: nach .claude/CLAUDE.md "
+                      "verschieben (strict-Validierung der Plugin-Spezifikation)")
 
     if plugin is not None:
         for feld in ("name", "version", "description"):
@@ -167,7 +197,9 @@ def validiere_repo() -> list[str]:
                     fehler.append(f"{SKILL.as_posix()}-Frontmatter: "
                                   f"'{feld}' fehlt")
 
-    # Katalog-Doku-Gate: generierte Matrix-Bloecke aktuell (katalog_doku.py)
+    # Katalog-Doku-Gate: generierte Bloecke aktuell, Katalog-IDs in
+    # README-Checkliste, Abdeckungsmatrix und befunde.KATALOG konsistent,
+    # Referenzstand versionsgebunden (katalog_doku.py)
     sys.path.insert(0, str(BASIS / "werkzeuge"))
     try:
         import katalog_doku  # noqa: PLC0415
@@ -201,6 +233,9 @@ def validiere_archiv(ziel: Path) -> list[str]:
     fehler: list[str] = []
     with zipfile.ZipFile(ziel) as z:
         eintraege = set(z.namelist())
+        defekt = z.testzip()
+    if defekt:
+        fehler.append(f"{ziel.name}: CRC-Fehler bei {defekt}")
     for pflicht in ARCHIV_PFLICHT:
         if pflicht.as_posix() not in eintraege:
             fehler.append(f"{ziel.name}: Pflichteintrag "
@@ -221,25 +256,90 @@ def _relevant(rel: Path) -> bool:
     return not (rel.name.startswith("~$") or rel.suffix == ".pyc")
 
 
-def versionierte_dateien() -> list[Path]:
-    """Alle von Git versionierten Dateien (Index), die im Arbeitsbaum liegen."""
-    ergebnis = subprocess.run(
-        ["git", "-C", str(BASIS), "ls-files", "-z"],
-        capture_output=True, check=True)
-    rel = [Path(p) for p in ergebnis.stdout.decode("utf-8").split("\0") if p]
-    return [BASIS / r for r in rel if (BASIS / r).is_file() and _relevant(r)]
+def _git(*args: str, eingabe: bytes | None = None) -> bytes:
+    return subprocess.run(["git", "-C", str(BASIS), *args], input=eingabe,
+                          capture_output=True, check=True).stdout
 
 
-def _schreibe(ziel: Path, dateien: list[Path]) -> None:
+def commit_info(ref: str) -> tuple[str, datetime]:
+    """(Commit-SHA, Commit-Zeit UTC) des Bezugscommits."""
+    zeile = _git("log", "-1", "--format=%H %ct", ref).decode().split()
+    return zeile[0], datetime.fromtimestamp(int(zeile[1]), tz=timezone.utc)
+
+
+def versionierte_dateien(ref: str) -> list[Path]:
+    """Alle im Commit versionierten Dateien (relativ), Ausschluesse gefiltert,
+    plattformunabhaengig sortiert (nach POSIX-Pfadstring, Codepoint-Ordnung -
+    Path-Objekte sortieren unter Windows case-insensitiv und wuerden die
+    Archivreihenfolge und damit die Pruefsumme plattformabhaengig machen)."""
+    roh = _git("ls-tree", "-r", "-z", "--name-only", ref).decode("utf-8")
+    dateien = [Path(p) for p in roh.split("\0") if p and _relevant(Path(p))]
+    return sorted(dateien, key=lambda p: p.as_posix())
+
+
+def blob_inhalte(ref: str, dateien: list[Path]) -> dict[Path, bytes]:
+    """Dateiinhalte aus dem Objektspeicher (git cat-file --batch, ein Prozess);
+    roh, ohne Zeilenende-Konvertierung des Arbeitsbaums."""
+    anfrage = "".join(f"{ref}:{p.as_posix()}\n" for p in dateien).encode("utf-8")
+    roh = _git("cat-file", "--batch", eingabe=anfrage)
+    inhalte: dict[Path, bytes] = {}
+    pos = 0
+    for datei in dateien:
+        ende = roh.index(b"\n", pos)
+        kopf = roh[pos:ende].decode("utf-8").split()
+        if len(kopf) != 3 or kopf[1] != "blob":
+            raise RuntimeError(f"git cat-file: {datei.as_posix()} in {ref}: {kopf}")
+        laenge = int(kopf[2])
+        inhalte[datei] = roh[ende + 1: ende + 1 + laenge]
+        pos = ende + 1 + laenge + 1  # abschliessendes \n je Objekt
+    return inhalte
+
+
+def schmutzige_dateien() -> list[str]:
+    """Versionierte Dateien mit uncommitteten Aenderungen (Index/Arbeitsbaum)."""
+    roh = _git("status", "--porcelain", "--untracked-files=no", "-z").decode("utf-8")
+    eintraege = [e for e in roh.split("\0") if e]
+    dateien: list[str] = []
+    ueberspringe = False
+    for eintrag in eintraege:
+        if ueberspringe:  # zweiter Eintrag einer Umbenennung/Kopie (Altpfad)
+            ueberspringe = False
+            continue
+        status, pfad = eintrag[:2], eintrag[3:]
+        dateien.append(pfad)
+        ueberspringe = "R" in status or "C" in status
+    return dateien
+
+
+def _schreibe(ziel: Path, dateien: list[Path], inhalte: dict[Path, bytes],
+              zeit: datetime) -> str:
+    """Schreibt das Archiv deterministisch; liefert die SHA-256-Pruefsumme."""
     ziel.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(ziel, "w", zipfile.ZIP_DEFLATED) as z:
-        for datei in sorted(dateien):
-            z.write(datei, datei.relative_to(BASIS).as_posix())
-    print(f"gebaut: {ziel.name} ({len(dateien)} Dateien, "
-          f"{ziel.stat().st_size:,} Bytes)".replace(",", "."))
+    stempel = (zeit.year, zeit.month, zeit.day, zeit.hour, zeit.minute, zeit.second)
+    with zipfile.ZipFile(ziel, "w", zipfile.ZIP_STORED) as z:
+        for datei in dateien:
+            info = zipfile.ZipInfo(datei.as_posix(), date_time=stempel)
+            info.compress_type = zipfile.ZIP_STORED
+            info.create_system = 3            # Unix, plattformunabhaengig
+            info.external_attr = 0o100644 << 16  # regulaere Datei rw-r--r--
+            z.writestr(info, inhalte[datei])
+    summe = hashlib.sha256(ziel.read_bytes()).hexdigest()
+    groesse = f"{ziel.stat().st_size:,}".replace(",", ".")
+    print(f"gebaut: {ziel.name} ({len(dateien)} Dateien, {groesse} Bytes) "
+          f"sha256 {summe}")
+    return summe
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    p.add_argument("--ref", default="HEAD",
+                   help="Git-Commit/Tag, aus dem gebaut wird (Standard HEAD)")
+    p.add_argument("--erlaube-schmutzig", action="store_true",
+                   help="trotz uncommitteter Aenderungen an versionierten "
+                        "Dateien bauen (Paket enthaelt dann den Commit-Stand, "
+                        "nicht den Arbeitsbaum)")
+    args = p.parse_args(argv)
+
     fehler = validiere_repo()
     if fehler:
         for f in fehler:
@@ -248,25 +348,46 @@ def main() -> int:
               file=sys.stderr)
         return 1
     try:
-        alle = versionierte_dateien()
-    except (OSError, subprocess.CalledProcessError) as e:
-        print(f"FEHLER: Git-Index nicht lesbar ({e}) - der Bau benoetigt "
-              "ein Git-Arbeitsverzeichnis.", file=sys.stderr)
+        sha, zeit = commit_info(args.ref)
+        schmutzig = schmutzige_dateien() if args.ref == "HEAD" else []
+        alle = versionierte_dateien(args.ref)
+        inhalte = blob_inhalte(args.ref, alle)
+    except (OSError, subprocess.CalledProcessError, RuntimeError, ValueError) as e:
+        print(f"FEHLER: Git-Objektspeicher nicht lesbar ({e}) - der Bau "
+              "benoetigt ein Git-Arbeitsverzeichnis mit dem Bezugscommit.",
+              file=sys.stderr)
         return 1
-    _schreibe(DIST / "jahresabschluss-agent_GitHub.zip", alle)
-    plugin = [p for p in alle
-              if p.relative_to(BASIS).parts[0] in PLUGIN_WURZELN
-              or (len(p.relative_to(BASIS).parts) == 1
-                  and p.name in PLUGIN_WURZELDATEIEN)]
-    ziel = DIST / "jahresabschluss-agent.plugin"
-    _schreibe(ziel, plugin)
+    if schmutzig:
+        meldung = ("versionierte Dateien mit uncommitteten Aenderungen "
+                   "(nicht im Paket): " + ", ".join(sorted(schmutzig)[:8])
+                   + (" ..." if len(schmutzig) > 8 else ""))
+        if not args.erlaube_schmutzig:
+            print(f"FEHLER: {meldung}\nZuerst committen oder mit "
+                  "--erlaube-schmutzig aus dem Commit-Stand bauen.",
+                  file=sys.stderr)
+            return 1
+        print(f"WARNUNG: {meldung}", file=sys.stderr)
+    print(f"Quelle: {args.ref} = {sha[:12]} ({zeit:%Y-%m-%d %H:%M:%S} UTC), "
+          f"{len(alle)} versionierte Dateien")
+
+    summen = {ARCHIV_GITHUB: _schreibe(DIST / ARCHIV_GITHUB, alle, inhalte, zeit)}
+    plugin = [q for q in alle
+              if q.parts[0] in PLUGIN_WURZELN
+              or (len(q.parts) == 1 and q.name in PLUGIN_WURZELDATEIEN)]
+    ziel = DIST / ARCHIV_PLUGIN
+    summen[ARCHIV_PLUGIN] = _schreibe(ziel, plugin, inhalte, zeit)
     fehler = validiere_archiv(ziel)
     if fehler:
         for f in fehler:
             print(f"FEHLER: {f}", file=sys.stderr)
         return 1
+    (DIST / PRUEFSUMMEN).write_text(
+        "".join(f"{summen[n]}  {n}\n" for n in (ARCHIV_PLUGIN, ARCHIV_GITHUB)),
+        encoding="ascii", newline="\n")
+    print(f"geschrieben: {PRUEFSUMMEN} (sha256sum -c kompatibel)")
     print("Release-Validierung: Manifeste, Versionsgleichlauf, Checkzahl, "
-          "SKILL-Frontmatter, Katalog-Doku und Archivinhalt geprueft - keine Befunde.")
+          "SKILL-Frontmatter, Katalog-Doku/-IDs, Referenzstand und "
+          "Archivinhalt geprueft - keine Befunde.")
     return 0
 
 

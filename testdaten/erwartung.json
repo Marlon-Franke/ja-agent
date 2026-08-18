@@ -1,0 +1,584 @@
+{
+ "_doku": [
+  "Maschinenlesbares Erwartungsbild der drei Verifikationslaeufe (Soll-Referenz: erwartung.md).",
+  "Je Check-ID: status aktiv|skip; treffer je Schwere (fehlend = 0 = Nullbefund); belege = sortierte Belegfeld-1-Werte der Treffer (nur wo vorhanden); grund = Teilstring des Skip-Grunds.",
+  "Laeufe mit 'basis' erben die Checks des Basislaufs; 'checks' enthaelt nur Abweichungen (wie erwartung.md 'Abweichungen gegenueber Lauf 1').",
+  "Alle IDs aus befunde.KATALOG muessen (effektiv) enthalten sein; py werkzeuge/pruefe_erwartung.py vergleicht befunde.json/llm_kandidaten.json/stdout gegen diese Datei (CI und release_check.py).",
+  "Bei gewollten Aenderungen an Katalog, Schwellwerten oder Generator diese Datei und erwartung.md im selben Arbeitsgang nachziehen."
+ ],
+ "katalog_checks": 73,
+ "laeufe": {
+  "standard": {
+   "beschreibung": "Lauf 1 – Standard, Demo GmbH (Kapitalgesellschaft)",
+   "argumente": [
+    "--stapel",
+    "testdaten",
+    "--susa",
+    "testdaten/SuSa_2025_Demo.csv",
+    "--susa-vorjahr",
+    "testdaten/SuSa_2024_Demo.csv",
+    "--opos",
+    "testdaten/OPOS_2025_Demo.csv",
+    "--mandant",
+    "Demo GmbH",
+    "--rechtsform",
+    "kapitalgesellschaft"
+   ],
+   "summen": {
+    "hoch": 4,
+    "mittel": 30,
+    "hinweis": 47
+   },
+   "ki_kandidaten": 22,
+   "checks": {
+    "DV-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "DV-02": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "DV-03": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "DQ-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "DQ-02": {
+     "status": "aktiv"
+    },
+    "ST-05": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "ST-06": {
+     "status": "aktiv"
+    },
+    "SB-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hoch": 1
+     }
+    },
+    "SB-02": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "SB-03": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "SB-04": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "SB-05": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "SB-06": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "SB-07": {
+     "status": "aktiv"
+    },
+    "SB-08": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "SB-09": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     },
+     "belege": [
+      "BAR-M1"
+     ]
+    },
+    "SB-10": {
+     "status": "skip",
+     "grund": "Rechtsform Kapitalgesellschaft: Privatkonten unzulässig – siehe PP-04"
+    },
+    "AF-01": {
+     "status": "aktiv"
+    },
+    "AF-02": {
+     "status": "aktiv"
+    },
+    "AF-03": {
+     "status": "aktiv",
+     "treffer": {
+      "hoch": 1
+     }
+    },
+    "AF-04": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1,
+      "hinweis": 1
+     },
+     "belege": [
+      "AR-401",
+      "ER-2410"
+     ]
+    },
+    "AF-05": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     },
+     "belege": [
+      "ER-2450"
+     ]
+    },
+    "US-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     },
+     "belege": [
+      "VS-01"
+     ]
+    },
+    "US-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "US-03": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1,
+      "hinweis": 1
+     }
+    },
+    "US-04": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "US-05": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 4
+     }
+    },
+    "US-06": {
+     "status": "aktiv"
+    },
+    "US-07": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "US-08": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     },
+     "belege": [
+      "BAR-S1"
+     ]
+    },
+    "US-09": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "US-10": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "RE-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "RE-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hoch": 1
+     },
+     "belege": [
+      "RE2025-108"
+     ]
+    },
+    "RE-03": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "OP-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "OP-02": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "OP-03": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 2
+     },
+     "belege": [
+      "ER-2024-77",
+      "RE2024-098"
+     ]
+    },
+    "OP-04": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "OP-05": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 3,
+      "hinweis": 1
+     }
+    },
+    "OP-06": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     },
+     "belege": [
+      "GS-2024-05",
+      "RE2023-045"
+     ]
+    },
+    "OP-07": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "KR-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     },
+     "belege": [
+      "ER-3001"
+     ]
+    },
+    "BL-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     }
+    },
+    "BL-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "BL-03": {
+     "status": "aktiv"
+    },
+    "BL-04": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "BL-05": {
+     "status": "skip",
+     "grund": "erfordert Konfiguration 'latente_steuern' (Kontenbereiche des Kontenplans, § 274 HGB)"
+    },
+    "VJ-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 2,
+      "hinweis": 2
+     }
+    },
+    "VJ-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 3
+     }
+    },
+    "GV-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "GV-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "GV-03": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     },
+     "belege": [
+      "AR-777",
+      "LO-06"
+     ]
+    },
+    "ET-01": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     },
+     "belege": [
+      "GS-01"
+     ]
+    },
+    "ET-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     },
+     "belege": [
+      "BG-01"
+     ]
+    },
+    "CO-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     },
+     "belege": [
+      "RE2025-113"
+     ]
+    },
+    "CO-02": {
+     "status": "skip",
+     "grund": "fakultativ – Folgejahres-Stapel nicht geliefert (--stapel-folgejahr); Nachlauf-Prüfung entfällt ohne Mangel"
+    },
+    "PP-01": {
+     "status": "skip",
+     "grund": "Rechtsform Kapitalgesellschaft: Privatnutzung läuft über Lohn/vGA (erfordert Lohnjournal)"
+    },
+    "PP-02": {
+     "status": "skip",
+     "grund": "Rechtsform Kapitalgesellschaft: Privatkonten unzulässig – siehe PP-04"
+    },
+    "PP-03": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "PP-04": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 1
+     }
+    },
+    "GS-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     },
+     "belege": [
+      "GD-01"
+     ]
+    },
+    "ST-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hoch": 1,
+      "mittel": 2
+     },
+     "belege": [
+      "ER-2288",
+      "M-07b",
+      "WK-10b"
+     ]
+    },
+    "ST-02": {
+     "status": "aktiv",
+     "treffer": {
+      "mittel": 3
+     },
+     "belege": [
+      "AR-777",
+      "BAR-M1"
+     ]
+    },
+    "ST-03": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 2
+     },
+     "belege": [
+      "BAR-M1"
+     ]
+    },
+    "ST-04": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "ST-07": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "ST-08": {
+     "status": "aktiv"
+    },
+    "FR-01": {
+     "status": "aktiv"
+    },
+    "FR-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "FR-03": {
+     "status": "skip",
+     "grund": "erfordert Konfiguration 'freigabegrenzen'"
+    },
+    "FR-04": {
+     "status": "aktiv"
+    },
+    "SD-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    }
+   }
+  },
+  "dq02": {
+   "beschreibung": "Lauf 2 – Negativtest DQ-02: falsche Rechtsform (Personengesellschaft) → DQ-02 zweimal hoch",
+   "basis": "standard",
+   "argumente": [
+    "--stapel",
+    "testdaten",
+    "--susa",
+    "testdaten/SuSa_2025_Demo.csv",
+    "--susa-vorjahr",
+    "testdaten/SuSa_2024_Demo.csv",
+    "--opos",
+    "testdaten/OPOS_2025_Demo.csv",
+    "--mandant",
+    "Demo GmbH",
+    "--rechtsform",
+    "personengesellschaft"
+   ],
+   "summen": {
+    "hoch": 6,
+    "mittel": 29,
+    "hinweis": 49
+   },
+   "ki_kandidaten": 22,
+   "checks": {
+    "DQ-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hoch": 2
+     }
+    },
+    "SB-10": {
+     "status": "aktiv"
+    },
+    "PP-01": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "PP-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     }
+    },
+    "PP-04": {
+     "status": "skip",
+     "grund": "Rechtsform 'personengesellschaft': Privatkonten zulässig (geprüft über PP-01/02, SB-10)"
+    }
+   }
+  },
+  "co02": {
+   "beschreibung": "Lauf 3 – Cut-off-Nachlauf: Folgejahres-Stapel → CO-02 genau einmal (ER-2026-015)",
+   "basis": "standard",
+   "argumente": [
+    "--stapel",
+    "testdaten",
+    "--stapel-folgejahr",
+    "testdaten/folgejahr",
+    "--susa",
+    "testdaten/SuSa_2025_Demo.csv",
+    "--susa-vorjahr",
+    "testdaten/SuSa_2024_Demo.csv",
+    "--opos",
+    "testdaten/OPOS_2025_Demo.csv",
+    "--mandant",
+    "Demo GmbH",
+    "--rechtsform",
+    "kapitalgesellschaft"
+   ],
+   "summen": {
+    "hoch": 4,
+    "mittel": 30,
+    "hinweis": 48
+   },
+   "ki_kandidaten": 23,
+   "checks": {
+    "CO-02": {
+     "status": "aktiv",
+     "treffer": {
+      "hinweis": 1
+     },
+     "belege": [
+      "ER-2026-015"
+     ]
+    }
+   }
+  }
+ }
+}

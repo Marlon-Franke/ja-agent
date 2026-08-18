@@ -1,0 +1,16 @@
+# Zeilenenden festlegen: reproduzierbare Pakete und identische Checkouts
+# auf Windows/Linux/macOS (Revisionsbefund P2.3, docs/test-strategy.md).
+* text=auto eol=lf
+
+# Formate, deren Zeilenenden Teil des Inhalts sind - nie konvertieren:
+# DATEV-Exporte (CRLF, wie vom Generator/DATEV geschrieben) und die
+# Power-BI-Reportdefinition (so wie Power BI Desktop sie schreibt).
+testdaten/*.csv -text
+testdaten/**/*.csv -text
+werkzeuge/pbi_vorlage/**/report.json -text
+
+# Binaerdateien
+*.xlsx binary
+*.zip binary
+*.plugin binary
+*.png binary

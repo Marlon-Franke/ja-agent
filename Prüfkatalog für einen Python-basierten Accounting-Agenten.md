@@ -1,11 +1,22 @@
-> **Referenzdokument des JA-Agenten** (internes Arbeitsdokument,
-> Stand August 2026): Soll-Katalog der Prüfungen, an dem sich Struktur und
-> Klassifikation des Agenten ausrichten. Den Umsetzungsstand je
-> Katalogpunkt weist die Abdeckungsmatrix
+<!-- KATALOG:REFERENZSTAND:START -->
+**Referenzstand:** Version **v0.4.4** des JA-Agenten (= `version` in `.claude-plugin/plugin.json`, Repository-Tag `v0.4.4` mit dem zugehörigen Commit; dieser Block wird von `werkzeuge/katalog_doku.py` generiert und im Build geprüft).
+<!-- KATALOG:REFERENZSTAND:END -->
+
+> **Referenzdokument des JA-Agenten** (internes Arbeitsdokument): Soll-Katalog
+> der Prüfungen, an dem sich Struktur und Klassifikation des Agenten
+> ausrichten. Den Umsetzungsstand je Katalogpunkt weist die Abdeckungsmatrix
 > ([skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md))
 > aus; Quellen zu Format- und Rechtsbezügen führt die
 > [README](README.md) im Abschnitt „Quellen und Referenzen". Kein
 > Rechtsrat – Normbezüge vor Anwendung prüfen.
+>
+> **Fachlicher Rechtsstand:** 18.08.2026 – Normen und Grenzwerte gemäß
+> README „Quellen und Referenzen" (jüngste berücksichtigte Änderung:
+> KSt-Satzsenkung, BGBl. 2025 I Nr. 161 vom 18.07.2025; Geschenke-Grenze
+> 50 EUR seit 2024). **Letzte fachliche Durchsicht des Katalogs:**
+> 18.08.2026 (Klärung der Klassifikationsdrift, Release 0.4.3: Tags
+> 1:1 mit README-Checkliste und Abdeckungsmatrix abgeglichen). Beide
+> Angaben werden von Hand gepflegt; die Referenzversion oben wird generiert.
 >
 > **Redaktionelle Klarstellungen zu Kap. 20 (Projektstand):**
 > 1. Bilanz und GuV gehen aus dem Buchungsstapel hervor – der Stapel ist

@@ -43,6 +43,29 @@ Stapeldaten keine Prüfung und keine behaupteten Ergebnisse.
 Formatreferenzen mit Quellen-Links (DATEV-Dokumente, Kategorie-Codes):
 `references/pruefkatalog.md`, Abschnitt „Formatreferenzen".
 
+## Voraussetzung: Python-Abhängigkeit (Preflight vor dem ersten Aufruf)
+
+Die Pipeline braucht Python 3.10+ und das Paket `openpyxl`
+(`requirements.txt` liegt im Plugin-Paket). Die Plugin-Installation
+installiert **keine** Python-Pakete – deshalb einmal je Umgebung prüfen:
+
+```
+py "${CLAUDE_PLUGIN_ROOT}/werkzeuge/abhaengigkeiten.py"
+```
+
+(Windows-Launcher `py`; unter Linux/macOS `python3`.) Meldet der Aufruf
+`FEHLER: Python-Paket(e) nicht installiert`, dem Nutzer **genau diesen**
+Installationsbefehl nennen und auf seine Bestätigung warten – nie
+stillschweigend installieren:
+
+```
+py -m pip install -r "${CLAUDE_PLUGIN_ROOT}/requirements.txt"
+```
+
+Dieselbe Meldung (Exit-Code 2) gibt auch `ja_pruefung.py` bzw.
+`llm_einarbeiten.py` selbst aus, falls das Paket fehlt; `--help`
+funktioniert ohne Abhängigkeiten.
+
 ## Ablauf
 
 0. Sofern der Nutzer kein Berichtsformat vorgegeben hat, per Frage

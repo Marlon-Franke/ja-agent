@@ -1,5 +1,8 @@
 # Jahresabschluss-Agent (DATEV) – Claude-Code-Plugin
 
+[![CI](https://github.com/Marlon-Franke/ja-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Marlon-Franke/ja-agent/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Marlon-Franke/ja-agent?display_name=tag)](https://github.com/Marlon-Franke/ja-agent/releases/latest)
+
 Prüft DATEV-Buchungsstapel wie ein erfahrener Abschlussprüfer und liefert
 einen strukturierten Excel-Prüfbericht – bereit zur Durchsicht, kein
 Textblock. Kernprinzip: **Regeln, die eindeutig sind, gehören in Code, nicht
@@ -51,6 +54,29 @@ Gesellschafter, Stammdaten, Fraud-Indikatoren, Cross-Checks – je
 Katalogpunkt mit Status und ggf. benötigter Datenquelle):
 [skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md)
 
+## Voraussetzungen
+
+- **Python 3.10 bis 3.14** (CI-Matrix: 3.10/3.11/3.12/3.13/3.14 unter
+  Ubuntu, Windows und macOS – [docs/test-strategy.md](docs/test-strategy.md)).
+  Die Beispiele nutzen den Windows-Launcher `py`; unter Linux/macOS
+  `python3` einsetzen.
+- **Laufzeitabhängigkeit** `openpyxl>=3.1,<4` aus `requirements.txt`
+  (Excel-Bericht). Die Plugin-Installation von Claude Code installiert
+  **keine** Python-Pakete – einmal je Python-Umgebung:
+
+  ```bash
+  py -m pip install -r requirements.txt
+  ```
+
+  Fehlt das Paket, melden `ja_pruefung.py`/`llm_einarbeiten.py` das mit
+  genau diesem Befehl (Exit-Code 2, kein Traceback, keine automatische
+  Installation); `py werkzeuge/abhaengigkeiten.py` prüft es vorab
+  (`--help` funktioniert ohne Abhängigkeiten).
+- **Claude Code** ab CLI-Version 2.1.201 (Referenzversion der CI: mit ihr
+  laufen `claude plugin validate --strict` und der Marketplace-Lebenszyklus;
+  ältere Versionen sind ungetestet) bzw. Claude Desktop/Cowork mit
+  Plugin-Unterstützung.
+
 ## Schnellstart (lokal, ohne Plugin-Installation)
 
 ```bash
@@ -79,37 +105,26 @@ py werkzeuge/ja_pruefung.py --stapel testdaten --susa testdaten/SuSa_2025_Demo.c
 Cut-off-Nachlaufprüfung `CO-02` (aufwandsseitig nach WJ-Ende): derselbe
 Aufruf zusätzlich mit `--stapel-folgejahr testdaten/folgejahr` – ohne
 diese Option wird `CO-02` mit Begründung übersprungen (kein Mangel).
-
-Voraussetzungen: Python 3.10+; Laufzeitabhängigkeiten aus
-`requirements.txt` (derzeit nur `openpyxl`):
-
-```bash
-py -m pip install -r requirements.txt
-```
+Das vollständige Erwartungsbild aller 73 Checks je Lauf steht in
+[testdaten/erwartung.md](testdaten/erwartung.md) (maschinenlesbar:
+`testdaten/erwartung.json`).
 
 ## Plugin-Installation
 
-**Paket bauen (einmalig bzw. nach Änderungen):** `dist/` ist nicht im
-Repository enthalten, sondern wird lokal aus einem **Git-Klon** erzeugt
-(die Dateiliste kommt aus dem Git-Index; ein entpacktes „Download ZIP"
-ohne `.git` reicht nicht). Der Bau validiert dabei Manifeste,
-Versionsgleichlauf (`plugin.json` ↔ `VERSION` in `ja_pruefung.py`),
-Checkzahl (`<n> Checks` in README/SKILL.md/plugin.json =
-`len(befunde.KATALOG)`), Skill-Frontmatter und Archivinhalt und bricht bei
-Abweichung ab:
+**1. Claude Desktop / Cowork – fertiges Paket aus dem GitHub-Release
+(empfohlen):** von der Seite
+[Releases](https://github.com/Marlon-Franke/ja-agent/releases/latest) die
+Datei `jahresabschluss-agent.plugin` laden (Prüfsumme in `SHA256SUMS.txt`
+desselben Releases), in den Chat ziehen bzw. über die Plugin-Verwaltung
+hinzufügen. Danach steht der Skill `/jahresabschluss-agent:ja-pruefung`
+(Plugin-Namensraum `jahresabschluss-agent`, Skill `ja-pruefung`) zur
+Verfügung. Das Paket enthält `requirements.txt`; der Skill prüft die
+Python-Abhängigkeit vor dem ersten Lauf und nennt bei Bedarf den
+Installationsbefehl (siehe Voraussetzungen).
 
-```bash
-py werkzeuge/baue_dist.py
-```
-
-**Claude Desktop / Cowork:** die Datei `dist/jahresabschluss-agent.plugin`
-in den Chat ziehen bzw. über die Plugin-Verwaltung hinzufügen. Danach steht
-der Skill `/jahresabschluss-agent:ja-pruefung` (Plugin-Namensraum
-`jahresabschluss-agent`, Skill `ja-pruefung`) zur Verfügung.
-
-**Claude Code (CLI):** Marketplace **einmal** hinzufügen – entweder
-(A) direkt aus GitHub (Kurzform `owner/repo`; klont per Default über SSH,
-HTTPS mit `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`):
+**2. Claude Code (CLI) – Marketplace:** Marketplace **einmal** hinzufügen –
+entweder (A) direkt aus GitHub (Kurzform `owner/repo`; klont per Default
+über SSH, HTTPS mit `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1`):
 
 ```bash
 claude plugin marketplace add Marlon-Franke/ja-agent
@@ -129,11 +144,60 @@ claude plugin install jahresabschluss-agent@ja-agent
 
 (Aufruf- und Namenskonventionen: [Claude Code – Plugins](https://code.claude.com/docs/en/plugins),
 [Claude Code – Plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces).)
+Die CI testet genau diesen Lebenszyklus (`marketplace add`, `install`,
+`list`, `details`, `update`, `uninstall`) mit isoliertem
+`CLAUDE_CONFIG_DIR` gegen den Repository-Stand.
+
+**3. Contributor-Variante – Paket selbst bauen:** `dist/` ist nicht im
+Repository enthalten, sondern wird aus einem **Git-Klon** reproduzierbar aus
+dem Commit-Stand erzeugt (Dateiliste und Inhalte aus dem Git-Objektspeicher,
+Commit-Zeitstempel, unkomprimiert – derselbe Commit ergibt auf jeder
+Plattform byteidentische Archive und dieselben Prüfsummen wie das
+GitHub-Release; ein entpacktes „Download ZIP" ohne `.git` reicht nicht):
+
+```bash
+py werkzeuge/baue_dist.py
+```
+
+Der Bau validiert dabei Manifeste, Versionsgleichlauf (`plugin.json` ↔
+`VERSION` in `ja_pruefung.py`), Checkzahl (`<n> Checks` in
+README/SKILL.md/plugin.json = `len(befunde.KATALOG)`), Skill-Frontmatter,
+Katalog-Doku und Archivinhalt (inkl. `requirements.txt`), bricht bei
+Abweichung ab und schreibt `dist/SHA256SUMS.txt`. Uncommittete Änderungen
+an versionierten Dateien blockieren den Bau (`--erlaube-schmutzig` baut
+trotzdem aus dem Commit).
 
 Kontext-Fußabdruck: Das Plugin lädt pro Sitzung nur die einzeilige
 Skill-Beschreibung; Katalog und Werkzeuge werden erst bei Nutzung gelesen.
 Empfehlung: nur in den Projekten/Arbeitsbereichen aktivieren, in denen
 JA-Prüfungen laufen.
+
+## Qualitätssicherung und Release-Check
+
+Ein Befehl führt alle Release-Gates in definierter Reihenfolge aus und
+liefert einen eindeutigen Exit-Code – derselbe Befehl in `.claude/CLAUDE.md`
+und in der CI (`.github/workflows/ci.yml`):
+
+```bash
+py werkzeuge/release_check.py
+```
+
+Gates: Python-Version und Abhängigkeiten, Syntax (`compileall`),
+Plugin-Sollstruktur (Manifeste, Versionsgleichlauf, Checkzahl,
+Katalog-Doku/-IDs, Referenzstand), Testdaten-Generator (Ausgabe ==
+versionierte CSVs), die drei Referenzläufe gegen `testdaten/erwartung.json`
+(alle 73 Checks je Lauf, Belege gesäter Fälle, Skip-Gründe,
+KI-Kandidatenzahl, keine Bilanzprobe-Warnung), Markdown-Links,
+`claude plugin validate --strict` für beide Manifeste
+(`--ohne-plugin-cli` überspringt ausdrücklich), reproduzierbarer
+Distributionsbau, ruff und pip-audit (`--streng` verlangt sie;
+`requirements-dev.txt`). Die CI ergänzt Marketplace-Lebenszyklus,
+Paketlauf in frischer virtueller Umgebung (entpacktes `.plugin`, mit und
+ohne `openpyxl`), Betriebssystem-/Python-Matrix mit
+Prüfsummen-Vergleich der Archive, Secret-Scan und Lizenzprüfung; Details,
+Support- und Kompatibilitätszusagen: [docs/test-strategy.md](docs/test-strategy.md).
+Beiträge: [CONTRIBUTING.md](CONTRIBUTING.md); Sicherheitsmeldungen:
+[SECURITY.md](SECURITY.md).
 
 ## DATEV-Export (Kanzlei-Anleitung)
 
@@ -412,7 +476,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [P] ungewöhnlich viele Abschluss-/Nachtragsbuchungen → `GV-01`, `CO-01`/`CO-02`
 - [x] [P] rückdatierte Buchungen (Indiz über Nummernfolge) → `RE-03`; vollständig ➕ Journal mit Erfassungsdatum
 - [ ] [P] großer Abstand Beleg-/Buchungsdatum ➕ Journal
-- [ ] [A] Buchungen zu ungewöhnlichen Zeiten / je Benutzer ➕ Journal mit User und Zeitstempel
+- [x] [A] Buchungen zu ungewöhnlichen Zeiten / je Benutzer → `ST-04` (Belegdatum Kasse: Sonn-/Feiertage); Uhrzeit/Benutzer ➕ Journal mit User und Zeitstempel
 - [x] [A] ungewöhnliche Konten-Gegenkonten-Kombination, erstmalige Kontierung → `GV-03`
 - [x] [A] ungewöhnliche Buchungstexte → **KI** + `ET-02` (regelbasierte Textmuster)
 - [x] [P] Buchungen knapp an Freigabegrenzen → `FR-03` (konfigurierbar)
@@ -491,7 +555,7 @@ nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 - [x] [R] Interims-/Verrechnungskonten und durchlaufende Posten zum Stichtag ausgeglichen → `SB-04`
 - [ ] [R] Vortrag des Vorjahres, Ergebnisverwendung ➕ Vorjahresdaten
 - [x] [P] ungewöhnliche Einlagen/Entnahmen, Gesellschafterkonten → `PP-02`, `SB-10`, `GS-01`
-- [x] [R] Privatkonten bei Kapitalgesellschaft bebucht → `PP-04` (mit `--rechtsform`)
+- [x] [R] Privatkonten bei Kapitalgesellschaft bebucht → `PP-04` (mit `--rechtsform`; `PP-01/02`, `SB-10` werden bei KapG begründet übersprungen)
 - [ ] [R/X] Kapitalkontenentwicklung je Gesellschafter (PersG: Kapitalkonten I/II, Verlust-/Darlehenskonten), verrechenbare Verluste § 15a EStG ➕ Kapitalkontenentwicklung, Gesellschaftsvertrag
 
 ### 9. GuV- und Kontenplausibilitäten
@@ -747,6 +811,28 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
 - GoBD: BMF-Schreiben vom 28.11.2019, BStBl I 2019, 1269
   (Nachvollziehbarkeit, Vollständigkeit, Belegwesen: ST-05, RE-01, DQ-01).
 
+**Claude-Code-Plugin-Mechanik und CI** (Grundlage von Paketierung,
+Validierung, Installationswegen und Verifikation)
+
+- [Claude Code – Plugins reference](https://code.claude.com/docs/en/plugins-reference):
+  Manifest-/Verzeichnisstruktur, `claude plugin validate --strict` als
+  CI-Prüfung; [Plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces):
+  `marketplace add`/`install`/`update`; [Plugins](https://code.claude.com/docs/en/plugins):
+  Skill-Aufruf im Plugin-Namensraum; [Memory](https://code.claude.com/docs/en/memory):
+  Projektanweisungen in `./CLAUDE.md` **oder** `./.claude/CLAUDE.md`
+  (hier `.claude/CLAUDE.md`, weil eine `CLAUDE.md` an der Plugin-Wurzel in
+  der strikten Plugin-Validierung als Warnung gilt);
+  [Set up Claude Code](https://code.claude.com/docs/en/setup): Installation
+  der CLI (`npm install -g @anthropic-ai/claude-code`, in der CI auf die
+  Referenzversion gepinnt).
+- [GitHub Actions – Workflow syntax](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
+  (`defaults.run.shell`, Matrix, `on.push.tags`);
+  [Managing releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
+  und [`gh release create`](https://cli.github.com/manual/gh_release_create)
+  (Release-Workflow lädt Artefakte und `SHA256SUMS.txt` aus dem Tag-Build
+  hoch); [Rulesets/Branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+  (empfohlene Absicherung von `main`, docs/test-strategy.md).
+
 **Methodik**
 
 - Benford-Screening (ST-08): Nigrini, „Benford's Law", Wiley 2012 –
@@ -763,4 +849,6 @@ Befund-Empfehlung; Volltexte unter gesetze-im-internet.de)
 
 ## Lizenz
 
-MIT – siehe [LICENSE](LICENSE).
+MIT – siehe [LICENSE](LICENSE). Beiträge: [CONTRIBUTING.md](CONTRIBUTING.md);
+Sicherheitsmeldungen: [SECURITY.md](SECURITY.md); Änderungen:
+[CHANGELOG.md](CHANGELOG.md).

@@ -19,7 +19,7 @@ from openpyxl.worksheet.hyperlink import Hyperlink
 
 import bilanz
 from befunde import (EBENEN, KATALOG, KATALOG_BEREICHE, RANG, Befund,
-                     Kontext, eur)
+                     Kontext)
 
 FONT = "Arial"
 KOPF_FILL = PatternFill("solid", start_color="1F4E79")
