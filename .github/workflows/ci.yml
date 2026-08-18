@@ -1,99 +1,242 @@
-# CI-Release-Gates: automatisiert die Verifikationsschritte aus CLAUDE.md.
-# Erwartungswerte (4 hoch / 30 mittel / 47 Hinweise; DQ-02 = 2 Hoch-
-# Befunde; CO-02 = 1 Hinweis) folgen testdaten/erwartung.md - bei
-# gewollten Katalogaenderungen dort UND hier nachziehen.
-# Explizites `shell: bash` = `bash -eo pipefail`: sonst bestimmt bei
-# `python ... | tee` der Exit-Code von tee den Schritt und ein Absturz
-# der Pipeline nach der Summenzeile bliebe unentdeckt
+# CI-Release-Gates (Revisionspruefung v0.4.3, Befunde P0.2/P1.1/P1.2/P1.4/
+# P2.2/P2.3). Kanonischer Einstieg ist ueberall derselbe Befehl wie in
+# README/.claude/CLAUDE.md: `python werkzeuge/release_check.py` - Reihenfolge
+# und Inhalt der Gates stehen dort und in docs/test-strategy.md.
+#
+# Jobs:
+#   release-check      alle Gates inkl. offizieller Plugin-Validierung mit
+#                      gepinnter Claude-Code-CLI (Referenzversion, README
+#                      "Voraussetzungen"); dist/ als Workflow-Artefakt
+#   marketplace        vollstaendiger lokaler Marketplace-Lebenszyklus
+#                      (add/install/list/details/update/uninstall) mit
+#                      isoliertem CLAUDE_CONFIG_DIR - der Installationsweg,
+#                      den README fuer Claude Code beschreibt
+#   paket              entpacktes .plugin in frischer virtueller Umgebung:
+#                      ohne openpyxl klare Meldung (Exit 2), mit den
+#                      Paket-requirements der Standardlauf gegen erwartung.json
+#   matrix             Ubuntu/Windows/macOS x Python 3.10-3.14 (ohne CLI)
+#   reproduzierbarkeit Archiv-Pruefsummen aller Zellen identisch
+#   security           gitleaks, pip-audit, Lizenzpruefung
+#
+# Explizites `shell: bash` = `bash -eo pipefail`, auch unter Windows (Git
+# Bash): sonst bestimmt bei `cmd | tee` der Exit-Code von tee den Schritt
 # (https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#defaultsrunshell).
-# Laufprotokolle nach $RUNNER_TEMP, Zusatzlaeufe unter testdaten/ausgabe/
-# (gitignored, von baue_dist ausgeschlossen) - kein Streugut im Repo.
+# Laufprotokolle nach $RUNNER_TEMP, Prueflaeufe unter testdaten/ausgabe/
+# (gitignored, vom Bau ausgeschlossen) - kein Streugut im Repo.
 name: CI
 
 on:
   push:
     branches: [main]   # PR-Branches deckt pull_request ab (sonst Doppellauf)
   pull_request:
+  workflow_dispatch:
 
 defaults:
   run:
     shell: bash
 
+env:
+  # Referenzversion der Claude-Code-CLI (README "Voraussetzungen",
+  # docs/test-strategy.md Abschnitt 4). Freigabe neuerer Versionen = Pin
+  # anheben und CI gruen sehen.
+  CLAUDE_CLI_VERSION: "2.1.201"
+  PYTHONUTF8: "1"
+
 jobs:
-  pruefung:
+  release-check:
+    name: release-check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
-      - name: Abhaengigkeiten installieren
-        run: python -m pip install -r requirements.txt
-
-      - name: Python-Syntaxpruefung
-        run: python -m compileall -q werkzeuge testdaten
-
-      - name: Manifest-Validierung (Sollstruktur + JSON)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Claude-Code-CLI (gepinnt) installieren
         run: |
-          python - <<'PY'
-          import json, pathlib, sys
-          fehler = []
-          for rel in (".claude-plugin/plugin.json",
-                      ".claude-plugin/marketplace.json"):
-              p = pathlib.Path(rel)
-              if not p.is_file():
-                  fehler.append(f"{rel} fehlt (Plugin-Spezifikation)")
-                  continue
-              try:
-                  json.loads(p.read_text(encoding="utf-8"))
-              except json.JSONDecodeError as e:
-                  fehler.append(f"{rel}: kein gueltiges JSON ({e})")
-          for alt in (".claude-plugin/plugin", ".claude-plugin/marketplace"):
-              if pathlib.Path(alt).exists():
-                  fehler.append(f"{alt}: endungslose Manifestdatei")
-          if fehler:
-              print("\n".join(fehler), file=sys.stderr)
-              sys.exit(1)
+          npm install -g "@anthropic-ai/claude-code@${CLAUDE_CLI_VERSION}"
+          claude --version
+      - name: Entwicklungsabhaengigkeiten installieren
+        run: python -m pip install -r requirements-dev.txt
+      - name: Kanonischer Release-Check (alle Gates, streng)
+        run: python werkzeuge/release_check.py --streng
+      - name: Pruefsummen ausgeben
+        run: cat dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-release-check
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  marketplace:
+    name: marketplace
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Claude-Code-CLI (gepinnt) installieren
+        run: |
+          npm install -g "@anthropic-ai/claude-code@${CLAUDE_CLI_VERSION}"
+          claude --version
+      - name: Marketplace-Lebenszyklus mit isoliertem CLAUDE_CONFIG_DIR
+        env:
+          PLUGIN: jahresabschluss-agent@ja-agent
+        run: |
+          export CLAUDE_CONFIG_DIR="$RUNNER_TEMP/claude-config"
+          mkdir -p "$CLAUDE_CONFIG_DIR"
+          SOLL_VERSION="$(python3 -c 'import json;print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
+          echo "== marketplace add (lokaler Klon = Repository-Stand)"
+          claude plugin marketplace add "$GITHUB_WORKSPACE"
+          claude plugin marketplace list
+          echo "== install"
+          claude plugin install "$PLUGIN"
+          echo "== list --json: Version == plugin.json, enabled"
+          claude plugin list --json | tee "$RUNNER_TEMP/plugins.json"
+          python3 - "$SOLL_VERSION" "$RUNNER_TEMP/plugins.json" <<'PY'
+          import json, sys
+          soll, pfad = sys.argv[1], sys.argv[2]
+          eintraege = json.load(open(pfad))
+          treffer = [e for e in eintraege if e.get("id") == "jahresabschluss-agent@ja-agent"]
+          assert len(treffer) == 1, f"Plugin nicht (eindeutig) installiert: {eintraege}"
+          e = treffer[0]
+          assert e.get("version") == soll, f"Version {e.get('version')!r} != plugin.json {soll!r}"
+          assert e.get("enabled") is True, f"Plugin nicht aktiviert: {e}"
+          print("installiert:", e["id"], e["version"], "scope", e.get("scope"))
           PY
+          echo "== details"
+          claude plugin details "$PLUGIN" | tee "$RUNNER_TEMP/details.txt"
+          grep -F "ja-pruefung" "$RUNNER_TEMP/details.txt"
+          echo "== update"
+          claude plugin update "$PLUGIN"
+          echo "== uninstall"
+          claude plugin uninstall "$PLUGIN"
+          claude plugin list --json | tee "$RUNNER_TEMP/plugins_nach.json"
+          python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); assert d==[], d; print("deinstalliert: keine Plugins mehr")' "$RUNNER_TEMP/plugins_nach.json"
+          echo "== marketplace remove"
+          claude plugin marketplace remove ja-agent
+          claude plugin marketplace list
 
-      - name: Testdaten erzeugen
-        run: python testdaten/erzeuge_testdaten.py
-
-      - name: Standardlauf (GmbH) gegen Erwartungsbild
+  paket:
+    name: paket
+    needs: release-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist-release-check
+          path: dist/
+      - name: Paket entpacken und frische virtuelle Umgebung anlegen
         run: |
-          python werkzeuge/ja_pruefung.py --stapel testdaten \
-            --susa testdaten/SuSa_2025_Demo.csv \
-            --susa-vorjahr testdaten/SuSa_2024_Demo.csv \
-            --opos testdaten/OPOS_2025_Demo.csv \
-            --mandant "Demo GmbH" --rechtsform kapitalgesellschaft \
-            --ausgabe testdaten/ausgabe 2>&1 | tee "$RUNNER_TEMP/standardlauf.txt"
-          grep -F "Befunde: 4 hoch / 30 mittel / 47 Hinweise" "$RUNNER_TEMP/standardlauf.txt"
-          if grep -F "WARNUNG: Bilanzprobe" "$RUNNER_TEMP/standardlauf.txt"; then
-            echo "Bilanzprobe-Warnung darf nie auftreten" >&2; exit 1
-          fi
-
-      - name: Negativtest DQ-02 (falsche Rechtsform, 2 Hoch-Befunde)
+          python -m zipfile -e dist/jahresabschluss-agent.plugin "$RUNNER_TEMP/plugin"
+          test -f "$RUNNER_TEMP/plugin/requirements.txt"
+          test -f "$RUNNER_TEMP/plugin/werkzeuge/abhaengigkeiten.py"
+          test -f "$RUNNER_TEMP/plugin/skills/ja-pruefung/SKILL.md"
+          python -m venv "$RUNNER_TEMP/venv"
+      - name: Ohne openpyxl - --help laeuft, Pipeline meldet Exit 2 mit Hinweis
         run: |
-          python werkzeuge/ja_pruefung.py --stapel testdaten \
-            --susa testdaten/SuSa_2025_Demo.csv \
-            --susa-vorjahr testdaten/SuSa_2024_Demo.csv \
-            --opos testdaten/OPOS_2025_Demo.csv \
-            --mandant "Demo GmbH" --rechtsform personengesellschaft \
-            --ausgabe testdaten/ausgabe/dq02 2>&1 | tee "$RUNNER_TEMP/dq02.txt"
-          grep -E "hoch.*DQ-02 [^;]*\(2\)" "$RUNNER_TEMP/dq02.txt"
-
-      - name: Zusatztest CO-02 (Folgejahresstapel, genau 1 Hinweis)
+          PY="$RUNNER_TEMP/venv/bin/python"
+          "$PY" "$RUNNER_TEMP/plugin/werkzeuge/ja_pruefung.py" --help > /dev/null
+          set +e
+          "$PY" "$RUNNER_TEMP/plugin/werkzeuge/ja_pruefung.py" --stapel testdaten \
+            --ausgabe "$RUNNER_TEMP/aus_ohne" 2> "$RUNNER_TEMP/ohne.txt"
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/ohne.txt"
+          test "$RC" -eq 2
+          grep -F "Python-Paket(e) nicht installiert: openpyxl" "$RUNNER_TEMP/ohne.txt"
+          grep -F "pip install -r" "$RUNNER_TEMP/ohne.txt"
+          set +e
+          "$PY" "$RUNNER_TEMP/plugin/werkzeuge/abhaengigkeiten.py"; test $? -eq 2
+          set -e
+      - name: Mit Paket-requirements - Standardlauf ueber den Paketpfad
         run: |
-          python werkzeuge/ja_pruefung.py --stapel testdaten \
-            --stapel-folgejahr testdaten/folgejahr \
-            --susa testdaten/SuSa_2025_Demo.csv \
-            --susa-vorjahr testdaten/SuSa_2024_Demo.csv \
-            --opos testdaten/OPOS_2025_Demo.csv \
-            --mandant "Demo GmbH" --rechtsform kapitalgesellschaft \
-            --ausgabe testdaten/ausgabe/co02 2>&1 | tee "$RUNNER_TEMP/co02.txt"
-          grep -E "hinweis.*CO-02 [^;]*\(1\)" "$RUNNER_TEMP/co02.txt"
+          PY="$RUNNER_TEMP/venv/bin/python"
+          "$PY" -m pip install -q -r "$RUNNER_TEMP/plugin/requirements.txt"
+          "$PY" "$RUNNER_TEMP/plugin/werkzeuge/abhaengigkeiten.py"
+          python testdaten/erzeuge_testdaten.py
+          "$PY" "$RUNNER_TEMP/plugin/werkzeuge/ja_pruefung.py" --stapel testdaten \
+            --susa testdaten/SuSa_2025_Demo.csv --susa-vorjahr testdaten/SuSa_2024_Demo.csv \
+            --opos testdaten/OPOS_2025_Demo.csv --mandant "Demo GmbH" \
+            --rechtsform kapitalgesellschaft --ausgabe "$RUNNER_TEMP/aus" 2>&1 | tee "$RUNNER_TEMP/aus.txt"
+          python werkzeuge/pruefe_erwartung.py --lauf standard --ausgabe "$RUNNER_TEMP/aus" \
+            --protokoll "$RUNNER_TEMP/aus.txt"
 
-      - name: Distributionsbau inkl. Release-Validierung
-        run: python werkzeuge/baue_dist.py
+  matrix:
+    name: matrix (${{ matrix.os }}, py${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Entwicklungsabhaengigkeiten installieren
+        run: python -m pip install -r requirements-dev.txt
+      - name: Release-Check (ohne Plugin-CLI, streng)
+        run: python werkzeuge/release_check.py --ohne-plugin-cli --streng
+      - name: Pruefsummen ausgeben
+        run: cat dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sums-${{ matrix.os }}-py${{ matrix.python }}
+          path: dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  reproduzierbarkeit:
+    name: reproduzierbarkeit
+    needs: [release-check, matrix]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: summen/
+      - name: Pruefsummen aller Zellen vergleichen (byteidentische Archive)
+        run: |
+          find summen -name SHA256SUMS.txt | sort | while read -r f; do
+            echo "== $f"; cat "$f"
+          done
+          ANZAHL=$(find summen -name SHA256SUMS.txt | wc -l)
+          VARIANTEN=$(find summen -name SHA256SUMS.txt -exec sha256sum {} \; | awk '{print $1}' | sort -u | wc -l)
+          echo "Dateien: $ANZAHL, verschiedene Inhalte: $VARIANTEN"
+          test "$ANZAHL" -ge 16
+          test "$VARIANTEN" -eq 1
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # gitleaks prueft die gesamte Historie
+      - name: Secret-Scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: pip-audit gegen requirements.txt
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python -m pip_audit -r requirements.txt --strict --progress-spinner off
+      - name: Lizenzpruefung der Laufzeitabhaengigkeiten
+        run: |
+          python -m venv "$RUNNER_TEMP/laufzeit"
+          "$RUNNER_TEMP/laufzeit/bin/python" -m pip install -q -r requirements.txt
+          python -m piplicenses --python "$RUNNER_TEMP/laufzeit/bin/python" \
+            --ignore-packages pip setuptools wheel \
+            --allow-only "MIT License;BSD License;Apache Software License;Python Software Foundation License;ISC License (ISCL)"

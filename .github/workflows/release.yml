@@ -1,0 +1,92 @@
+# Release-Workflow (Revisionsbefund P2.3): Artefakte werden aus dem Tag
+# gebaut - reproduzierbar (Inhalte aus dem Git-Objektspeicher, Commit-
+# Zeitstempel, ZIP_STORED; werkzeuge/baue_dist.py) - und mit Pruefsummen
+# als GitHub-Release veroeffentlicht. Ablauf: annotierten Tag vX.Y.Z pushen
+# (Version == .claude-plugin/plugin.json, CHANGELOG-Abschnitt vorhanden),
+# alle Gates des kanonischen Release-Checks muessen gruen sein, dann
+# `gh release create` mit .plugin, GitHub-ZIP und SHA256SUMS.txt
+# (https://cli.github.com/manual/gh_release_create,
+#  https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
+# Wiederholung nach Fehlschlag: existiert das Release schon, werden die
+# Artefakte mit --clobber ersetzt (idempotent). Manuell nachziehbar ueber
+# workflow_dispatch mit dem Tag als Eingabe.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Bestehender Tag (z. B. v0.4.4)"
+        required: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CLAUDE_CLI_VERSION: "2.1.201"   # identisch zu ci.yml
+  PYTHONUTF8: "1"
+
+jobs:
+  release:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Tag bestimmen
+        id: tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Release-Tag: $TAG"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Claude-Code-CLI (gepinnt) installieren
+        run: |
+          npm install -g "@anthropic-ai/claude-code@${CLAUDE_CLI_VERSION}"
+          claude --version
+      - name: Entwicklungsabhaengigkeiten installieren
+        run: python -m pip install -r requirements-dev.txt
+      - name: Tag-Gates - annotiert, Version == plugin.json, CHANGELOG-Abschnitt
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          ART="$(git cat-file -t "$TAG")"
+          echo "Tag-Objekttyp: $ART"
+          test "$ART" = "tag" || { echo "::error::$TAG ist kein annotierter Tag (git tag -a)"; exit 1; }
+          test "$(git rev-parse "${TAG}^{commit}")" = "$(git rev-parse HEAD)"
+          python werkzeuge/release_notes.py "$TAG" --pruefe-version > "$RUNNER_TEMP/notes.md"
+          echo "--- Release-Notes"; cat "$RUNNER_TEMP/notes.md"
+      - name: Kanonischer Release-Check (alle Gates, streng) und Bau aus dem Tag
+        run: |
+          python werkzeuge/release_check.py --streng
+          python werkzeuge/baue_dist.py --ref "${{ steps.tag.outputs.tag }}"
+          (cd dist && sha256sum -c SHA256SUMS.txt)
+      - name: GitHub-Release veroeffentlichen (idempotent)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          DATEIEN=(dist/jahresabschluss-agent.plugin dist/jahresabschluss-agent_GitHub.zip dist/SHA256SUMS.txt)
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release $TAG existiert - Artefakte werden ersetzt"
+            gh release upload "$TAG" "${DATEIEN[@]}" --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md" --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" "${DATEIEN[@]}" --verify-tag \
+              --title "JA-Agent ${TAG#v}" --notes-file "$RUNNER_TEMP/notes.md" \
+              --repo "$GITHUB_REPOSITORY"
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY"

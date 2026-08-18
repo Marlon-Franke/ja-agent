@@ -1,0 +1,9 @@
+# Entwicklungs-/CI-Werkzeuge (nicht Teil des Plugin-Pakets). Der kanonische
+# Release-Check (py werkzeuge/release_check.py) nutzt ruff und pip-audit,
+# wenn sie installiert sind, und verlangt sie mit --streng (CI). pip-licenses
+# prueft die Lizenzvertraeglichkeit der Laufzeitabhaengigkeiten im CI-Job
+# `security` (docs/test-strategy.md).
+-r requirements.txt
+ruff>=0.5,<1
+pip-audit>=2.7,<3
+pip-licenses>=5,<6

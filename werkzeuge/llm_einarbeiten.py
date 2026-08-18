@@ -21,17 +21,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-from openpyxl import load_workbook
-from openpyxl.styles import Alignment, Font, PatternFill
+sys.path.insert(0, str(Path(__file__).parent))
+
+import abhaengigkeiten  # noqa: E402  (Preflight vor dem openpyxl-Import)
 
 FONT = "Arial"
-URTEIL_FILL = {
-    "unauffaellig": PatternFill("solid", start_color="E2EFDA"),
-    "unklar": PatternFill("solid", start_color="F2F2F2"),
-}
-VERDACHT_FILL = PatternFill("solid", start_color="FCE4D6")
 
 
 def main(argv=None) -> int:
@@ -39,6 +36,17 @@ def main(argv=None) -> int:
     p.add_argument("--bericht", required=True)
     p.add_argument("--beurteilungen", required=True)
     args = p.parse_args(argv)
+
+    # Preflight: fehlende Drittpakete klar melden (Exit 2), nichts installieren.
+    abhaengigkeiten.pruefe_oder_beende()
+    from openpyxl import load_workbook  # noqa: PLC0415
+    from openpyxl.styles import Alignment, Font, PatternFill  # noqa: PLC0415
+
+    urteil_fill = {
+        "unauffaellig": PatternFill("solid", start_color="E2EFDA"),
+        "unklar": PatternFill("solid", start_color="F2F2F2"),
+    }
+    verdacht_fill = PatternFill("solid", start_color="FCE4D6")
 
     daten = json.loads(Path(args.beurteilungen).read_text(encoding="utf-8"))
     wb = load_workbook(args.bericht)
@@ -61,7 +69,7 @@ def main(argv=None) -> int:
             z.alignment = Alignment(vertical="top", wrap_text=(feld == "begruendung"))
         urteil = (b.get("urteil") or "").strip().lower()
         zelle = ws.cell(row=zeile, column=kopf["KI-Urteil"])
-        zelle.fill = URTEIL_FILL.get(urteil, VERDACHT_FILL)
+        zelle.fill = urteil_fill.get(urteil, verdacht_fill)
         eingearbeitet += 1
 
     zusammenfassung = daten.get("zusammenfassung", "").strip()

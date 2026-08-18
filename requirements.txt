@@ -1,4 +1,8 @@
-# Laufzeitabhaengigkeit der Pruef-Pipeline (Excel-Berichtserzeugung).
-# Getestete Untergrenze; Obergrenze bewusst offen, bis eine Testmatrix
-# (docs/test-strategy) eine gepruefte Spanne festschreibt.
-openpyxl>=3.1
+# Laufzeitabhaengigkeit der Pruef-Pipeline (Excel-Berichtserzeugung und
+# Einarbeitung der KI-Beurteilungen). Getestete Spanne laut
+# docs/test-strategy.md (CI-Matrix); Obergrenze schuetzt vor ungeprueften
+# Major-Versionen. Diese Datei liegt auch im .plugin-Paket - die Plugin-
+# Installation von Claude Code installiert KEINE Python-Pakete
+# (werkzeuge/abhaengigkeiten.py meldet fehlende Pakete mit diesem Befehl):
+#   python -m pip install -r requirements.txt
+openpyxl>=3.1,<4

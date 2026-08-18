@@ -9,7 +9,15 @@ keine zusätzlichen Scheinbefunde auftreten. Die seit v0.4.1 enthaltenen
 Volumen-Füllbuchungen (realistische Kleinst-KapG, siehe Abschnitt
 „Volumen-Invarianten") sind konstruktiv befundneutral. Bei Änderungen
 an Katalog, Schwellwerten oder Generator ist diese Datei im selben
-Arbeitsgang nachzuführen.
+Arbeitsgang nachzuführen – zusammen mit der **maschinenlesbaren
+Fassung `erwartung.json`** (je Lauf und je Check-ID: Status
+aktiv/skip, Treffer je Schwere, Belege gesäter Fälle, Skip-Grund;
+alle 73 Checks explizit, also auch die Nullbefunde AF-01, AF-02, BL-03,
+DQ-02, FR-01, FR-04, SB-07, ST-06, ST-08, US-06). Die CI und
+`py werkzeuge/release_check.py` vergleichen `befunde.json`,
+`llm_kandidaten.json` und das stdout-Protokoll jedes Laufs über
+`py werkzeuge/pruefe_erwartung.py --lauf <standard|dq02|co02>
+--ausgabe <ordner>` gegen diese JSON-Datei – nicht nur die Summenzeilen.
 
 Kopfzeile aller Läufe: `JA-Prüfung v<Version> (73 Checks) | Demo GmbH |
 01.01.2025 – 31.12.2025 | SKR03 automatisch erkannt (Indizien SKR03:

@@ -1,0 +1,20 @@
+# Statische Codequalitaet (Revisionsbefund P2.2), Teil des kanonischen
+# Release-Checks (werkzeuge/release_check.py, CI mit --streng). Regelwahl
+# bewusst auf Fehlerklassen beschraenkt (Syntax, Namensbindung, Importe,
+# gefaehrliche Aufrufe), keine Stilregeln - der Ruff-Standardregelsatz
+# wandert zwischen Versionen und wuerde die CI ohne Substanzgewinn brechen.
+line-length = 120
+target-version = "py310"
+
+[lint]
+select = [
+    "E4", "E7", "E9",  # pycodestyle-Fehler (Importe, Statements, Syntax)
+    "F",               # pyflakes: undefinierte Namen, ungenutzte Importe u. a.
+    "PLE",             # pylint-Fehler
+    "PLW1510",         # subprocess.run ohne explizites check=
+    "B006", "B008",    # veraenderliche Default-Argumente
+]
+ignore = [
+    "E731",  # Lambda-Zuweisung (checks.py, bewusst kompakt)
+    "E741",  # Variablenname l im Gauss-Osteralgorithmus (statistik.py)
+]
