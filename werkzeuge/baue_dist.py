@@ -268,9 +268,13 @@ def commit_info(ref: str) -> tuple[str, datetime]:
 
 
 def versionierte_dateien(ref: str) -> list[Path]:
-    """Alle im Commit versionierten Dateien (relativ), Ausschluesse gefiltert."""
+    """Alle im Commit versionierten Dateien (relativ), Ausschluesse gefiltert,
+    plattformunabhaengig sortiert (nach POSIX-Pfadstring, Codepoint-Ordnung -
+    Path-Objekte sortieren unter Windows case-insensitiv und wuerden die
+    Archivreihenfolge und damit die Pruefsumme plattformabhaengig machen)."""
     roh = _git("ls-tree", "-r", "-z", "--name-only", ref).decode("utf-8")
-    return sorted(Path(p) for p in roh.split("\0") if p and _relevant(Path(p)))
+    dateien = [Path(p) for p in roh.split("\0") if p and _relevant(Path(p))]
+    return sorted(dateien, key=lambda p: p.as_posix())
 
 
 def blob_inhalte(ref: str, dateien: list[Path]) -> dict[Path, bytes]:
