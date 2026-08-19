@@ -5,4 +5,4 @@
 # Installation von Claude Code installiert KEINE Python-Pakete
 # (werkzeuge/abhaengigkeiten.py meldet fehlende Pakete mit diesem Befehl):
 #   python -m pip install -r requirements.txt
-openpyxl>=3.1,<4
+openpyxl>=3.1.5,<4
