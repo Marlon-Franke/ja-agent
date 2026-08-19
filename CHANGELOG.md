@@ -35,8 +35,10 @@ Release nötig.
 ### Hinzugefügt
 - **P2.3** `werkzeuge/pruefe_links_extern.py` + Workflow `linkcheck.yml`
   (monatlich/manuell): toleranter Check aller externen Markdown-Links mit
-  Wiederholung; DATEV-Domains als dokumentierte Ausnahme (SPA liefert
-  immer 200 → manuelle Prüfung in der Release-Checkliste).
+  Wiederholung; nur HTTP 404/410 gilt als defekt, Timeouts/Zugriffsschutz
+  als „nicht prüfbar" (gesetze-im-internet.de antwortet GitHub-Runnern
+  nicht); DATEV-Domains als dokumentierte Ausnahme (SPA liefert immer
+  200 → manuelle Prüfung in der Release-Checkliste).
 
 ### Offen
 - **P1.1** Ruleset für `main` mit Required Checks ist seit 2026-08-18
