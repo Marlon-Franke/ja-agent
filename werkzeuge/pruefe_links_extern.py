@@ -8,11 +8,13 @@ keinen Pull Request.
   py werkzeuge/pruefe_links_extern.py [--zeitlimit 30] [--versuche 3]
                                       [--parallel 8] [--zeige-ok]
 
-Toleranz: 2xx/3xx = erreichbar; 401/403/405/429 = erreichbar, aber
-anmelde-/bot-geschuetzt oder limitiert (Hinweis, kein Fehler); Domains in
-AUSNAHMEN (Anmeldepflicht/Bot-Schutz, dokumentierter Grund) werden
-uebersprungen. Defekt = 404/410 oder nach allen Versuchen 5xx/Netzfehler.
-Exit 0 = keine defekten Links, 1 = defekte Links, 2 = Aufruffehler.
+Toleranz: 2xx/3xx = erreichbar. DEFEKT (Linkalterung) ist nur HTTP 404/410.
+Alles andere (401/403/405/429, 5xx nach Wiederholung, Timeouts/Netzfehler)
+gilt als "nicht pruefbar" und wird als HINWEIS gemeldet, nicht als Fehler -
+ein Timeout belegt keine Linkalterung (www.gesetze-im-internet.de antwortet
+GitHub-Runnern nicht, lokal ist es erreichbar). Domains in AUSNAHMEN werden
+uebersprungen (SPA liefert immer 200, Existenz nicht per HTTP pruefbar).
+Exit 0 = keine defekten Links, 1 = defekte Links (404/410), 2 = Aufruffehler.
 Nur Standardbibliothek.
 """
 
@@ -40,7 +42,7 @@ AUSNAHMEN: dict[str, str] = {
     "help-center.apps.datev.de": "DATEV Hilfe-Center (SPA, immer 200)",
     "wissensplattform.apps.datev.de": "DATEV Wissensplattform (SPA, immer 200)",
 }
-GEDULDET = {401, 403, 405, 429}  # erreichbar, aber geschuetzt/limitiert
+DEFEKT_CODES = {404, 410}  # einzige Belege fuer Linkalterung
 UA = ("Mozilla/5.0 (compatible; ja-agent-linkcheck/1.0; "
       "+https://github.com/Marlon-Franke/ja-agent)")
 
@@ -85,8 +87,8 @@ def pruefe(url: str, zeitlimit: float, versuche: int) -> tuple[int | None, str]:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("--zeitlimit", type=float, default=30.0)
-    p.add_argument("--versuche", type=int, default=3)
+    p.add_argument("--zeitlimit", type=float, default=20.0)
+    p.add_argument("--versuche", type=int, default=2)
     p.add_argument("--parallel", type=int, default=8)
     p.add_argument("--zeige-ok", action="store_true")
     args = p.parse_args(argv)
@@ -121,15 +123,16 @@ def main(argv: list[str] | None = None) -> int:
         if status is not None and 200 <= status < 400:
             if args.zeige_ok:
                 print(f"  OK      {status} {url}")
-        elif status in GEDULDET:
-            hinweise.append(f"  HINWEIS {meldung} (geschuetzt/limitiert): {url}  [{wo}]")
-        else:
+        elif status in DEFEKT_CODES:
             defekt.append(f"  DEFEKT  {meldung}: {url}  [{wo}]")
+        else:
+            hinweise.append(f"  HINWEIS nicht pruefbar ({meldung}): {url}  [{wo}]")
     for z in hinweise:
         print(z)
     for z in defekt:
         print(z, file=sys.stderr)
-    print(f"Ergebnis: {len(defekt)} defekt, {len(hinweise)} geschuetzt/limitiert, "
+    print(f"Ergebnis: {len(defekt)} defekt (404/410), {len(hinweise)} nicht pruefbar "
+          f"(geschuetzt/limitiert/Timeout), "
           f"{len(zu_pruefen) - len(defekt) - len(hinweise)} erreichbar")
     return 1 if defekt else 0
 

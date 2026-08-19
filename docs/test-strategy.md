@@ -97,7 +97,11 @@ melden – niemals mit echten Mandantendaten, sondern mit den Demodaten
   Nicht-CPython-Interpreter.
 - Externe Links sind kein PR-Gate, werden aber **monatlich** (Workflow
   `linkcheck.yml`, `werkzeuge/pruefe_links_extern.py`, tolerant mit
-  Wiederholung) geprüft; DATEV-Domains sind dokumentierte Ausnahmen, weil
+  Wiederholung) geprüft; als Linkalterung gilt nur HTTP 404/410, Timeouts
+  und Zugriffsschutz werden als „nicht prüfbar" gemeldet
+  (`www.gesetze-im-internet.de` antwortet GitHub-Runnern nicht, lokal ist
+  es erreichbar – lokaler Lauf `py werkzeuge/pruefe_links_extern.py` als
+  Teil der Release-Checkliste); DATEV-Domains sind dokumentierte Ausnahmen, weil
   die Portale als Single-Page-Anwendung auch für nicht existierende
   Dokument-IDs HTTP 200 liefern – ihre Existenz ist nur manuell prüfbar
   (Release-Checkliste). Geprüft als Gate werden alle **relativen**
@@ -130,7 +134,9 @@ Schritte:
 4. Deinstallation über die Plugin-Verwaltung ohne Rückstände.
 5. DATEV-Quellenlinks (README „Quellen und Referenzen", Abschnitt
    Formatreferenzen) stichprobenartig im Browser öffnen – Dokument-IDs
-   existieren (Portale liefern auch für falsche IDs HTTP 200).
+   existieren (Portale liefern auch für falsche IDs HTTP 200); zusätzlich
+   lokal `py werkzeuge/pruefe_links_extern.py` (erreicht auch
+   gesetze-im-internet.de, das GitHub-Runnern nicht antwortet).
 
 | Release | Desktop/Cowork-Import (Schritte 1–4) | DATEV-Links (Schritt 5) | Prüfer / Datum |
 |---|---|---|---|
