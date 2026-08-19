@@ -3,6 +3,7 @@
 # Zeitstempel, ZIP_STORED; werkzeuge/baue_dist.py) - und mit Pruefsummen
 # als GitHub-Release veroeffentlicht. Ablauf: annotierten Tag vX.Y.Z pushen
 # (Version == .claude-plugin/plugin.json, CHANGELOG-Abschnitt vorhanden),
+# Tag-Commit muss auf main liegen und einen erfolgreichen CI-Lauf haben,
 # alle Gates des kanonischen Release-Checks muessen gruen sein, dann
 # `gh release create` mit .plugin, GitHub-ZIP und SHA256SUMS.txt
 # (https://cli.github.com/manual/gh_release_create,
@@ -43,14 +44,14 @@ jobs:
           TAG="${{ github.event.inputs.tag || github.ref_name }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Release-Tag: $TAG"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           ref: ${{ steps.tag.outputs.tag }}
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: "20"
       - name: Claude-Code-CLI (gepinnt) installieren
@@ -59,14 +60,25 @@ jobs:
           claude --version
       - name: Entwicklungsabhaengigkeiten installieren
         run: python -m pip install -r requirements-dev.txt
-      - name: Tag-Gates - annotiert, Version == plugin.json, CHANGELOG-Abschnitt
+      - name: Tag-Gates - annotiert, auf main, CI gruen, Version == plugin.json, CHANGELOG
         env:
           TAG: ${{ steps.tag.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           ART="$(git cat-file -t "$TAG")"
           echo "Tag-Objekttyp: $ART"
           test "$ART" = "tag" || { echo "::error::$TAG ist kein annotierter Tag (git tag -a)"; exit 1; }
           test "$(git rev-parse "${TAG}^{commit}")" = "$(git rev-parse HEAD)"
+          # Governance-Gate (Revisionspruefung v0.4.4, P1.2): der Release-Commit
+          # muss auf main liegen (gemergter, per Ruleset geprueft Stand) ...
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "${TAG}^{commit}" origin/main \
+            || { echo "::error::${TAG} zeigt nicht auf einen Commit von main"; exit 1; }
+          # ... und der CI-Workflow muss fuer genau diesen Commit erfolgreich sein.
+          SHA="$(git rev-parse "${TAG}^{commit}")"
+          ERFOLGE="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?head_sha=${SHA}&status=success&per_page=5" --jq '.total_count')"
+          echo "erfolgreiche CI-Laeufe fuer ${SHA}: ${ERFOLGE}"
+          test "${ERFOLGE:-0}" -ge 1 || { echo "::error::kein erfolgreicher CI-Lauf fuer ${SHA} (erst CI abwarten, dann Release erneut ausloesen)"; exit 1; }
           python werkzeuge/release_notes.py "$TAG" --pruefe-version > "$RUNNER_TEMP/notes.md"
           echo "--- Release-Notes"; cat "$RUNNER_TEMP/notes.md"
       - name: Kanonischer Release-Check (alle Gates, streng) und Bau aus dem Tag

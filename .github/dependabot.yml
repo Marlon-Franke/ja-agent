@@ -1,0 +1,17 @@
+# Haelt SHA-gepinnte Actions und die Python-Abhaengigkeiten aktuell
+# (Revisionspruefung v0.4.4, P2.4). PRs laufen durch die CI; Matrix und
+# Pruefsummenvergleich sichern Aktualisierungen ab.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "deps"

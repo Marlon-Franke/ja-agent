@@ -7,6 +7,43 @@ steht synchron in `.claude-plugin/plugin.json` und `VERSION` in
 Gleichlauf. Git-Tags/GitHub-Releases gibt es ab 0.4.2; ältere Stände sind
 aus `testdaten/erwartung.md` rekonstruiert (Datum = Repository-Upload).
 
+## [Unreleased]
+
+Governance-Härtung nach der Revisionsprüfung v0.4.4 (2026-08-19); keine
+Änderung an Prüflogik, Paketinhalt oder Erwartungsbildern – kein neues
+Release nötig.
+
+### Geändert
+- **P1.2** `release.yml`: Tag-Gate verlangt, dass der Tag-Commit auf
+  `main` liegt und mindestens ein erfolgreicher CI-Lauf für genau diesen
+  Commit existiert.
+- **P1.3** `SECURITY.md`: Private Vulnerability Reporting ist aktiviert
+  und primärer Meldeweg; der nicht ausführbare Fallback „Direktnachricht
+  über das GitHub-Profil" wurde durch ein detailfreies Kontakt-Issue
+  ersetzt.
+- **P2.1** `docs/test-strategy.md`: Claude Desktop/Cowork ist als
+  **manuell** geprüfter Weg ausgewiesen (neue Release-Checkliste mit
+  Protokolltabelle, Abschnitt 6); Nachweisspalte in der
+  Kompatibilitätsmatrix; Ruleset „main-schutz" dokumentiert inkl. Hinweis
+  auf Rules- vs. Legacy-Branch-API.
+- **P2.4** Alle GitHub Actions auf Node-24-Majors gehoben und auf
+  Commit-SHAs gepinnt (checkout v7, setup-python v7, setup-node v7,
+  upload-artifact v7, download-artifact v8, gitleaks-action v3; Node 20
+  wird am 16.09.2026 von den Runnern entfernt); `.github/dependabot.yml`
+  hält Actions und Python-Abhängigkeiten aktuell.
+
+### Hinzugefügt
+- **P2.3** `werkzeuge/pruefe_links_extern.py` + Workflow `linkcheck.yml`
+  (monatlich/manuell): toleranter Check aller externen Markdown-Links mit
+  Wiederholung; DATEV-Domains als dokumentierte Ausnahme (SPA liefert
+  immer 200 → manuelle Prüfung in der Release-Checkliste).
+
+### Offen
+- **P1.1** Ruleset für `main` mit Required Checks ist seit 2026-08-18
+  aktiv (Befund beruhte auf der Legacy-Branch-API) – erledigt;
+  **P2.2** vollständige Kanonisierung der Soll-Katalogpunkte bleibt
+  Ausbaustufe.
+
 ## [0.4.4] – 2026-08-18
 
 Packaging-/Test-Gate-Release nach der Revisionsprüfung v0.4.3
