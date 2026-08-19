@@ -21,6 +21,9 @@
 # Explizites `shell: bash` = `bash -eo pipefail`, auch unter Windows (Git
 # Bash): sonst bestimmt bei `cmd | tee` der Exit-Code von tee den Schritt
 # (https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#defaultsrunshell).
+# Actions sind auf Commit-SHAs gepinnt (Supply-Chain-Schutz, Node-24-Majors;
+# Dependabot haelt sie aktuell: .github/dependabot.yml) - Revisionspruefung
+# v0.4.4, Befund P2.4.
 # Laufprotokolle nach $RUNNER_TEMP, Prueflaeufe unter testdaten/ausgabe/
 # (gitignored, vom Bau ausgeschlossen) - kein Streugut im Repo.
 name: CI
@@ -47,11 +50,11 @@ jobs:
     name: release-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: "20"
       - name: Claude-Code-CLI (gepinnt) installieren
@@ -64,7 +67,7 @@ jobs:
         run: python werkzeuge/release_check.py --streng
       - name: Pruefsummen ausgeben
         run: cat dist/SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: dist-release-check
           path: dist/
@@ -75,8 +78,8 @@ jobs:
     name: marketplace
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
         with:
           node-version: "20"
       - name: Claude-Code-CLI (gepinnt) installieren
@@ -126,11 +129,11 @@ jobs:
     needs: release-check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
           name: dist-release-check
           path: dist/
@@ -179,8 +182,8 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: ${{ matrix.python }}
       - name: Entwicklungsabhaengigkeiten installieren
@@ -189,7 +192,7 @@ jobs:
         run: python werkzeuge/release_check.py --ohne-plugin-cli --streng
       - name: Pruefsummen ausgeben
         run: cat dist/SHA256SUMS.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sums-${{ matrix.os }}-py${{ matrix.python }}
           path: dist/SHA256SUMS.txt
@@ -201,7 +204,7 @@ jobs:
     needs: [release-check, matrix]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
           path: summen/
       - name: Pruefsummen aller Zellen vergleichen (byteidentische Archive)
@@ -219,14 +222,14 @@ jobs:
     name: security
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0   # gitleaks prueft die gesamte Historie
       - name: Secret-Scan (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e  # v3.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: "3.12"
       - name: pip-audit gegen requirements.txt

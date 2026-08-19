@@ -1,6 +1,6 @@
 # Teststrategie, Kompatibilitäts- und Supportzusagen
 
-Stand: Release 0.4.4 (2026-08-18). Diese Datei ist die verbindliche
+Stand: Release 0.4.4 (2026-08-18), Governance-Härtung nach Revisionsprüfung v0.4.4 (2026-08-19). Diese Datei ist die verbindliche
 Beschreibung dessen, was vor einem Release automatisch geprüft wird, auf
 welchen Plattformen das Plugin unterstützt wird und was ausdrücklich
 **nicht** zugesagt ist. Sie beantwortet die Befunde P0.2, P1.1, P1.2,
@@ -42,18 +42,29 @@ Nullbefunde sind damit explizit).
 | `reproduzierbarkeit` | ubuntu-latest | vergleicht die `SHA256SUMS.txt` aller Matrix-Zellen und des `release-check`-Jobs – jede Abweichung ist ein Fehler (Beweis der plattform- und versionsunabhängigen Reproduzierbarkeit) |
 | `security` | ubuntu-latest | Secret-Scan des Repos (gitleaks), Lizenzprüfung der Laufzeitabhängigkeiten (`pip-licenses`, erlaubt: MIT/BSD/Apache-2.0/PSF/ISC) |
 
-`main` erhält Pushes nur über Pull Requests; die empfohlene GitHub-Absicherung
-(Ruleset: PR erforderlich, Status-Checks `CI / release-check`,
-`CI / marketplace`, `CI / paket`, `CI / reproduzierbarkeit`, `CI / security`
-erforderlich, kein Direkt-Push, lineare Historie) ist eine
-Repository-Einstellung und muss vom Repository-Eigentümer gesetzt werden
-(siehe [About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)).
+`main` ist durch das Repository-**Ruleset „main-schutz"** (ID 21009901,
+aktiv seit 2026-08-18) abgesichert: Änderungen nur per Pull Request (Merge
+oder Squash), kein Direkt-/Force-Push, kein Löschen, **Required Status
+Checks** `release-check`, `marketplace`, `paket`, `reproduzierbarkeit`,
+`security` (strict: Branch muss aktuell sein); kein Bypass, auch nicht für
+den Eigentümer. Nachweis: `gh api repos/Marlon-Franke/ja-agent/rules/branches/main`
+(die Legacy-Branch-API `…/branches/main` zeigt Rulesets **nicht** – dort
+erscheint `required_status_checks: off`, obwohl die Checks erzwungen werden;
+[About rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)).
+Die Kontexte entsprechen den Job-`name`-Werten in `ci.yml`; wer einen Job
+umbenennt, muss das Ruleset nachziehen, sonst blockiert es jeden Merge.
+Alle Actions sind auf Commit-SHAs gepinnt (Node-24-Majors; Node 20 wird am
+16.09.2026 von den GitHub-Runnern entfernt); `.github/dependabot.yml`
+liefert Aktualisierungen als PR durch die CI.
 
 ## 3. Release-Workflow (`.github/workflows/release.yml`)
 
 Auslöser: Push eines annotierten Tags `v<major>.<minor>.<patch>`. Schritte:
-Tag == `version` in `plugin.json` (sonst Abbruch), `release_check.py
---streng` mit Claude-CLI, Distributionsbau **aus dem Tag** (Inhalte aus dem
+Tag annotiert, **Tag-Commit liegt auf `main`** (`git merge-base
+--is-ancestor`), **mindestens ein erfolgreicher CI-Lauf für genau diesen
+Commit** (sonst erst CI abwarten und per `workflow_dispatch` erneut
+auslösen), Tag == `version` in `plugin.json`, CHANGELOG-Abschnitt vorhanden
+(sonst jeweils Abbruch), `release_check.py --streng` mit Claude-CLI, Distributionsbau **aus dem Tag** (Inhalte aus dem
 Git-Objektspeicher, Commit-Zeitstempel, `ZIP_STORED` → byteidentisch
 reproduzierbar), Release-Notes = CHANGELOG-Abschnitt der Version
 (`werkzeuge/release_notes.py`), Veröffentlichung mit `gh release create`
@@ -64,14 +75,14 @@ Werte.
 
 ## 4. Kompatibilitätsmatrix und Support
 
-| Komponente | Unterstützt (getestet) | Hinweis |
-|---|---|---|
-| Python | 3.10, 3.11, 3.12, 3.13, 3.14 (CPython) | ältere Versionen: `abhaengigkeiten`/`release_check` melden `< 3.10` als Fehler |
-| Betriebssystem | Windows 10/11, Ubuntu (aktuelle LTS), macOS (aktuell) | jeweils die GitHub-Actions-Runner-Images `-latest`; Befehle im README mit `py` (Windows) bzw. `python3` |
-| `openpyxl` | `>=3.1,<4` | Obergrenze bewusst: neue Major-Version erst nach Matrixlauf freigeben |
-| Claude Code CLI | Referenzversion **2.1.201** (in CI gepinnt: `npm install -g @anthropic-ai/claude-code@<Version>`) | neuere Versionen werden mit dem Pin-Update in `ci.yml` freigegeben; ältere ungetestet |
-| Claude Desktop / Cowork | Plugin-Import über `.plugin`-Datei | funktional identisch zum CLI-Paket (gleiches Archiv) |
-| DATEV-Format | EXTF/DTVF Version 700, Kategorien 21 (Buchungsstapel) und 20 (Kontenbeschriftungen) | Quellen: README „Quellen und Referenzen" |
+| Komponente | Unterstützt | Nachweis | Hinweis |
+|---|---|---|---|
+| Python | 3.10, 3.11, 3.12, 3.13, 3.14 (CPython) | **automatisch** (CI-Matrix) | ältere Versionen: `abhaengigkeiten`/`release_check` melden `< 3.10` als Fehler |
+| Betriebssystem | Windows 10/11, Ubuntu (aktuelle LTS), macOS (aktuell) | **automatisch** (CI-Matrix, Runner-Images `-latest`) | Befehle im README mit `py` (Windows) bzw. `python3` |
+| `openpyxl` | `>=3.1,<4` | **automatisch** (Matrix, Paketlauf) | Obergrenze bewusst: neue Major-Version erst nach Matrixlauf freigeben |
+| Claude Code CLI | Referenzversion **2.1.201** (in CI gepinnt) | **automatisch** (Strict-Validierung, Marketplace-Lebenszyklus) | neuere Versionen werden mit dem Pin-Update in `ci.yml` freigegeben; ältere ungetestet |
+| Claude Desktop / Cowork | Plugin-Import über die `.plugin`-Datei des Releases | **manuell** (Release-Checkliste, Abschnitt 6; nicht automatisierbar) | gleiches Archiv wie der CLI-Weg; Import, Aktivierung und Skill-Aufruf in der UI werden von der CI **nicht** geprüft |
+| DATEV-Format | EXTF/DTVF Version 700, Kategorien 21 (Buchungsstapel) und 20 (Kontenbeschriftungen) | automatisch (Demodaten) / Quellen manuell | Quellen: README „Quellen und Referenzen" |
 
 Support-Politik: Es wird jeweils die **letzte veröffentlichte Version**
 unterstützt (Fehlerbehebungen erscheinen als Patch-Release, kein Backport).
@@ -84,9 +95,13 @@ melden – niemals mit echten Mandantendaten, sondern mit den Demodaten
 
 - Kein Backport auf ältere Releases; keine Zusage für Python < 3.10 oder
   Nicht-CPython-Interpreter.
-- Externe Links (DATEV-Wissensplattform, gesetze-im-internet.de) werden
-  nicht automatisch geprüft (Netzabhängigkeit, Portal-Anmeldung); geprüft
-  werden alle **relativen** Repository-Links.
+- Externe Links sind kein PR-Gate, werden aber **monatlich** (Workflow
+  `linkcheck.yml`, `werkzeuge/pruefe_links_extern.py`, tolerant mit
+  Wiederholung) geprüft; DATEV-Domains sind dokumentierte Ausnahmen, weil
+  die Portale als Single-Page-Anwendung auch für nicht existierende
+  Dokument-IDs HTTP 200 liefern – ihre Existenz ist nur manuell prüfbar
+  (Release-Checkliste). Geprüft als Gate werden alle **relativen**
+  Repository-Links.
 - Vollständige Kanonisierung der Soll-Katalogpunkte (eigene stabile ID je
   Katalogpunkt, README-Checkliste und Abdeckungsmatrix daraus generiert)
   ist Ausbaustufe; bis dahin gilt das ID-Konsistenz-Gate je Kapitel
@@ -94,3 +109,29 @@ melden – niemals mit echten Mandantendaten, sondern mit den Demodaten
 - Fachliche Richtigkeit der Prüfregeln wird über die gesäten Fälle der
   Demodaten verifiziert; ein Ersatz für die berufsträgerseitige Würdigung
   ist der Bericht nicht (README „Datenschutz und Verantwortung").
+
+## 6. Manuelle Release-Checkliste (Claude Desktop / Cowork, DATEV-Quellen)
+
+Was die CI nicht abdecken kann, wird je Release von Hand geprüft und hier
+protokolliert (Prüfer, Datum, Ergebnis). Ohne Eintrag gilt der Weg für
+dieses Release als **nicht geprüft** – nicht als fehlerhaft.
+
+Schritte:
+
+1. `jahresabschluss-agent.plugin` des Releases laden, Prüfsumme gegen
+   `SHA256SUMS.txt` vergleichen.
+2. In Claude Desktop/Cowork importieren; Plugin erscheint in der
+   Plugin-Verwaltung und ist aktiviert.
+3. Skill `/jahresabschluss-agent:ja-pruefung` ist sichtbar; Aufruf mit den
+   Demodaten (`testdaten/`, Aufruf aus README) liefert die Summenzeile
+   `4 hoch / 30 mittel / 47 Hinweise | KI-Kandidaten: 22`; fehlt
+   `openpyxl`, erscheint der Installationshinweis (Exit 2) statt eines
+   Tracebacks.
+4. Deinstallation über die Plugin-Verwaltung ohne Rückstände.
+5. DATEV-Quellenlinks (README „Quellen und Referenzen", Abschnitt
+   Formatreferenzen) stichprobenartig im Browser öffnen – Dokument-IDs
+   existieren (Portale liefern auch für falsche IDs HTTP 200).
+
+| Release | Desktop/Cowork-Import (Schritte 1–4) | DATEV-Links (Schritt 5) | Prüfer / Datum |
+|---|---|---|---|
+| v0.4.4 | offen | offen | – |

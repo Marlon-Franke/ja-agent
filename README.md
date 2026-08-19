@@ -194,7 +194,8 @@ Distributionsbau, ruff und pip-audit (`--streng` verlangt sie;
 `requirements-dev.txt`). Die CI ergänzt Marketplace-Lebenszyklus,
 Paketlauf in frischer virtueller Umgebung (entpacktes `.plugin`, mit und
 ohne `openpyxl`), Betriebssystem-/Python-Matrix mit
-Prüfsummen-Vergleich der Archive, Secret-Scan und Lizenzprüfung; Details,
+Prüfsummen-Vergleich der Archive, Secret-Scan, Lizenzprüfung und einen
+monatlichen Check der externen Quellenlinks; Details,
 Support- und Kompatibilitätszusagen: [docs/test-strategy.md](docs/test-strategy.md).
 Beiträge: [CONTRIBUTING.md](CONTRIBUTING.md); Sicherheitsmeldungen:
 [SECURITY.md](SECURITY.md).

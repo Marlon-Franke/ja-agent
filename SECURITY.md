@@ -10,14 +10,16 @@ Support-Politik in `docs/test-strategy.md`).
 
 Bitte **keine** öffentlichen Issues für Sicherheitslücken. Meldeweg:
 
-1. **GitHub Private Vulnerability Reporting** (bevorzugt): auf der
-   Repository-Seite unter „Security → Report a vulnerability" – der Bericht
-   ist nur für die Maintainer sichtbar
+1. **GitHub Private Vulnerability Reporting** (aktiviert, bevorzugt):
+   <https://github.com/Marlon-Franke/ja-agent/security/advisories/new> bzw.
+   auf der Repository-Seite „Security → Report a vulnerability" – der
+   Bericht ist nur für die Maintainer sichtbar
    ([GitHub-Doku](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability)).
-   Falls die Funktion im Repository noch nicht aktiviert ist:
-2. **Direktnachricht an den Maintainer** über das GitHub-Profil
-   [Marlon-Franke](https://github.com/Marlon-Franke) mit dem Betreff
-   „ja-agent security".
+2. **Fallback, falls der Meldedialog nicht erreichbar ist:** ein
+   öffentliches Issue mit dem Titel „Bitte um vertraulichen Kontakt
+   (Sicherheit)" **ohne technische Details**; der Maintainer antwortet
+   dort mit einem vertraulichen Kanal. Keine Details, Proof-of-Concepts
+   oder Daten in das Issue.
 
 Bitte angeben: betroffene Version/Commit, Reproduktionsschritte mit den
 **Demodaten** (`testdaten/`) oder synthetischen Daten – niemals echte
