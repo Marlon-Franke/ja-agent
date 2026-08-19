@@ -15,3 +15,10 @@ updates:
       interval: "weekly"
     commit-message:
       prefix: "deps"
+    # requirements*.txt fuehren bewusst Versionsspannen (z. B. openpyxl>=3.1,<4);
+    # Minor-/Patch-Updates liegen bereits in der Spanne - Dependabot soll nur
+    # neue Major-Versionen melden (Spanne/Obergrenze dann nach Matrixlauf
+    # anheben), sonst entstehen PRs, die nur die Untergrenze anheben.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-minor", "version-update:semver-patch"]
