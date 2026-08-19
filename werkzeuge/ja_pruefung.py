@@ -40,7 +40,7 @@ from statistik import ALLE_STATISTIK
 # Preflight importiert: --help und die Fehlermeldung bei fehlendem Paket
 # funktionieren so ohne installierte Drittpakete (abhaengigkeiten.py).
 
-VERSION = "0.4.4"
+VERSION = "0.4.5"
 
 
 def sammle_dateien(pfade: list[str]) -> list[Path]:

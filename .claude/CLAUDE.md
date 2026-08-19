@@ -12,19 +12,28 @@ als Warnung („wird nicht als Plugin-Kontext geladen") – Build-Gate in
 
 - **Deterministik-Prinzip:** Eindeutige Prüfregeln gehören in
   `werkzeuge/checks.py` / `statistik.py` (+ Eintrag in `befunde.KATALOG` und
-  `skills/ja-pruefung/references/pruefkatalog.md`) – niemals als
-  Prompt-Anweisung. Die KI-Schicht beurteilt nur `llm_kandidaten.json`.
+  Zuordnung zu einem Soll-Punkt in `werkzeuge/soll_katalog.json`) – niemals
+  als Prompt-Anweisung. Die KI-Schicht beurteilt nur `llm_kandidaten.json`.
   Checkzahl-Angaben in README (2×), SKILL.md und plugin.json folgen
   `len(befunde.KATALOG)`; Excel-Deckblatt und stdout-Kopf zählen
   automatisch.
-- Ebenen-Tabelle und Check-Register in `pruefkatalog.md` sowie der
-  Referenzstand-Block im Referenzkatalog sind generiert
-  (`py werkzeuge/katalog_doku.py --write`, Gate im Build) – nicht von Hand
-  editieren; Klassifikation ändern heißt `befunde.KATALOG` ändern.
-  `[R]/[P]/[A]`-Tags an Katalogpunkten = Soll-Klasse des Referenzkatalogs.
-  README-Checkliste (`### 1.`–`### 20.`) und Abdeckungsmatrix (`## 1.`–
-  `## 20.`) müssen je Kapitel dieselben CHECK-IDs nennen (Gate) – eine
-  Zuordnung immer in beiden Dokumenten ändern.
+- **Kanonischer Soll-Katalog:** `werkzeuge/soll_katalog.json` ist die
+  einzige Quelle der Soll-Katalogpunkte (stabile Soll-ID `Kxx.yy`, Kapitel,
+  Soll-Klasse, Status `check|ki|bericht|strukturell|offen|zusatz`,
+  CHECK-IDs, Datenquellen, `referenz` = Checkbox-Zeilen des
+  Referenzkatalogs). README-Abschnitt „Prüfkatalog (Abdeckungsstand)"
+  Kap. 1–20, Abdeckungsmatrix Kap. 1–20, Ebenen-Tabelle, Check-Register
+  (mit Soll-Punkten und Erwartungsbild) sowie der Referenzstand-Block im
+  Referenzkatalog sind generiert (`py werkzeuge/katalog_doku.py --write`,
+  Gate im Build) – nie von Hand editieren. Gates: jede CHECK-ID eines
+  Punkts existiert im KATALOG und steht im Umsetzungstext, jeder Check
+  deckt einen Soll-Punkt ab, jede Referenzkatalog-Checkbox-Zeile ist genau
+  einem Punkt desselben Kapitels zugeordnet, Soll-Klasse = Vereinigung der
+  Referenzklassen (Punkte ohne `referenz` = Ergänzungen des Agenten).
+  Soll-IDs nie umnummerieren (neue Punkte: nächste freie Nummer); neue
+  Referenzkatalog-Zeile heißt neuer/erweiterter Soll-Punkt im selben
+  Arbeitsgang. Klassifikation des implementierten Checks ändern heißt
+  `befunde.KATALOG` ändern.
 - Schwellwerte/Kontenbereiche nie hartkodieren – immer über
   `werkzeuge/konten_config.json`.
 - **Laufzeitabhängigkeiten:** nur `requirements.txt` (`openpyxl`); neue

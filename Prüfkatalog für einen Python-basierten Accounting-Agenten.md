@@ -1,5 +1,5 @@
 <!-- KATALOG:REFERENZSTAND:START -->
-**Referenzstand:** Version **v0.4.4** des JA-Agenten (= `version` in `.claude-plugin/plugin.json`, Repository-Tag `v0.4.4` mit dem zugehörigen Commit; dieser Block wird von `werkzeuge/katalog_doku.py` generiert und im Build geprüft).
+**Referenzstand:** Version **v0.4.5** des JA-Agenten (= `version` in `.claude-plugin/plugin.json`, Repository-Tag `v0.4.5` mit dem zugehörigen Commit; dieser Block wird von `werkzeuge/katalog_doku.py` generiert und im Build geprüft).
 <!-- KATALOG:REFERENZSTAND:END -->
 
 > **Referenzdokument des JA-Agenten** (internes Arbeitsdokument): Soll-Katalog
@@ -14,9 +14,19 @@
 > README „Quellen und Referenzen" (jüngste berücksichtigte Änderung:
 > KSt-Satzsenkung, BGBl. 2025 I Nr. 161 vom 18.07.2025; Geschenke-Grenze
 > 50 EUR seit 2024). **Letzte fachliche Durchsicht des Katalogs:**
-> 18.08.2026 (Klärung der Klassifikationsdrift, Release 0.4.3: Tags
-> 1:1 mit README-Checkliste und Abdeckungsmatrix abgeglichen). Beide
-> Angaben werden von Hand gepflegt; die Referenzversion oben wird generiert.
+> 19.08.2026 (Release 0.4.5: Kanonisierung – jede Checkbox-Zeile dieses
+> Katalogs ist in `werkzeuge/soll_katalog.json` genau einem Soll-Punkt mit
+> stabiler Soll-ID zugeordnet; die Soll-Klasse der README-/Matrix-Punkte
+> ist die Vereinigung der hier vergebenen Tags). Beide Angaben werden von
+> Hand gepflegt; die Referenzversion oben wird generiert.
+>
+> **Bindung an die Strukturdatei:** Der Release-Check
+> (`werkzeuge/katalog_doku.py`) prüft, dass jede Checkbox-Zeile
+> (`- [ ] [Klasse] Text`) eines Kapitels genau einmal in
+> `werkzeuge/soll_katalog.json` referenziert wird und die Klassen
+> übereinstimmen. Neue, entfallene oder umformulierte Zeilen hier
+> erfordern dieselbe Änderung in der Strukturdatei (`referenz`-Liste des
+> betroffenen Soll-Punkts) im selben Arbeitsgang.
 >
 > **Redaktionelle Klarstellungen zu Kap. 20 (Projektstand):**
 > 1. Bilanz und GuV gehen aus dem Buchungsstapel hervor – der Stapel ist

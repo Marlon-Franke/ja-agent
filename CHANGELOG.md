@@ -7,13 +7,68 @@ steht synchron in `.claude-plugin/plugin.json` und `VERSION` in
 Gleichlauf. Git-Tags/GitHub-Releases gibt es ab 0.4.2; ältere Stände sind
 aus `testdaten/erwartung.md` rekonstruiert (Datum = Repository-Upload).
 
-## [Unreleased]
+## [0.4.5] – 2026-08-19
 
-Governance-Härtung nach der Revisionsprüfung v0.4.4 (2026-08-19); keine
-Änderung an Prüflogik, Paketinhalt oder Erwartungsbildern – kein neues
-Release nötig.
+Kanonisierung des Soll-Katalogs (Revisionsbefund **P2.2**) und
+Governance-Härtung nach der Revisionsprüfung v0.4.4; keine Änderung an
+Prüflogik (einzige Konfigurationsanpassung: Textmuster „Spende" um
+„sponsoring") oder Erwartungsbildern (alle drei Referenzläufe unverändert),
+aber geänderter Paketinhalt (README, Abdeckungsmatrix, neue Strukturdatei).
+
+### Hinzugefügt
+- **P2.2** `werkzeuge/soll_katalog.json`: kanonische Strukturdatei aller
+  Soll-Katalogpunkte – je Punkt stabile Soll-ID (`Kxx.yy`), Kapitel,
+  Soll-Klasse, Umsetzungsstatus (`check` / `ki` / `bericht` /
+  `strukturell` / `offen` = Ausbaustufe / `zusatz` = wartet auf
+  Datenquelle), CHECK-IDs, Datenquellen-Schlüssel und die Abbildung auf
+  die Checkbox-Zeilen des Referenzkatalogs (alle 327 Zeilen genau einem
+  Punkt zugeordnet; Soll-Klasse = Vereinigung der Referenzklassen; Punkte
+  ohne Referenz = Ergänzungen des Agenten). 206 Soll-Punkte.
+- `werkzeuge/katalog_doku.py` generiert daraus den README-Abschnitt
+  „Prüfkatalog (Abdeckungsstand)" Kap. 1–20 und die Abdeckungsmatrix
+  Kap. 1–20 (Tabellen mit Soll-ID und Klasse-Spalte; Kap. 20 zusätzlich
+  mit den je Datenquelle freigeschalteten Punkten). Das Check-Register
+  führt je Check die abgedeckten Soll-Punkte und das Erwartungsbild der
+  drei Referenzläufe aus `testdaten/erwartung.json` (Evidenz je CHECK-ID).
+- Neue Gates (Release-Check/Build): CHECK-IDs der Punkte existieren im
+  `befunde.KATALOG` und stehen im Umsetzungstext; kein Check ohne
+  Soll-Punkt; Datenquellen-Schlüssel und KI-Kennzeichen konsistent; jede
+  Referenzkatalog-Checkbox-Zeile genau einmal zugeordnet, Klassen stimmen
+  überein; keine fremden CHECK-IDs in README/Matrix. Das bisherige
+  Kapitel-für-Kapitel-ID-Gate README ↔ Matrix entfällt (beide Dokumente
+  entstehen aus derselben Quelle).
+- Kap. 20 „Datenquellen": neue Zeilen Folgeperiode (`--stapel-folgejahr`,
+  bisher nicht gelistet), Verträge/Tilgungspläne, Inventur-/
+  Warenwirtschaftsdaten, Positions-Zuordnung/Anhang-Checkliste.
+- **P2.3** `werkzeuge/pruefe_links_extern.py` + Workflow `linkcheck.yml`
+  (monatlich/manuell): toleranter Check aller externen Markdown-Links mit
+  Wiederholung; nur HTTP 404/410 gilt als defekt, Timeouts/Zugriffsschutz
+  als „nicht prüfbar" (gesetze-im-internet.de antwortet GitHub-Runnern
+  nicht); DATEV-Domains als dokumentierte Ausnahme (SPA liefert immer
+  200 → manuelle Prüfung in der Release-Checkliste).
 
 ### Geändert
+- README-Prüfkatalog und Abdeckungsmatrix: ein Wortlaut je Punkt (bisher
+  zwei handgepflegte Fassungen), Granularität nach den Referenzkatalog-
+  Zeilen (206 statt 148 bzw. 164 Punkte); Referenzzeilen, die bisher in
+  keinem der beiden Dokumente ausgewiesen waren (u. a. Buchungsdatum,
+  manuelle Umbuchungen, Buchungsfrequenzen, Bank-Einzelpunkte,
+  Forderungs-/Verbindlichkeitshöhe, AfA-Einzelpunkte), erhalten einen
+  Status (überwiegend ➕ Datenquelle, neun als „Ausbaustufe" mit
+  vorhandenen Daten umsetzbar); Soll-Klassen an den
+  Referenzkatalog angeglichen (z. B. Kap. 11 Geschenke/Bewirtung/Geldbußen/
+  Gewerbesteuer/Spenden von `[R]` auf `[P]`, `[R/P]` bei gemischten
+  Zeilen). Die vollständige Entscheidungsliste steht im PR.
+- Abdeckungsaussagen gegen die Implementierung verifiziert (unabhängige
+  Durchsicht aller 206 Punkte): 23 Punkte präzisiert oder herabgestuft –
+  u. a. Überweisungen auf ungewöhnliche Gegenkonten, Vorratskonten,
+  Bestandskonten vor Stichtag, Anlagenzugang-Gegenkonto, Forderungshöhe,
+  Belegdatum leer (GV-03/CO-01/SB-02/DQ-01 decken diese Fälle nicht);
+  `konten_config.json`: Textmuster „Spende" um „sponsoring" ergänzt (die
+  Zusage Spenden/Sponsoring → ET-02 war sonst nicht gedeckt; Erwartungs-
+  bilder unverändert).
+- `.claude/CLAUDE.md`, `docs/test-strategy.md`, CONTRIBUTING, Referenz-
+  katalog-Kopf: Pflege-Regel „Katalogpunkte nur in `soll_katalog.json`".
 - **P1.2** `release.yml`: Tag-Gate verlangt, dass der Tag-Commit auf
   `main` liegt und mindestens ein erfolgreicher CI-Lauf für genau diesen
   Commit existiert.
@@ -32,19 +87,11 @@ Release nötig.
   wird am 16.09.2026 von den Runnern entfernt); `.github/dependabot.yml`
   hält Actions und Python-Abhängigkeiten aktuell.
 
-### Hinzugefügt
-- **P2.3** `werkzeuge/pruefe_links_extern.py` + Workflow `linkcheck.yml`
-  (monatlich/manuell): toleranter Check aller externen Markdown-Links mit
-  Wiederholung; nur HTTP 404/410 gilt als defekt, Timeouts/Zugriffsschutz
-  als „nicht prüfbar" (gesetze-im-internet.de antwortet GitHub-Runnern
-  nicht); DATEV-Domains als dokumentierte Ausnahme (SPA liefert immer
-  200 → manuelle Prüfung in der Release-Checkliste).
-
-### Offen
+### Status der Revisionsbefunde v0.4.4
 - **P1.1** Ruleset für `main` mit Required Checks ist seit 2026-08-18
-  aktiv (Befund beruhte auf der Legacy-Branch-API) – erledigt;
-  **P2.2** vollständige Kanonisierung der Soll-Katalogpunkte bleibt
-  Ausbaustufe.
+  aktiv (Befund beruhte auf der Legacy-Branch-API) – erledigt; **P2.2**
+  mit dieser Version erledigt. Damit sind alle Befunde der
+  Revisionsprüfungen v0.4.3 und v0.4.4 adressiert.
 
 ## [0.4.4] – 2026-08-18
 

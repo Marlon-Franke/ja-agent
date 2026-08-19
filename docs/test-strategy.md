@@ -1,6 +1,6 @@
 # Teststrategie, Kompatibilitäts- und Supportzusagen
 
-Stand: Release 0.4.4 (2026-08-18), Governance-Härtung nach Revisionsprüfung v0.4.4 (2026-08-19). Diese Datei ist die verbindliche
+Stand: Release 0.4.5 (2026-08-19; Governance-Härtung und Kanonisierung des Soll-Katalogs nach Revisionsprüfung v0.4.4). Diese Datei ist die verbindliche
 Beschreibung dessen, was vor einem Release automatisch geprüft wird, auf
 welchen Plattformen das Plugin unterstützt wird und was ausdrücklich
 **nicht** zugesagt ist. Sie beantwortet die Befunde P0.2, P1.1, P1.2,
@@ -17,7 +17,7 @@ stehen im Modul-Docstring; Kurzfassung:
 |---|---|---|
 | 1 | Python ≥ 3.10, Laufzeitabhängigkeiten vorhanden | `werkzeuge/abhaengigkeiten.py`, `requirements.txt` |
 | 2 | Syntax (`compileall werkzeuge testdaten`) | – |
-| 3 | Plugin-Sollstruktur: Manifeste, Versionsgleichlauf, Checkzahl, SKILL-Frontmatter, generierte Doku-Blöcke, Katalog-IDs README ↔ Matrix ↔ `befunde.KATALOG`, Referenzstand, `CLAUDE.md`-Ablage | `werkzeuge/baue_dist.py`, `werkzeuge/katalog_doku.py` |
+| 3 | Plugin-Sollstruktur: Manifeste, Versionsgleichlauf, Checkzahl, SKILL-Frontmatter, generierte Doku-Blöcke (README-Prüfkatalog, Abdeckungsmatrix, Ebenen-Tabelle, Check-Register, Referenzstand), kanonischer Soll-Katalog (`werkzeuge/soll_katalog.json`: Soll-IDs, Status, CHECK-IDs ↔ `befunde.KATALOG` ohne verwaiste Checks, Referenzkatalog-Zeilen 1:1 zugeordnet, Soll-Klasse = Referenzklassen), keine fremden CHECK-IDs in README/Matrix, `CLAUDE.md`-Ablage | `werkzeuge/baue_dist.py`, `werkzeuge/katalog_doku.py`, `werkzeuge/soll_katalog.json` |
 | 4 | Testdaten-Generator läuft; erzeugte CSVs == versionierte CSVs | `testdaten/erzeuge_testdaten.py` |
 | 5–7 | Referenzläufe `standard`, `dq02`, `co02`: alle 73 Checks je Lauf (Status aktiv/skip, Treffer je Schwere, Belege gesäter Fälle, Skip-Gründe), Summen, KI-Kandidaten, stdout-Kopf/Summenzeile, keine Bilanzprobe-Warnung | `testdaten/erwartung.json` (+ Prosa `erwartung.md`), `werkzeuge/pruefe_erwartung.py` |
 | 8 | Relative Markdown-Links aller versionierten `*.md` auflösbar | – |
@@ -106,10 +106,14 @@ melden – niemals mit echten Mandantendaten, sondern mit den Demodaten
   Dokument-IDs HTTP 200 liefern – ihre Existenz ist nur manuell prüfbar
   (Release-Checkliste). Geprüft als Gate werden alle **relativen**
   Repository-Links.
-- Vollständige Kanonisierung der Soll-Katalogpunkte (eigene stabile ID je
-  Katalogpunkt, README-Checkliste und Abdeckungsmatrix daraus generiert)
-  ist Ausbaustufe; bis dahin gilt das ID-Konsistenz-Gate je Kapitel
-  (`katalog_doku.pruefe_katalog_ids`).
+- Soll-Katalogpunkte sind seit 0.4.5 kanonisiert
+  (`werkzeuge/soll_katalog.json`, Gate 3): Der Referenzkatalog selbst bleibt
+  ein handgepflegtes Fachdokument; das Gate stellt nur sicher, dass jede
+  seiner Checkbox-Zeilen genau einem Soll-Punkt zugeordnet ist und die
+  Soll-Klassen übereinstimmen – die fachliche Richtigkeit der Zuordnung
+  (welcher Check welchen Soll-Punkt wie weit abdeckt) ist Review-Gegenstand
+  des jeweiligen PR, nicht automatisiert. Punkte mit Status „Ausbaustufe"
+  (`offen`) und ➕-Zusätze sind bewusst offene Roadmap, keine Zusage.
 - Fachliche Richtigkeit der Prüfregeln wird über die gesäten Fälle der
   Demodaten verifiziert; ein Ersatz für die berufsträgerseitige Würdigung
   ist der Bericht nicht (README „Datenschutz und Verantwortung").
@@ -141,3 +145,4 @@ Schritte:
 | Release | Desktop/Cowork-Import (Schritte 1–4) | DATEV-Links (Schritt 5) | Prüfer / Datum |
 |---|---|---|---|
 | v0.4.4 | offen | offen | – |
+| v0.4.5 | offen | offen | – |

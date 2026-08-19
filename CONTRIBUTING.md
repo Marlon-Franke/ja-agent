@@ -14,7 +14,10 @@ verbindlich (Details: `.claude/CLAUDE.md`, `docs/test-strategy.md`).
    (`fix/...`, `feat/...`, `docs/...`, `release/...`).
 3. **Entwickeln** nach den Projektregeln:
    - Eindeutige Regeln gehören in `werkzeuge/checks*.py`/`statistik.py`
-     + `befunde.KATALOG` + Katalogdokumentation, nie ins Prompt.
+     + `befunde.KATALOG` + Zuordnung zu einem Soll-Punkt in
+     `werkzeuge/soll_katalog.json` (kanonischer Soll-Katalog; README-
+     Prüfkatalog und Abdeckungsmatrix werden daraus generiert:
+     `py werkzeuge/katalog_doku.py --write`), nie ins Prompt.
    - Schwellwerte/Kontenbereiche nur über `werkzeuge/konten_config.json`.
    - Externe Fakten nur mit Quellen-Link aus zulässigen Quellen (amtliche
      Primärquellen, DATEV-eigene Dokumente, code.claude.com/docs,
@@ -48,7 +51,9 @@ verbindlich (Details: `.claude/CLAUDE.md`, `docs/test-strategy.md`).
 - Zugangsdaten, Tokens, Lizenzschlüssel (Secret-Scan in der CI).
 - Drittquellen (Verlage, Kanzleien, Blogs) als Beleg in Repo-Dateien.
 - Generierte Dateien von Hand editiert (`testdaten/*.csv`,
-  `testdaten/ausgabe/`, generierte Doku-Blöcke, `dist/`).
+  `testdaten/ausgabe/`, generierte Doku-Blöcke – README-Prüfkatalog
+  Kap. 1–20, Abdeckungsmatrix Kap. 1–20, Ebenen-Tabelle, Check-Register –,
+  `dist/`).
 
 ## Stil
 

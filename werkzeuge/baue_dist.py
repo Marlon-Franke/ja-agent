@@ -31,8 +31,9 @@ und gueltiges JSON, Pluginname in beiden Manifesten identisch, Version in
 plugin.json synchron zu VERSION in werkzeuge/ja_pruefung.py, SKILL.md mit
 Frontmatter vorhanden, Checkzahl-Angaben ("<n> Checks") in README, SKILL.md
 und plugin.json gleich len(befunde.KATALOG) (Regel aus .claude/CLAUDE.md),
-generierte Doku-Bloecke aktuell und Katalog-IDs in README/Matrix/KATALOG
-konsistent (katalog_doku.pruefe). Nach dem Bau wird der Plugin-Archivinhalt
+generierte Doku-Bloecke aktuell und kanonischer Soll-Katalog
+(werkzeuge/soll_katalog.json) konsistent zu befunde.KATALOG und
+Referenzkatalog (katalog_doku.pruefe). Nach dem Bau wird der Plugin-Archivinhalt
 geprueft (Pflichteintraege inkl. PBIP-Vorlage und requirements.txt
 enthalten, Ausschluesse nicht enthalten). Jeder Verstoss bricht mit
 Exit-Code 1 ab - ein erfolgreicher Build garantiert damit die Sollstruktur
@@ -197,9 +198,10 @@ def validiere_repo() -> list[str]:
                     fehler.append(f"{SKILL.as_posix()}-Frontmatter: "
                                   f"'{feld}' fehlt")
 
-    # Katalog-Doku-Gate: generierte Bloecke aktuell, Katalog-IDs in
-    # README-Checkliste, Abdeckungsmatrix und befunde.KATALOG konsistent,
-    # Referenzstand versionsgebunden (katalog_doku.py)
+    # Katalog-Doku-Gate: generierte Bloecke aktuell (README-Pruefkatalog,
+    # Abdeckungsmatrix, Ebenen-Tabelle, Check-Register, Referenzstand),
+    # kanonischer Soll-Katalog werkzeuge/soll_katalog.json konsistent zu
+    # befunde.KATALOG und Referenzkatalog (katalog_doku.pruefe)
     sys.path.insert(0, str(BASIS / "werkzeuge"))
     try:
         import katalog_doku  # noqa: PLC0415
