@@ -184,7 +184,8 @@ py werkzeuge/release_check.py
 
 Gates: Python-Version und Abhängigkeiten, Syntax (`compileall`),
 Plugin-Sollstruktur (Manifeste, Versionsgleichlauf, Checkzahl,
-Katalog-Doku/-IDs, Referenzstand), Testdaten-Generator (Ausgabe ==
+generierte Katalog-Doku und kanonischer Soll-Katalog
+`werkzeuge/soll_katalog.json`, Referenzstand), Testdaten-Generator (Ausgabe ==
 versionierte CSVs), die drei Referenzläufe gegen `testdaten/erwartung.json`
 (alle 73 Checks je Lauf, Belege gesäter Fälle, Skip-Gründe,
 KI-Kandidatenzahl, keine Bilanzprobe-Warnung), Markdown-Links,
@@ -411,7 +412,7 @@ Visual-Typnamen wie `barChart`/`clusteredBarChart` gemäß
 Struktur und Klassifikation der Katalogpunkte folgen dem Referenzkatalog
 ([Prüfkatalog für einen Python-basierten Accounting-Agenten.md](https://github.com/Marlon-Franke/ja-agent/blob/main/Pr%C3%BCfkatalog%20f%C3%BCr%20einen%20Python-basierten%20Accounting-Agenten.md)
 – absoluter Link, weil die Referenzdatei nicht Teil des Plugin-Pakets ist);
-die tabellarische Fassung mit Details liegt in
+die tabellarische Fassung mit Soll-IDs und Details liegt in
 [skills/ja-pruefung/references/pruefkatalog.md](skills/ja-pruefung/references/pruefkatalog.md).
 
 ### Legende
@@ -421,17 +422,28 @@ die tabellarische Fassung mit Details liegt in
 - **[A] Anomalie:** statistischer oder datengetriebener Auffälligkeitsscore
 - **[X] Zusatzdaten:** Prüfung benötigt mehr als den Buchungsstapel
 
-Die Tags sind die Klasse des **Soll-Katalogpunkts** (1:1 aus dem
-Referenzkatalog). Ebene und Klasse des **implementierten Checks** – die
-Werte, die jeder Befund im Bericht trägt – führt allein `befunde.KATALOG`;
-sie stehen im generierten Check-Register der
+Die Tags sind die Klasse des **Soll-Katalogpunkts** (Vereinigung der
+Klassen der zugeordneten Referenzkatalog-Zeilen; Punkte ohne Referenzzeile
+sind Ergänzungen des Agenten). Ebene und Klasse des **implementierten
+Checks** – die Werte, die jeder Befund im Bericht trägt – führt allein
+`befunde.KATALOG`; sie stehen im generierten Check-Register der
 [Abdeckungsmatrix](skills/ja-pruefung/references/pruefkatalog.md) und
 dürfen von der Katalogpunkt-Klasse abweichen (ein Plausibilitäts-Check kann
 einen [R]-Katalogpunkt abdecken).
 
-Status: angehakt = umgesetzt (→ `CHECK-ID` bzw. **KI** =
-KI-Beurteilungsschicht) · offen = **zusätzliche Prüfung**, wird aktiv,
-sobald die mit ➕ genannte Datenquelle angeliefert wird.
+Status: angehakt = umgesetzt (→ `CHECK-ID`, **KI** = KI-Beurteilungsschicht,
+Berichtsblatt/Kennzahl oder strukturell durch das Datenformat
+gewährleistet) · offen = **zusätzliche Prüfung**, wird aktiv, sobald die
+mit ➕ genannte Datenquelle angeliefert wird, bzw. **Ausbaustufe** (mit
+vorhandenen Datenquellen umsetzbar, noch nicht implementiert). Bei
+umgesetzten Punkten nennt ein ➕-Zusatz den noch nicht abgedeckten Teil.
+
+Kapitel 1–20 werden aus der kanonischen Strukturdatei
+[werkzeuge/soll_katalog.json](werkzeuge/soll_katalog.json) generiert
+(`py werkzeuge/katalog_doku.py --write`; Release-Check prüft die
+Aktualität). Soll-ID, Datenquellen und Abbildung auf den Referenzkatalog je
+Punkt stehen dort und in der Abdeckungsmatrix – Änderungen an
+Katalogpunkten nur in der Strukturdatei.
 
 ### Zielarchitektur: vier Ebenen
 
@@ -445,209 +457,268 @@ sobald die mit ➕ genannte Datenquelle angeliefert wird.
 Jeder Befund trägt Ebene und Klasse – ein verdächtig runder Betrag steht
 nie auf derselben Stufe wie eine rechnerisch negative Kasse.
 
+<!-- KATALOG:SOLL:START -->
 ### 1. Datenvollständigkeit und technische Integrität
 
-- [x] [R] Soll = Haben (Beleg/Periode/Jahr) → strukturell gewährleistet (DATEV-Einzeilenformat Konto/Gegenkonto)
-- [x] [R] Buchungen ohne Konto, Gegenkonto oder Betrag → `DV-01` + Import-Abweisungen `DQ-01`
-- [x] [R] Buchungen ohne Belegdatum → `DQ-01`
-- [x] [P] Buchungen ohne Belegnummer / ohne Buchungstext → `ST-05`
+- [x] [R] Soll = Haben auf Beleg-, Perioden- und Jahresebene → strukturell gewährleistet: jede DATEV-Stapelzeile bucht Konto gegen Gegenkonto (Einzeilenformat)
+- [x] [R] Buchungen ohne Konto, Gegenkonto oder Betrag → `DV-01` (Nullbeträge) + Import-Abweisungen des Parsers in `DQ-01`
+- [ ] [R] Buchungen ohne Buchungsdatum ➕ GDPdU-Journal (Buchungs-/Erfassungsdatum – der Buchungsstapel führt nur das Belegdatum)
+- [ ] [R] Buchungen ohne Belegdatum – Ausbaustufe: Zählung leerer Belegdaten in `DQ-01` (der Parser warnt nur bei unlesbarem, nicht bei fehlendem Belegdatum; im DATEV-Format ist das Belegdatum Pflichtfeld)
+- [x] [R/P] Buchungen ohne Belegnummer oder Buchungstext → `ST-05` (Quoten je Stapel)
 - [x] [R] ungültige bzw. unbekannte Konten → `DV-03` (mit Kontenbeschriftungen)
 - [x] [R] ungültige Steuerschlüssel → `US-03`
 - [x] [R] Buchungen außerhalb des Wirtschaftsjahres → `ST-06`
-- [ ] [R] Buchungen in nicht vorgesehenen Perioden ➕ GDPdU-Journal (Buchungsdatum)
-- [x] [P] Lücken/Sprünge in Rechnungsnummern (Ausgang) → `RE-01` (Eingangsnummern bewusst ausgenommen: fremdvergeben)
-- [ ] [R] identische technische Buchungs-IDs ➕ Journal mit Buchungs-IDs
-- [x] [R] inkonsistente Buchungssätze (Konto = Gegenkonto) → `DV-01`
+- [ ] [R] Buchungen in nicht vorgesehenen Perioden ➕ GDPdU-Journal (Buchungsperiode/Buchungsdatum)
+- [x] [P] Lücken oder Sprünge in Beleg-/Buchungsnummern → `RE-01` (Ausgangsrechnungsnummern; Eingangsnummern bewusst ausgenommen: fremdvergeben); technische Buchungsnummern ➕ GDPdU-Journal
+- [ ] [R] identische technische Buchungs-IDs ➕ GDPdU-Journal mit Buchungs-IDs
+- [x] [R] inkonsistente Datensätze innerhalb desselben Buchungssatzes → `DV-01` (Konto = Gegenkonto)
 - [x] [R] Rechtsform-Konsistenz: Mandantenname ↔ Angabe ↔ Kontenbild (KSt-/Kapital- vs. Privatkonten) → `DQ-02`
 
 **Jahresübernahme**
 
-- [x] [R] EB-Werte = Schlussbilanz Vorjahr, je Bilanzkonto → `VJ-01` (mit `--susa-vorjahr`)
+- [x] [R] Eröffnungsbilanzwerte = Schlussbilanzwerte des Vorjahres, je Bilanzkonto → `VJ-01` (mit `--susa-vorjahr`)
 - [x] [R] keine EB-Buchungen auf GuV-Konten → `DV-02`
 - [x] [R] Saldenvorträge saldieren auf null → `SB-06`
-- [x] [P] neue Bilanzkonten ohne Anfangsbestand / verschwundene Vorjahreskonten mit Restbestand → `VJ-01`
+- [x] [P] neue Bilanzkonten ohne nachvollziehbaren Anfangsbestand, verschwundene Vorjahreskonten mit Restbestand → `VJ-01` (mit `--susa-vorjahr`)
 
 ### 2. Journal- und Buchungsprüfung
 
 - [x] [R] exakt identische Doppelbuchungen → `ST-01` (hoch bei identischem Beleg)
-- [x] [P] wirtschaftlich wahrscheinliche Doppelbuchungen → `ST-01` + KI
-- [x] [P] gleicher Betrag + gleicher Partner + gleiches Datum → `ST-01`
-- [x] [P] gleiche Rechnungsnummer mehrfach gebucht → `RE-02` (Ausgang), `KR-01` (je Kreditor)
-- [x] [P] Buchung und Storno ohne Anlass, Mehrfachstorno → `FR-01`
-- [x] [P] ungewöhnlich viele Abschluss-/Nachtragsbuchungen → `GV-01`, `CO-01`/`CO-02`
-- [x] [P] rückdatierte Buchungen (Indiz über Nummernfolge) → `RE-03`; vollständig ➕ Journal mit Erfassungsdatum
-- [ ] [P] großer Abstand Beleg-/Buchungsdatum ➕ Journal
-- [x] [A] Buchungen zu ungewöhnlichen Zeiten / je Benutzer → `ST-04` (Belegdatum Kasse: Sonn-/Feiertage); Uhrzeit/Benutzer ➕ Journal mit User und Zeitstempel
-- [x] [A] ungewöhnliche Konten-Gegenkonten-Kombination, erstmalige Kontierung → `GV-03`
-- [x] [A] ungewöhnliche Buchungstexte → **KI** + `ET-02` (regelbasierte Textmuster)
-- [x] [P] Buchungen knapp an Freigabegrenzen → `FR-03` (konfigurierbar)
-- [x] [A] Aufteilung eines Gesamtbetrags auf Einzelbuchungen → `ST-07`
+- [x] [P] wirtschaftlich wahrscheinliche Doppelbuchungen trotz unterschiedlicher Buchungs-ID → `ST-01` (Zeitfenster `doppel_fenster_tage`) + **KI**
+- [x] [P] gleicher Betrag + gleicher Kreditor/Debitor + gleiches Rechnungsdatum → `ST-01`
+- [x] [P] gleiche Rechnungsnummer mehrfach gebucht → `RE-02` (Ausgang), `KR-01` (Eingang je Kreditor)
+- [x] [P] gleicher Buchungstext/Betrag in sehr kurzem Zeitraum → `ST-01` (gleicher Betrag auf gleicher Konto-Gegenkonto-Kombination im Zeitfenster; Buchungstext im KI-Kandidaten)
+- [x] [P] Buchung und Storno ohne erkennbaren Anlass, mehrfaches Storno und erneute Einbuchung → `FR-01`
+- [ ] [P] ungewöhnlich viele manuelle Umbuchungen ➕ GDPdU-Journal (Erfassungsart/Herkunft der Buchung – der Stapel unterscheidet manuelle und automatische Buchungen nicht)
+- [x] [P] ungewöhnlich viele Abschluss-/Nachtragsbuchungen → `GV-01` (Monatsspitzen), `CO-01`/`CO-02` (Cut-off-Fenster); Erfassungsart ➕ GDPdU-Journal
+- [x] [P] rückdatierte Buchungen → `RE-03` (Indiz: Rechnungsdatum entgegen Nummernfolge); vollständig ➕ GDPdU-Journal mit Erfassungsdatum
+- [ ] [P] großer Abstand zwischen Beleg- und Buchungsdatum ➕ GDPdU-Journal (Erfassungsdatum)
+- [x] [A] Buchungen an ungewöhnlichen Tagen oder Uhrzeiten, ungewöhnliche Buchungsaktivität einzelner Benutzer → `ST-04` (Belegdatum Kasse: Sonn-/Feiertage); Uhrzeit/Benutzer ➕ GDPdU-Journal mit User und Zeitstempel
+- [x] [A] ungewöhnliche Konten-Gegenkonten-Kombination, erstmalig auftretende Kontierung → `GV-03`; jahresübergreifend (erstmalig gegenüber dem Vorjahr) ➕ Vorjahres-Buchungsstapel
+- [x] [A] ungewöhnliche Buchungstexte → **KI** (Kandidaten) + `ET-02` (regelbasierte Textmuster)
+- [x] [A] ungewöhnliche Buchungsfrequenzen → `GV-01` (Monatsvolumen je GuV-Konto als Näherung), `SB-08` (Buchungsfrequenz der Kasse); Ausbaustufe: kontoindividuelle Frequenzerwartung (`erwartungen`-Objekt, Kap. 18)
+- [x] [P] Buchungen knapp oberhalb/unterhalb definierter Freigabegrenzen → `FR-03` (nur mit konfigurierten `freigabegrenzen`; Default leer → begründeter Skip)
+- [x] [A] auffällige Aufteilung eines Gesamtbetrags auf mehrere Einzelbuchungen → `ST-07` (nur Anlagen-/GWG-Zugänge knapp unter der GWG-Grenze); Ausbaustufe: allgemeines Betrags-Splitting je Konto/Geschäftspartner
 
 ### 3. Kasse und liquide Mittel
 
-- [x] [R] negativer Kassenbestand zu irgendeinem Zeitpunkt → `SB-01` (taggenauer Verlauf, § 146 AO)
+- [x] [R] negativer Kassenbestand zu irgendeinem Zeitpunkt (§ 146 AO) → `SB-01` (taggenauer Verlauf)
 - [x] [R] chronologisch fortgeschriebener Kassenbestand → Verlaufsrechnung in `SB-01`/`SB-07`
 - [x] [P] ungewöhnlich hohe Kassenbestände → `SB-07`
-- [x] [P] hohe Bareinzahlungen/-entnahmen, sprunghafte Bestandsänderungen → `SB-09`
-- [x] [P] ungewöhnlich viele glatte Bargeldbeträge → `SB-10`, `ST-03`
-- [ ] [P] nachträgliche Kassenbuchungen ➕ Journal (Erfassungsdatum)
+- [x] [P] ungewöhnlich hohe Bareinzahlungen/-entnahmen, sprunghafte Kassenbestandsänderungen → `SB-09`
+- [x] [P] ungewöhnlich viele glatte Bargeldbeträge → `SB-10` (Kasse ↔ Privat; bei Kapitalgesellschaft begründeter Skip), `ST-03`
+- [ ] [P] nachträgliche Kassenbuchungen ➕ GDPdU-Journal mit Erfassungsdatum
 - [x] [P] größere zeitliche Lücken in der Kassenführung → `SB-08`
-- [x] [R] Geldtransit gleicht sich zum Stichtag aus → `SB-03`
-- [ ] [X] Kassenbuch gegen Finanzbuchhaltung ➕ Kassenbuch-Export
-- [ ] [X] Banksaldo/-bewegungen gegen Kontoauszug, ungeklärte Posten, Transfers zwischen eigenen Konten ➕ Bankbewegungen (CAMT/CSV)
+- [ ] [X] Kassenbuch gegen Finanzbuchhaltung abstimmen ➕ Kassenbuch-Export
+- [ ] [X] Banksaldo und Bankbewegungen gegen Kontoauszug abstimmen ➕ Bankbewegungen (CAMT/CSV)
+- [x] [P] lange ungeklärte Bankbuchungen → `SB-04` (Interims-/Verrechnungskonten zum Stichtag nicht ausgeglichen); unterjährige Klärungsdauer ➕ Bankbewegungen
+- [x] [P] ungewöhnliche Barabhebungen → `SB-09` (kassenseitige Ausreißer), `SB-10` (Kasse/Privat); bankseitig vollständig ➕ Bankbewegungen
+- [ ] [P] Überweisungen auf ungewöhnliche Gegenkonten ➕ Bankbewegungen mit Empfänger-IBAN/Stammdaten (`GV-03` sieht nur Kombinationen mit GuV-Seite)
+- [x] [P] ungewöhnliche Geldtransfers zwischen eigenen Konten → `SB-03` (Geldtransit gleicht sich zum Stichtag aus); Transfermuster zwischen Bankkonten ➕ Bankbewegungen
 - [x] [R] gleiche Zahlung mehrfach verbucht → `ST-01`
+- [ ] [X] gleiche Banktransaktion mehreren Rechnungen zugeordnet ➕ Bankbewegungen mit Zahlungszuordnung (OPOS-Ausgleichsinformation)
 
 ### 4. Debitoren und Forderungen
 
-- [x] [R] Debitoren-Hauptbuch = Nebenbuch (OPOS-Summen je Konto) → `OP-05`
+- [x] [R] Debitoren-Hauptbuch = Debitoren-Nebenbuch → `OP-05` (OPOS-Summen je Konto, mit `--opos`)
 - [x] [P] Kreditsalden auf Debitorenkonten → `OP-01`
-- [x] [P] überfällige Forderungen → `OP-03`
-- [x] [P] OPOS-Altersstruktur 30/60/90/180/365 Tage → Berichtsblatt „OPOS-Alterung"
-- [x] [P] sehr alte Kleinstbeträge / sehr alte Gutschriften → `OP-06`
-- [ ] [R] ausgeglichene Rechnungen noch offen, doppelte offene Rechnungen ➕ OPOS mit Ausgleichsinformation
-- [x] [P] Zahlung ohne korrespondierende Forderung → `OP-01`
-- [ ] [P] Teilzahlungsmuster, Zahlungsverhalten je Kunde ➕ Zahlungshistorie/Vorjahr
-- [x] [P] Verrechnung zwischen Personenkonten → `OP-04`
+- [ ] [P] ungewöhnlich hohe Forderungssalden – Ausbaustufe: Saldohöhe je Debitor relativ zu Umsatz und Vorjahr (Vorjahres-SuSa reicht als Datenbasis); `OP-07` misst nur die Konzentration des Soll-Umsatzvolumens
+- [x] [P] lange überfällige Forderungen, OPOS-Altersstruktur 30/60/90/180/365 Tage → `OP-03` + Berichtsblatt „OPOS-Alterung“ (mit `--opos`)
+- [x] [P] sehr alte Kleinstbeträge, sehr alte Gutschriften → `OP-06`
+- [x] [R] ausgeglichene Rechnungen noch als offen, doppelte offene Rechnungen → `OP-05` (Differenz OPOS-Summe ↔ Kontensaldo als Indiz); ➕ OPOS mit Ausgleichsinformation (Zahlungs-/Ausgleichshistorie)
+- [x] [P] Zahlung ohne korrespondierende Forderung → `OP-01` (Habensaldo)
+- [x] [P] Rechnung ohne Zahlung trotz ungewöhnlich langen Zeitraums → `OP-03` (überfällige offene Posten)
+- [ ] [P] ungewöhnlich viele Teilzahlungen ➕ OPOS mit Ausgleichsinformation (Teilzahlungshistorie)
+- [x] [P] ungewöhnliche Verrechnung zwischen Kunden → `OP-04` (Direktverrechnung zwischen Personenkonten)
+- [ ] [A] Forderungen deutlich außerhalb des normalen Zahlungsverhaltens eines Kunden ➕ Zahlungshistorie je Kunde (OPOS-Historie/Vorjahr)
 - [x] [A] Konzentrationsrisiko einzelner Debitoren → `OP-07`
-- [ ] [P] Forderungsanstieg ohne Umsatzentwicklung ➕ Vorjahresdaten
-- [ ] [X] Zahlungseingänge nach Stichtag, Mahnstatus, Wertberichtigung vs. Alter, verbundene Unternehmen ➕ Folgeperiode/Mahnwesen/Kontenzuordnung
+- [ ] [P] Forderungsanstieg ohne entsprechende Umsatzentwicklung ➕ Vorjahresdaten (Forderungs- und Umsatzentwicklung im Vergleich; Ausbaustufe auf Basis der Vorjahres-SuSa)
+- [ ] [X] Zahlungseingänge nach Bilanzstichtag, Mahnstatus, Wertberichtigungen gegen Altersstruktur, Forderungen gegen verbundene Unternehmen ➕ Folgeperiode (Zahlungseingänge), Mahnwesen, Kontenzuordnung verbundener Unternehmen
 
 ### 5. Kreditoren und Verbindlichkeiten
 
-- [x] [R] Kreditoren-Hauptbuch = Nebenbuch → `OP-05`
+- [x] [R] Kreditoren-Hauptbuch = Kreditoren-Nebenbuch → `OP-05` (mit `--opos`)
 - [x] [P] Sollsalden auf Kreditorenkonten → `OP-02`
-- [x] [P] sehr alte Verbindlichkeiten / alte Gutschriften → `OP-03`, `OP-06`
+- [ ] [P] ungewöhnlich hohe Verbindlichkeiten ➕ Vorjahresdaten (Relation zu Material-/Gesamtaufwand; Ausbaustufe auf Basis der Vorjahres-SuSa)
+- [x] [P] sehr alte offene Verbindlichkeiten, alte Kreditorengutschriften → `OP-03`, `OP-06`
 - [x] [R] identische Eingangsrechnung mehrfach erfasst → `ST-01`
-- [x] [P] gleiche Rechnungsnummer beim gleichen Kreditor → `KR-01`
-- [x] [R] doppelte Zahlungen → `ST-01`; Abgleich gegen Bank ➕ Bankbewegungen
-- [x] [P] Zahlung ohne offene Verbindlichkeit → `OP-02`
-- [x] [A] ungewöhnliches Kreditorenkonto für Kostenarten → `GV-03`
-- [ ] [A] Änderung des Zahlungsprofils, ungewöhnliche Vorauszahlungen, Zahlungen nach Stichtag ➕ Vorjahr/Folgeperiode
+- [x] [P] gleiche Rechnungsnummer bei gleichem Kreditor → `KR-01`
+- [x] [P] gleicher Betrag/Rechnungsdatum/Kreditor mit abweichender Rechnungsnummer → `ST-01` (mittel: gleicher Betrag und Partner im Zeitfenster ohne identischen Beleg)
+- [x] [R/X] doppelte Zahlungen → `ST-01`; Abgleich gegen Bank ➕ Bankbewegungen
+- [x] [P] Zahlung ohne offene Verbindlichkeit → `OP-02` (Sollsaldo)
+- [x] [P] ungewöhnliche Vorauszahlungen → `OP-02` (Sollsaldo auf Kreditor als Indiz); Vorauszahlungs-Kennzeichnung ➕ OPOS-Detail
+- [ ] [P] ungewöhnlich viele manuelle Kreditorenbuchungen ➕ GDPdU-Journal (Erfassungsart)
+- [x] [A] ungewöhnliches Kreditorenkonto für bestimmte Kostenarten → `GV-03`
+- [ ] [A] erhebliche Änderung des Zahlungsprofils eines Lieferanten ➕ Vorjahres-Buchungsstapel/Bankbewegungen (Zahlungsprofil im Zeitvergleich)
+- [ ] [X] Verbindlichkeiten gegen Zahlungen nach Bilanzstichtag, Verbindlichkeiten gegenüber verbundenen Unternehmen ➕ Folgeperiode (Zahlungen nach Stichtag), Kontenzuordnung verbundener Unternehmen
 
 ### 6. Anlagevermögen und AfA
 
-- [ ] [R/X] Sachkonten, kumulierte AfA, Zu-/Abgänge = Anlagenbuchhaltung ➕ Anlagenspiegel
-- [x] [R] Anlagenzugänge ohne AfA (Gesamtbestand) → `AF-01`
-- [x] [R] AfA ohne Anlagevermögen → `AF-02`
-- [x] [R] AfA auf nicht abnutzbares AV (Grund und Boden) → `AF-03`
-- [x] [R] negativer Buchwert → `SB-02`
-- [ ] [R] je Wirtschaftsgut: AfA > Restwert, AfA nach Abgang, Nutzungsdauer, AfA-Methode, zeitanteilige AfA ➕ Anlagenspiegel
-- [x] [R/P] GWG-/Sammelposten-Grenzen → `AF-04`; Schwellen-Splitting → `ST-07`
-- [x] [P] größere Anschaffungen unmittelbar als Aufwand → `AF-05` + **KI**
-- [x] [P] laufende Aufwendungen unplausibel aktiviert → **KI** (Kandidaten)
-- [ ] [X] außerplanmäßige AfA auf Wertminderungen, Abgang gegen Erlös/Abgangsergebnis ➕ Anlagenspiegel/Belege
+- [ ] [R/X] Sachkonten Anlagevermögen, kumulierte AfA, Anlagenzugänge und -abgänge = Anlagenbuchhaltung ➕ Anlagenspiegel-Export
+- [x] [R] Wirtschaftsgut vorhanden, aber keine AfA → `AF-01` (nur Anlagenzugänge bei völlig fehlender AfA-Buchung); je Wirtschaftsgut ➕ Anlagenspiegel
+- [x] [R] AfA auf vollständig abgegangenes Wirtschaftsgut → `AF-02` (Kontenebene: AfA ohne Anlagevermögen); je Wirtschaftsgut ➕ Anlagenspiegel
+- [x] [R] AfA auf nicht abnutzbares Anlagevermögen (Grund und Boden) → `AF-03`
+- [x] [R] negativer Buchwert → `SB-02` (Saldenvorzeichen der Anlagenkonten)
+- [ ] [R/P] je Wirtschaftsgut: AfA über dem abschreibbaren Restwert, Restbuchwert nach Ablauf der Nutzungsdauer, AfA vor Anschaffung oder nach Abgang, zeitanteilige AfA, Nutzungsdauer und AfA-Methode gegen Stammdaten ➕ Anlagenspiegel (Einzelprüfungen je Wirtschaftsgut)
+- [x] [P] außergewöhnlich hohe/geringe AfA, erhebliche Änderung der AfA gegenüber Vorjahr → `VJ-02` (AfA-Konten gegen Vorjahr, mit `--susa-vorjahr`); AfA-Satz je Wirtschaftsgut ➕ Anlagenspiegel
+- [ ] [P] Anlagenzugang ohne korrespondierende Kreditoren-/Bankbuchung – Ausbaustufe: Gegenkonten-Erwartung je Anlagenkonto (`erwartungen`-Objekt, Kap. 18); `GV-03` sieht nur Kombinationen mit GuV-Seite
+- [x] [P] Investitionskonto mit ungewöhnlich vielen Kleinstbeträgen → `AF-04` (Zugänge im GWG-Wahlrechtsband), `ST-07` (Cluster knapp unter der GWG-Grenze); Ausbaustufe: Häufung von Kleinstbeträgen je Investitionskonto
+- [x] [P] größere Anschaffungen unmittelbar als Aufwand gebucht, aktivierungspflichtige Anschaffungen auf Reparatur-/Instandhaltungskonten → `AF-05` + **KI** (Kandidaten = Befunde mit KI-Kennzeichen, u. a. `AF-05`/`ST-02`/`ET-02`, sowie Buchungen der Kontengruppe `sachfremd_llm` ab `llm_kandidat_min_eur`)
+- [x] [P] mögliche laufende Aufwendungen unplausibel aktiviert → **KI**, soweit ein Anlagenzugang über `ST-02`/`ST-07` in die Kandidatenlage gelangt
+- [x] [R/P] GWG-/Sammelpostenbehandlung nach hinterlegten steuerlichen Parametern → `AF-04` (Grenzen), `ST-07` (Schwellen-Splitting)
+- [ ] [X] außerplanmäßige Abschreibungen auf dokumentierte Wertminderungen, Anlagenabgang gegen Verkaufserlös und Abgangsergebnis ➕ Anlagenspiegel/Belege
 
 ### 7. Vorräte und Waren
 
-- [x] [P] Warenaufwand vs. Umsatzentwicklung → Kennzahlen (Material-/Rohertragsquote)
-- [x] [P] auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag → `CO-01` (erlös-/forderungsseitig); aufwandsseitiger Nachlauf → `CO-02` (`--stapel-folgejahr`)
-- [ ] [X] Inventurlisten, Mengendaten, Reichweiten, Niederstwert-Indikatoren ➕ Inventur-/Warenwirtschaftsdaten
+- [ ] [R/X] Vorratskonten gegen Inventurlisten ➕ Inventurlisten
+- [ ] [P] ungewöhnlich starke Bestandsänderung ➕ Vorjahresdaten/Inventur (Bestandsveränderung im Zeitvergleich; Ausbaustufe auf Basis der Vorjahres-SuSa)
+- [ ] [P] negativer Warenbestand, soweit Mengendaten vorhanden ➕ Warenwirtschaftsdaten (Mengen); Ausbaustufe: wertmäßiges Saldenvorzeichen der Bestandskonten (Kontengruppe `vorraete` in `SB-02`)
+- [ ] [P/A] Lagerbestand ohne Bewegungen über längere Zeit, langsam drehende Artikel, hohe Reichweiten ➕ Warenwirtschaftsdaten (Mengen, Bewegungen, Reichweiten)
+- [x] [P] Warenaufwand ohne korrespondierende Umsatzentwicklung, Umsatzentwicklung ohne korrespondierende Warenbewegung → Kennzahlen-Ausweis (Materialquote, Rohertrag; Erlöse Vorjahr mit `--susa-vorjahr`)
+- [ ] [P] auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag – Ausbaustufe: Cut-off-Fenster für Bestandskonten (Kontengruppe `vorraete`); `CO-01`/`CO-02` prüfen nur Erlös-/Aufwandskonten
+- [ ] [X] Inventurdifferenzen, Niederstwert-/Wertberichtigungsindikatoren ➕ Inventur-/Warenwirtschaftsdaten
 
 ### 8. Sonstige Bilanzkonten
 
-- [x] [P] wiederkehrende Zahlungen ohne RAP / ARAP bzw. PRAP aus Vorjahr nicht aufgelöst (getrennt je Richtung, § 250 Abs. 1/2 HGB) → `BL-01`; Saldenvorzeichen ARAP/PRAP → `SB-02`
-- [ ] [P] ungewöhnlich alte RAP-Positionen, RAP-Veränderungen ➕ Vorjahresdaten
-- [x] [P] Vorjahresrückstellung ohne jede Bewegung → `BL-02`
-- [x] [P] jährlich identische Rückstellungsbeträge → `BL-02` (mit `--susa-vorjahr`); starke Schwankungen, Abzinsung ➕ Vorjahr/Verträge
+- [x] [P] regelmäßig wiederkehrende Zahlungen (Versicherungen, Mieten, Wartungen) über den Stichtag hinweg ohne RAP → `BL-01` (getrennt je Richtung ARAP/PRAP, § 250 Abs. 1/2 HGB)
+- [x] [R] RAP aus Vorjahr nicht aufgelöst → `BL-01` (ARAP bzw. PRAP ohne Auflösung); Saldenvorzeichen ARAP/PRAP `SB-02`
+- [ ] [P] ungewöhnlich alte RAP-Positionen, erhebliche RAP-Veränderungen ohne Geschäftsentwicklung ➕ Vorjahresdaten
+- [x] [P] bestehende Vorjahresrückstellung ohne Bewegung → `BL-02`
+- [x] [P] jährlich identische Rückstellungsbeträge → `BL-02` (mit `--susa-vorjahr`)
+- [ ] [P] Rückstellungsauflösung ohne entsprechenden Sachverhalt, Aufwand mit Rückstellungscharakter direkt als Verbindlichkeit oder Aufwand behandelt ➕ Unterlagen zum Rückstellungsgrund (Verträge, Leistungszeiträume, Abrechnungen)
+- [ ] [P/X] starke Schwankung einzelner Rückstellungen, Abzinsung langfristiger Rückstellungen ➕ Vorjahresdaten/Verträge
 - [x] [P] latente Steuern: Bestand/Ansatz und Steuersatz-Staffel (KSt-Senkung ab 2028; § 274, § 274a HGB) → `BL-05` (Kontenbereiche `latente_steuern` konfigurieren); Bewertung der Differenzen ➕ Steuerbilanz/Überleitungsrechnung
+- [ ] [R/X] Darlehenssaldo gegen Tilgungsplan, Zinsaufwand gegen Zinssatz und Saldo, Laufzeiten und Fristigkeiten ➕ Darlehensverträge/Tilgungspläne
+- [x] [P] Tilgung auf Zinskonto bzw. Zins auf Darlehenskonto → `BL-03` (Indiz nur bei völlig fehlendem Zinsaufwand); Zins-/Tilgungsverprobung ➕ Darlehensverträge
 - [x] [P] Darlehen ohne Zinsbuchungen → `BL-03`
-- [ ] [R/X] Darlehenssaldo gegen Tilgungsplan, Zinsaufwand gegen Zinssatz, Fristigkeiten ➕ Darlehensverträge
-- [x] [P] Buchungen unmittelbar auf EK-Konten, unterjährig auf Gewinnvortrag → `BL-04`
+- [x] [P] ungewöhnliche Gesellschafterdarlehen → `GS-01` (Bewegungen auf Gesellschafterkonten); Fremdüblichkeit von Zins und Laufzeit ➕ Darlehensverträge
+- [x] [R/X] Vortrag des Vorjahres, Ergebnisverwendung rechnerisch prüfen → `VJ-01` (EB der Eigenkapitalkonten gegen Vorjahres-SuSa); Ergebnisverwendung ➕ Gewinnverwendungsbeschluss/Jahresabschluss Vorjahr
+- [x] [P] Buchungen unmittelbar auf Eigenkapitalkonten, unterjährige Buchungen auf Gewinnvortrag → `BL-04`
 - [x] [R] Interims-/Verrechnungskonten und durchlaufende Posten zum Stichtag ausgeglichen → `SB-04`
-- [ ] [R] Vortrag des Vorjahres, Ergebnisverwendung ➕ Vorjahresdaten
-- [x] [P] ungewöhnliche Einlagen/Entnahmen, Gesellschafterkonten → `PP-02`, `SB-10`, `GS-01`
-- [x] [R] Privatkonten bei Kapitalgesellschaft bebucht → `PP-04` (mit `--rechtsform`; `PP-01/02`, `SB-10` werden bei KapG begründet übersprungen)
+- [x] [P] ungewöhnliche Einlagen/Entnahmen, Gesellschafterkonten mit ungewöhnlichen Salden → `PP-02`, `SB-10`, `GS-01`
+- [x] [R] Privatkonten bei Kapitalgesellschaft bebucht → `PP-04` (mit `--rechtsform`; `PP-01/02` und `SB-10` werden bei Kapitalgesellschaft begründet übersprungen)
 - [ ] [R/X] Kapitalkontenentwicklung je Gesellschafter (PersG: Kapitalkonten I/II, Verlust-/Darlehenskonten), verrechenbare Verluste § 15a EStG ➕ Kapitalkontenentwicklung, Gesellschaftsvertrag
 
 ### 9. GuV- und Kontenplausibilitäten
 
-- [x] [P] jedes GuV-Konto gegen Vorjahr: starke Veränderung, Vorzeichenwechsel, erstmalig bebucht, weggefallen → `VJ-02` (mit `--susa-vorjahr`); Vorperioden-/Monatsreihen des Vorjahres ➕ Vorjahres-Buchungsstapel
-- [x] [A] Monatsverlauf, ungewöhnliche Monatsspitzen → `GV-01`
-- [x] [P] Verhältniskennzahlen (Material-, Personal-, Mietkosten-, Werbekostenquote, Rohertrag) → Kennzahlen-Ausweis; Fahrzeugkosten bewusst nicht als Quote (unüblich; geprüft über `PP-01`, `ST-02`); weitere Quoten (Fremdleistungen, AfA/AV, Zins/FK) und Benchmarking ➕ Kontenzuordnung/Vorjahr/Branche
+- [x] [P] jedes GuV-Konto gegen Vorjahr: starke absolute/relative Veränderung, Vorzeichenwechsel, erstmalig mit wesentlichem Saldo, plötzlich ohne Saldo → `VJ-02` (mit `--susa-vorjahr`)
+- [x] [P] jedes GuV-Konto gegen Vorperiode → `GV-01` (Monatsverlauf innerhalb des Jahres); Vorperioden/Monatsreihen des Vorjahres ➕ Vorjahres-Buchungsstapel
+- [x] [P/A] Monatsverlauf jedes wesentlichen Kontos, ungewöhnliche Monatsspitzen → `GV-01`
+- [ ] [A] ungewöhnliche saisonale Abweichungen ➕ Vorjahres-Buchungsstapel (Saisonmuster im Mehrjahresvergleich)
+- [x] [P] Verhältniskennzahlen: Materialaufwand/Umsatz, Personalaufwand/Umsatz, Raumkosten/Umsatz, Werbekosten/Umsatz, Rohertrag/Rohmarge → Kennzahlen-Ausweis (Material-, Personal-, Mietkosten-, Werbekostenquote, Rohertrag)
+- [ ] [P] Fahrzeugkosten/Umsatz – Ausbaustufe: Quote bewusst nicht ausgewiesen (unüblich); Fahrzeugkosten-Ausreißer über `ST-02`, private Kfz-Nutzung über `PP-01` (nur Personengesellschaft)
+- [ ] [P] weitere Verhältniskennzahlen: Fremdleistungen/Umsatz, Abschreibungen/Anlagevermögen, Zinsaufwand/Finanzverbindlichkeiten, Forderungen/Umsatz, Verbindlichkeiten/Materialaufwand, Umsatz pro Mitarbeiter – Ausbaustufe: weitere Kontengruppen in `konten_config.json` und Kennzahlen-Ausweis; Benchmarking ➕ Vorjahr/Branchenwerte; Umsatz pro Mitarbeiter ➕ Mitarbeiterzahl (Personaldaten)
 - [x] [A] ungewöhnliche Gegenkonten → `GV-03`
-- [x] [A] sachfremde Buchungstexte → **KI**
+- [x] [A] sachfremde Buchungstexte → **KI** (Kandidaten)
+- [x] [A] ungewöhnliche Geschäftspartner → `GV-03` (Personenkonto als seltenes Gegenkonto), `FR-02` (Einmal-Kreditoren)
 - [x] [P] außergewöhnlich hohe Einzelbuchungen → `ST-02`
+- [ ] [P] ungewöhnlich viele Kleinstbuchungen – Ausbaustufe: Kleinstbuchungs-Häufung je Konto (Betragsbandbreite als Erwartung je Konto, Kap. 18)
 - [x] [P] ungewöhnlich viele glatte Beträge → `ST-03`, `FR-04`
-- [x] [P] außergewöhnliche Beträge kurz vor Periodenende → `CO-01` (Erlösseite; betragsgroße Einzelfälle zudem `ST-02`)
-- [x] [P] starke Gegenbuchungen auf einseitigen Konten, hohe Gutschriften → `GV-02`
+- [x] [P] außergewöhnliche Beträge kurz vor Periodenende → `CO-01` (Erlösseite); betragsgroße Einzelfälle zudem `ST-02`
+- [x] [P] außerordentlich hohe Gutschriften, starke Gegenbuchungen auf normalerweise einseitigen Konten → `GV-02`
 
 ### 10. Umsatzsteuer
 
-- [x] [R] Erlös-/Aufwandskonto ↔ Steuerschlüssel plausibel → `US-05`, `US-08`
-- [x] [R] USt-Verprobung: rechnerische USt aus Erlösen und Schlüsseln gegen Steuerkonten → `US-06` (mit SuSa), Schlüsselkatalog
-- [x] [R] VSt-Verprobung: rechnerische VSt aus Aufwand und Schlüsseln gegen Steuerkonten → `US-07` (mit SuSa)
-- [x] [P] Steuerschlüssel je Geschäftspartner verändert → `US-09`
-- [x] [R/P] falsches Vorzeichen auf Steuerkonten, Direktbuchungen → `US-02`, `GV-02`
-- [ ] [R] Abstimmung gegen UStVA und USt-Jahreserklärung ➕ UStVA-/Erklärungswerte
-- [x] [R/P] Vorsteuer auf Konten mit eingeschränktem Abzug → `US-01`
-- [x] [P] ungewöhnlich hohe Vorsteuerbeträge → `ST-02`
-- [x] [P] Vorsteuer ohne Belegbezug → `US-10`
-- [ ] [X] Rechnung vorhanden, Pflichtangaben §§ 14, 14a UStG, Leistungsbezug, zeitlicher Abzug ➕ digitale Belege
-- [ ] [R/P/X] Reverse Charge § 13b, EU-Sachverhalte (ig. Erwerb/Lieferung, ZM, Intrastat) ➕ 13b-/EU-Schlüsselkatalog + Stammdaten
-- [ ] [P/X] Berichtigungen § 17 (Gutschrift, Skonto, Boni, Uneinbringlichkeit), § 15a, § 14c ➕ Skonto-Auswertung/OPOS-Historie/Belege
+- [x] [R] Erlöskonto ↔ Steuerschlüssel und Aufwandskonto ↔ Vorsteuerschlüssel plausibel → `US-05` (Schlüsselprofil je Sachkonto), `US-08` (Automatikkonto-Konflikt)
+- [x] [R] steuerpflichtiges Erlöskonto ohne Umsatzsteuer, steuerfreies Erlöskonto mit Umsatzsteuer → `US-08` (Automatikkonto), `US-05` (Schlüsselprofil), `US-06` (Verprobung mit SuSa)
+- [x] [R] Vorsteuerkonto ohne korrespondierende Bemessungsgrundlage → `US-02` (Direktbuchungen auf Steuerkonten)
+- [x] [R] Steuerbetrag gegen Bemessungsgrundlage, Steuersatz gegen verwendeten Steuerschlüssel → `US-06`/`US-07` (rechnerische USt/VSt aus Erlösen/Aufwand und Schlüsseln gegen Steuerkonten, mit SuSa), `US-03` (Schlüsselkatalog mit Sätzen; Gültigkeit nur für die 16-%-Sätze 07–12/2020)
+- [x] [P] ungewöhnlicher Steuerschlüssel für bestimmtes Sachkonto → `US-05`
+- [x] [P] Steuerschlüssel gegenüber üblicher Behandlung desselben Lieferanten/Kunden verändert → `US-09`
+- [x] [R/P] Buchung mit falschem Vorzeichen auf Umsatz-/Vorsteuerkonten → `US-02` (Direktbuchungen auf Steuerkonten als Indiz); Ausbaustufe: Vorzeichen-/Richtungsprüfung je Steuerkonto (Steuerkontengruppen in `SB-02`)
+- [ ] [R] Umsatzsteuerkonten gegen Umsatzsteuer-Voranmeldung, Jahreswerte gegen Umsatzsteuer-Jahreserklärung ➕ UStVA-/Erklärungswerte
+- [x] [R/P] Vorsteuer auf Konten mit typischerweise eingeschränktem Abzug → `US-01`
+- [x] [P] ungewöhnlich hoher Vorsteuerbetrag → `ST-02` (mittelbar über den Bruttobetrag der Aufwands-/Anlagenbuchung; Vorsteuerkonten selbst sind Bilanzkonten)
+- [x] [P] Vorsteuer ohne Kreditor bzw. Belegbezug → `US-10`
+- [ ] [X] Rechnung vorhanden, Pflichtangaben §§ 14, 14a UStG, Leistungsempfänger und Leistungsbezug, Leistungs-/Rechnungsdatum, zeitlich zutreffender Vorsteuerabzug ➕ digitale Belege
+- [ ] [R/P] Reverse Charge § 13b UStG: ausländischer Kreditor ohne 13b-Schlüssel, 13b-Schlüssel bei untypischem Sachverhalt, Abstimmung USt/VSt und Bemessungsgrundlage, 13b-Sachverhalte ohne Steuerbuchung ➕ 13b-Schlüsselkatalog + Kreditorenstammdaten (Sitzland); Stapelfelder vorhanden (Ausbaustufe)
+- [ ] [P/X] EU-Sachverhalte: innergemeinschaftlicher Erwerb/Lieferung, Reverse Charge bei EU-Dienstleistungen, Leistungsortprüfung, USt-IdNr., Zusammenfassende Meldung, Intrastat ➕ EU-Schlüsselkatalog + Stammdaten (USt-IdNr., Land), ZM-/Intrastat-Daten
+- [ ] [P/X] Berichtigungen § 17 UStG (Gutschrift, Skonto, Boni ohne Steuerkorrektur; Uneinbringlichkeit und nachträgliche Zahlung), § 15a UStG ➕ Skonto-Feld-Auswertung, OPOS-Historie, Belege (§ 15a: Nutzungsnachweise)
+- [ ] [X] unrichtiger oder unberechtigter Steuerausweis § 14c UStG (Steuersatz, steuerfreie Sachverhalte, nicht berechtigte Aussteller) ➕ digitale Belege
 
 ### 11. Ertragsteuerliche Auffälligkeiten
 
-- [x] [R] Geschenke über der Abzugsgrenze bzw. auf falschem Konto → `ET-01`, `ET-02`
-- [x] [R] Bewirtung ohne nicht abziehbaren Anteil → `US-04`
-- [x] [R] Geldbußen/Ordnungsgelder als abziehbar behandelt → `ET-02` (Textmuster)
-- [x] [R] Gewerbesteuer als abziehbare Betriebsausgabe → `ET-02` (Textmuster)
-- [x] [R] Spenden/Sponsoring auf Werbekonten → `ET-02` (Textmuster)
-- [x] [P] private bzw. gesellschaftlich veranlasste Aufwendungen → **KI** + `GS-01`
-- [x] [P] hohe Reise-/Fahrzeug-/Repräsentationskosten → Kennzahlen + `ST-02` + **KI**
-- [x] [P] mögliche vGA-Sachverhalte (Review-Hinweis) → **KI**
+- [x] [R] Geschenke über der Abzugsgrenze (§ 4 Abs. 5 Satz 1 Nr. 1 EStG) → `ET-01`
+- [x] [P] Geschenke auf falschem Konto → `ET-02` (Textmuster „Geschenk“)
+- [ ] [R] Geschenke-Summe je Empfänger und Jahr gegen die Freigrenze ➕ Empfängeraufzeichnung (§ 4 Abs. 7 EStG)
+- [x] [P] Bewirtungsaufwendungen mit unplausibler steuerlicher Behandlung → `US-04` (fehlender nicht abziehbarer 30-%-Anteil = mittel; Quote unter `bewirtung_nabz_quote_min` = Hinweis)
+- [x] [P] Geldbußen/Ordnungsgelder als abzugsfähiger Aufwand behandelt → `ET-02` (Textmuster)
+- [x] [P] Gewerbesteuer als abzugsfähige Betriebsausgabe behandelt → `ET-02` (Textmuster)
+- [x] [P] Spenden/Sponsoring auf gewöhnlichen Werbekonten → `ET-02` (Textmuster „Spende“/„Sponsoring“)
+- [x] [P] private bzw. gesellschaftlich veranlasste Aufwendungen auf Betriebsausgabenkonten → **KI** (Kandidaten) + `GS-01`; Kfz-Kosten ohne erkennbaren Privatanteil `PP-01` (nur Personengesellschaft)
+- [x] [P] außergewöhnlich hohe Reise-, Fahrzeug- und Repräsentationskosten → `ST-02` (Betragsausreißer) + **KI** (Reise- und Repräsentationskosten liegen in der Kandidaten-Kontengruppe `sachfremd_llm`; Fahrzeugkosten nur über `ST-02`)
+- [x] [P] Gesellschafteraufwendungen auf allgemeinen Sachkonten → `GS-01` + **KI**
+- [x] [P] mögliche verdeckte Gewinnausschüttungs-Sachverhalte (nur Review-Hinweis) → **KI** (Urteil mit Begründung)
+- [x] [P] nicht abziehbare Betriebsausgaben nicht getrennt erfasst (§ 4 Abs. 7 EStG) → `ET-01`/`ET-02` (Buchung auf allgemeinem Konto als Indiz; Hinweis auf § 4 Abs. 7 EStG in den Empfehlungstexten)
 - [x] [P] ungewöhnliche Privatkontenbewegungen → `PP-02`, `SB-10`
 
 ### 12. Lohn- und Personalverrechnung
 
-- [x] [R] Lohnaufwand ohne LSt-/SV-Verbindlichkeiten → `PP-03`
+- [x] [R/X] Lohnsteuer- und Sozialversicherungsverbindlichkeiten gegen Lohnabrechnung → `PP-03` (Minimum: Lohnaufwand ohne LSt-/SV-Verbindlichkeiten); Abstimmung gegen die Abrechnung ➕ Lohnjournal
+- [ ] [R/X] Lohnjournal gegen Finanzbuchhaltung, Nettolohnverbindlichkeiten gegen Zahlungen ➕ Lohnjournal/Bankbewegungen
+- [x] [P] ungewöhnliche manuelle Personalbuchungen → `GV-03` (seltene Gegenkonten auf Lohnkonten); Erfassungsart ➕ GDPdU-Journal
+- [x] [P] erhebliche Veränderung der Personalkosten → `VJ-02` (mit `--susa-vorjahr`) + Kennzahl Personalquote
+- [ ] [P] Personalkosten ohne entsprechende Mitarbeiterentwicklung ➕ Personaldaten (Mitarbeiterzahl im Zeitverlauf)
+- [x] [P] Einmalzahlungen/Ausreißer → `ST-02` (Betragsausreißer je Konto), `GV-01` (Monatsspitzen)
 - [x] [P] negative Lohn-/Gehaltsaufwendungen → `GV-02`
-- [x] [P] Mitarbeiterzahlungen außerhalb üblicher Lohnkonten → `GV-03`
-- [ ] [R/X] Lohnjournal gegen FIBU, Verbindlichkeiten gegen Abrechnung, Personalkosten vs. Mitarbeiterentwicklung, Urlaubs-/Bonusrückstellungen ➕ Lohnjournal/Personaldaten
+- [x] [P] Mitarbeiterzahlungen außerhalb der üblichen Lohnkonten → `GV-03` (z. B. Barlohn)
+- [ ] [P] Zahlungen an ehemalige Mitarbeiter ➕ Personaldaten (Austrittsdaten) + Stammdaten/Bankverbindungen
+- [ ] [X] Rückstellungen für Urlaub/Boni ➕ Personaldaten (Urlaubs-/Bonusansprüche)
 
 ### 13. Periodenabgrenzung und Cut-off
 
-- [x] [P] große Erlösbuchungen im Fenster vor WJ-Ende (`cutoff_fenster_vor_tage` = 14; Anker strikt WJ-Ende aus dem DATEV-Header, WJ ≠ Kalenderjahr möglich) → `CO-01`
-- [x] [P/X] große Aufwandsbuchungen im Fenster nach WJ-Ende inkl. verspäteter Eingangsrechnungen (`cutoff_fenster_nach_tage` = 14; Datenquelle optionaler Folgejahres-Stapel `--stapel-folgejahr`, ohne Lieferung begründeter Skip) → `CO-02`
+- [x] [P] Rechnungsdatum und Buchungsdatum über die Jahresgrenze hinweg (Dezember/Januar) → `CO-02` (Aufwand im Nachlauf-Fenster des Folgejahres-Stapels), `CO-01` (Erlöse vor WJ-Ende); Rechnungs- gegen Buchungsdatum ➕ Folgeperioden-Journal mit Erfassungsdatum
+- [x] [P] große Erlösbuchungen in den letzten Tagen des Jahres → `CO-01` (Fenster `cutoff_fenster_vor_tage` = 14 Tage strikt vor dem WJ-Ende aus dem DATEV-Header; WJ ≠ Kalenderjahr möglich, nie 31.12. hartkodiert)
+- [ ] [P] große Erlösstornos und ungewöhnliche Gutschriften unmittelbar nach Jahresende – Ausbaustufe: erlösseitiger Nachlauf (Stornos/Gutschriften) im Folgejahres-Stapel (`--stapel-folgejahr`)
+- [x] [P] große Aufwandsbuchungen unmittelbar nach Jahresende, verspätete Eingangsrechnungen mit Vorjahresbezug → `CO-02` (Fenster `cutoff_fenster_nach_tage` = 14 Tage; Datenquelle optionaler Folgejahres-Stapel `--stapel-folgejahr`, ohne Lieferung begründeter Skip)
+- [ ] [X] Leistungsdatum gegen Buchungsperiode, Wareneingang gegen Eingangsrechnung, Ausgangsrechnung gegen Liefer-/Leistungsdatum ➕ Belege/Warenwirtschaft; die KI-Beurteilung der `CO-01`/`CO-02`-Kandidaten nutzt den Buchungstext als Leistungsdatum-Indiz
 - [x] [P] wiederkehrende Jahreskosten/-erlöse ohne Abgrenzung → `BL-01`
-- [ ] [P/X] Rechnungsdatum/Buchungsdatum über die Jahresgrenze, Stornos nach Jahresende, Leistungsdatum gegen Periode ➕ Folgeperioden-Journal mit Erfassungsdatum/Belege
+- [ ] [P] ungewöhnlich viele Abschlussbuchungen nach Periodenschluss ➕ GDPdU-Journal (Erfassungsdatum)
 
 ### 14. Intercompany und Gesellschafter
 
-- [x] [P] Bewegungen auf Gesellschafterkonten, privat wirkende Aufwendungen mit Gesellschafterbezug → `GS-01` + **KI**
-- [ ] [R/X] Spiegelbild-Abstimmungen (Forderung A = Verbindlichkeit B, Zins/Zins, IC-Salden) ➕ Daten der Gegenseite
+- [ ] [R/P/X] Spiegelbild-Abstimmungen (Forderung A = Verbindlichkeit B, IC-Umsatz = IC-Aufwand, Darlehenssalden, Zinsaufwand/Zinsertrag), ungeklärte Intercompany-Differenzen ➕ Daten der Gegenseite
+- [x] [P] Bewegungen auf Gesellschafterkonten ohne eindeutigen Gegenposten, ungewöhnliche Zahlungen/Forderungen/Verbindlichkeiten gegenüber Gesellschaftern, privat wirkende Aufwendungen mit Gesellschafterbezug → `GS-01` + **KI**
 - [ ] [X] Sonder-/Ergänzungsbilanzen und Sondervergütungen (§ 15 Abs. 1 Satz 1 Nr. 2 EStG) bei Mitunternehmerschaften ➕ Sonder-/Ergänzungsbilanzen, Gewinnfeststellung
 
 ### 15. Stammdatenprüfung
 
-- [x] [R] identische Kunden/Lieferanten mehrfach angelegt (Bezeichnung) → `SD-01`
-- [x] [P] neue/Einmal-Kreditoren mit hohem Volumen → `FR-02`
-- [ ] [R/P] IBAN-Dubletten, Adressabgleiche (Lieferant/Mitarbeiter/Kunde), Bankverbindungs-Änderung vor Zahlung, Pflichtfelder ➕ Debitoren-/Kreditorenstammdaten
+- [x] [R] identische Lieferanten/Kunden mehrfach angelegt → `SD-01` (Bezeichnungen der Personenkonten)
+- [x] [P] nahezu identische Namen/Adressen → `SD-01` (Gleichheit nach Trim/Kleinschreibung); Ausbaustufe: unscharfer Namensabgleich auf den Kontenbeschriftungen; Adressen ➕ Stammdaten-Export
+- [ ] [R/P] IBAN-Dubletten, Adress-/Bankverbindungsabgleich Lieferant/Mitarbeiter/Kunde, Bankverbindungs-Änderung vor hoher Zahlung, häufig geänderte Stammdaten, fehlende Pflichtfelder ➕ Debitoren-/Kreditorenstammdaten (IBAN, Adresse, Änderungshistorie, Pflichtfelder)
+- [x] [P] neue Kreditoren mit unmittelbar hohem Zahlungsvolumen → `FR-02` (Kreditoren mit wenigen Buchungen und hohem Volumen); Neuanlage-Zeitpunkt ➕ Vorjahres-Buchungsstapel/Stammdaten
+- [ ] [P] lange inaktive Kreditoren plötzlich wieder verwendet ➕ Vorjahres-Buchungsstapel (Aktivitätshistorie je Kreditor)
 
 ### 16. Fraud-/Forensic-Indikatoren
 
-Nur Risikosignale, keine Fehlernachweise (Ausweis stets auf Ebene 4).
+Nur Risikosignale, keine Fehlernachweise; Ebene und Klasse je Check laut Check-Register.
 
-- [x] [A] auffällig runde Beträge / Endziffern-Häufung → `ST-03`, `FR-04`
+- [x] [A] auffällig runde Beträge, Häufung bestimmter Endziffern → `ST-03`, `FR-04`
 - [x] [A] Benford-Analyse als ergänzendes Screening → `ST-08`
-- [x] [A] Beträge knapp unter Freigabegrenzen, Aufteilung größerer Beträge → `FR-03`, `ST-07`
-- [x] [A] Buchungen an Wochenenden/Feiertagen (Kasse) → `ST-04`
-- [x] [A] hohe Stornoquote, Mehrfachstornos → `FR-01`
-- [x] [A] Lieferanten mit nur einer großen Transaktion → `FR-02`
+- [x] [A] wiederkehrende Beträge knapp unterhalb von Freigabegrenzen, Aufteilung größerer Beträge → `FR-03` (nur mit konfigurierten `freigabegrenzen`), `ST-07` (nur Anlagen-/GWG-Zugänge knapp unter der GWG-Grenze)
+- [ ] [A] ungewöhnliche Kombination Mitarbeiter/Lieferant ➕ Stammdaten (Mitarbeiter-/Lieferantenabgleich: Adresse, Bankverbindung)
+- [ ] [A] ungewöhnliche Kombination Benutzer/Konto, Buchungen außerhalb typischer Geschäftszeiten, außergewöhnlich viele Buchungen eines einzelnen Users ➕ GDPdU-Journal mit User und Zeitstempel
+- [x] [A] Buchungen an Wochenenden/Feiertagen → `ST-04` (Kasse, Belegdatum)
+- [ ] [A] ungewöhnlich hohe manuelle Buchungsquote ➕ GDPdU-Journal (Erfassungsart)
+- [x] [A] außergewöhnlich hohe Stornoquote → `FR-01`
+- [x] [A] neue Lieferanten kurz vor großen Zahlungen, Lieferanten mit nur einer einzigen großen Transaktion → `FR-02` (Lieferanten mit nur einer oder wenigen großen Transaktionen); Zeitpunkt der Neuanlage vor großen Zahlungen ➕ Vorjahres-Buchungsstapel/Stammdaten
 - [x] [A] ungewöhnliche Freitexte und Kontierungswege → `GV-03` + **KI**
-- [x] [A] außergewöhnliche Buchungen unmittelbar vor Abschluss → `CO-01` (erlösseitig), `CO-02` (aufwandsseitig nach WJ-Ende, fakultativ)
-- [ ] [A] User-/Uhrzeit-/IBAN-Muster, Storno unmittelbar nach Stichtag ➕ Journal mit User/Zeit, Stammdaten, Folgeperiode
+- [ ] [A] Zahlung an unbekannte IBAN, Änderung der Lieferanten-IBAN kurz vor Zahlung, gleiche IBAN bei unabhängigen Geschäftspartnern ➕ Stammdaten/Bankbewegungen (IBAN-Muster)
+- [x] [A] außergewöhnliche Buchungen unmittelbar vor Abschluss → `CO-01` (erlösseitig), `CO-02` (aufwandsseitig nach WJ-Ende, fakultativ mit `--stapel-folgejahr`)
+- [ ] [A] Storno unmittelbar nach Stichtag – Ausbaustufe: Storno-Auswertung im Folgejahres-Stapel (`--stapel-folgejahr`)
 
 ### 17. Gesamtabschluss und Cross-Checks
 
 - [x] Stapel ↔ Summen- und Saldenliste → `SB-05`
+- [x] Stapel ↔ Bilanz/GuV, Ergebnis Finanzbuchhaltung ↔ Jahresabschluss, Kontenzuordnung ↔ Bilanz-/GuV-Position → vereinfachte Bilanz- und GuV-Blätter mit Vorjahresspalte, formelverknüpft mit „Salden je Konto“ (Positions-Spalte, Kontrolle Aktiva = Passiva); amtliche Gliederungstiefe § 266/§ 275 HGB ➕ Positions-Zuordnungstabelle je Konto
+- [x] Schlussbilanz Vorjahr ↔ Eröffnungsbilanz → `VJ-01`
+- [x] Vorjahreswerte ↔ aktuelle Vergleichswerte → `VJ-02` (GuV je Konto), Vorjahresspalte der Bilanz-/GuV-Blätter
+- [x] Sachkonten ↔ Debitoren-/Kreditoren-Nebenbuch (OPOS) → `OP-05`
+- [x] OPOS ↔ Altersstruktur → Blatt „OPOS-Alterung“
 - [x] Umsatzsteuerkonten ↔ rechnerische USt/VSt → `US-06`/`US-07`
-- [x] Sachkonten ↔ OPOS-Nebenbuch → `OP-05`
-- [x] OPOS ↔ Altersstruktur → Blatt „OPOS-Alterung"
-- [x] Schlussbilanz Vorjahr ↔ Eröffnungsbilanz → `VJ-01`; GuV-Vorjahresvergleich je Konto → `VJ-02`
-- [x] Stapel ↔ Bilanz/GuV: vereinfachte Bilanz- und GuV-Blätter mit Vorjahresspalte, formelverknüpft mit „Salden je Konto" (Positions-Spalte, Kontrolle Aktiva = Passiva); amtliche Gliederungstiefe § 266/§ 275 ➕ Positions-Zuordnungstabelle je Konto
+- [ ] Umsatzsteuerkonten ↔ UStVA und USt-Jahreserklärung ➕ UStVA-/Erklärungswerte
 - [ ] Anhangangaben und größenabhängige Erleichterungen (§§ 284–288, § 274a, § 276 HGB) ➕ Anhang-Checkliste je Größenklasse; Größenklassen-Indikation (§ 267, § 267a HGB) läuft bereits als Kennzahl (ohne Ø-Arbeitnehmerzahl)
-- [ ] Anlagen-/Lohnbuchhaltung, Bank, Kassenbuch, UStVA, ZM, Inventur, Verträge, Intercompany ➕ jeweilige Datenquelle (siehe 20.)
+- [ ] Sachkonten ↔ Anlagen-/Lohnbuchhaltung, Bank, Kasse; EU-Umsätze ↔ ZM; Warenbestand ↔ Inventur; Darlehen ↔ Verträge; Forderungen/Verbindlichkeiten ↔ Zahlungen nach Stichtag; Intercompany A ↔ B ➕ jeweilige Datenquelle (siehe 20.)
 
 ### 18. Kontenspezifische Erwartungslogik
 
@@ -656,7 +727,8 @@ Teilweise umgesetzt über Kontengruppen-Erwartungen in
 Steuerschlüssel dynamisch (`US-05`/`US-08`/`US-09`), Betragsbandbreite
 dynamisch (`ST-02`), Buchungsfrequenz (`SB-08`), erlaubte Themen je Konto
 (`ET-02`). Ausbaustufe: `erwartungen`-Objekt je Einzelkonto
-(Gegenkonten-Whitelist, Monatsverteilung, Vorjahresabweichung).
+(Gegenkonten-Whitelist, Monatsverteilung, Vorjahresabweichung) – Struktur
+siehe Referenzkatalog Kap. 18.
 
 ### 19. Ergebnisstruktur je Treffer
 
@@ -666,7 +738,8 @@ Buchungstext, Befundtext (erwarteter/tatsächlicher Zustand), empfohlene
 Prüfhandlung, Quelle (Datei:Zeile), KI-Kennzeichen sowie leere
 **Review-Spalten** (Status, Bearbeiter, Kommentar) im Excel. Die
 KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
-**Konfidenz**. Offen: Regelversion, Wesentlichkeitsbezug zur Bilanzsumme.
+**Konfidenz**. Offen (Ausbaustufe): Regelversion je Check,
+Wesentlichkeitsbezug zur Bilanzsumme.
 
 ### 20. Datenquellen
 
@@ -674,21 +747,26 @@ KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und
 |---|---|---|
 | 1 | Buchungsstapel (EXTF/DTVF Kat. 21) | ✔ Pflichtquelle |
 | 2 | Summen- und Saldenliste | ✔ optional (`--susa`) → SB-05, US-06/07 |
-| 3 | Kontenplan des Mandanten (= Kontenbeschriftungen, Kat. 20) | ✔ optional, automatisch erkannt bzw. `--kontenplan` → DV-03, SD-01, Nutzungsgrad |
-| 4/5 | Debitoren-/Kreditorenstammdaten | ➕ IBAN-/Adress-/Dubletten-Prüfungen |
-| 6/7 | OPOS Debitoren/Kreditoren | ✔ optional (`--opos`) → OP-03/05/06, Alterung |
-| 8 | Anlagenbuchhaltung | ➕ AfA-Einzelprüfungen je Wirtschaftsgut |
-| 9 | Bankbewegungen | ➕ Bank-/Zahlungsabgleich |
+| 3 | Kontenplan des Mandanten (= Kontenbeschriftungen, Kat. 20) | ✔ optional, automatisch erkannt bzw. `--kontenplan` → DV-03, SD-01, Nutzungsgrad-Kennzahl |
+| 4/5 | Debitoren-/Kreditorenstammdaten | ➕ IBAN-/Adress-/Dubletten-Prüfungen, 13b-/EU-Sachverhalte |
+| 6/7 | OPOS Debitoren/Kreditoren | ✔ optional (`--opos`) → OP-03/05/06, Alterung; Ausgleichs-/Zahlungshistorie ➕ |
+| 8 | Anlagenbuchhaltung (Anlagenspiegel) | ➕ AfA-Einzelprüfungen je Wirtschaftsgut |
+| 9 | Bankbewegungen (CAMT/CSV) | ➕ Bank-/Zahlungsabgleich |
 | 10 | Kassenbuch | ➕ Kassenbuch-Abstimmung |
-| 11 | digitale Belege | ➕ §§ 14/15-Rechnungsprüfung |
-| 12 | Steuerschlüssel-Katalog | ✔ `konten_config.json` (erweiterbar) |
+| 11 | digitale Belege | ➕ §§ 14/15-Rechnungsprüfung, § 14c UStG, Leistungsdatum |
+| 12 | Steuerschlüssel-Katalog | ✔ `konten_config.json` (erweiterbar); 13b-/EU-Schlüssel ➕ |
 | 13 | Kostenstellen/Kostenträger | optional (nicht unverzichtbar) – Feld wird gelesen; KOST-Auswertung Ausbaustufe |
-| 14 | Benutzer-/Erfassungsinfos (GDPdU-Journal) | ➕ User-/Zeit-/Rückdatierungs-Checks |
-| 15 | Lohnbuchhaltung | ➕ Lohnjournal-Abstimmung |
-| 16/17 | UStVA / USt-Jahreswerte | ➕ Erklärungsabgleich |
-| 18/19 | Vorjahres-/Mehrjahresdaten | Minimum = Vorjahr: ✔ Vorjahres-SuSa (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; 2–5 Jahre Zeitreihen ➕ |
+| 14 | Benutzer-/Erfassungsinfos (GDPdU-Journal) | ➕ User-/Zeit-/Rückdatierungs-Checks, Erfassungsart, Buchungs-IDs |
+| 15 | Lohnbuchhaltung/Personaldaten | ➕ Lohnjournal-Abstimmung, Mitarbeiterentwicklung |
+| 16/17 | UStVA / USt-Jahreswerte (ZM) | ➕ Erklärungsabgleich |
+| 18/19 | Vorjahres-/Mehrjahresdaten | Minimum = Vorjahr: ✔ Vorjahres-SuSa (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; Vorjahres-Buchungsstapel und 2–5 Jahre Zeitreihen ➕ |
 | 20 | Intercompany-Daten | ➕ Spiegelbild-Abstimmungen |
+| – | Folgeperiode (Folgejahres-Buchungsstapel) | ✔ optional (`--stapel-folgejahr`) → CO-02; erlösseitiger Nachlauf, Zahlungen/Stornos nach Stichtag ➕ bzw. Ausbaustufe |
 | – | Kapitalkontenentwicklung, Sonder-/Ergänzungsbilanzen (PersG) | ➕ Mitunternehmer-Prüfungen (§ 15a EStG, Sondervergütungen) |
+| – | Verträge/Tilgungspläne (Darlehen, Rückstellungsgründe, Gesellschaftsvertrag) | ➕ Darlehens-/Zinsverprobung, Fristigkeiten, Abzinsung |
+| – | Inventur-/Warenwirtschaftsdaten | ➕ Vorräte-Prüfungen (Kap. 7) |
+| – | Positions-Zuordnungstabelle (Konto → Bilanz-/GuV-Position), Anhang-Checkliste | ➕ amtliche Gliederungstiefe § 266/§ 275 HGB, Anhangangaben |
+<!-- KATALOG:SOLL:END -->
 
 ## Grenzen und Ausbaustufen
 

@@ -1,0 +1,3830 @@
+{
+ "_doku": [
+  "Kanonischer Soll-Katalog des JA-Agenten (Revisionsbefund P2.2): je Katalogpunkt stabile Soll-ID,",
+  "Kapitel, Soll-Klasse, Umsetzungsstatus, CHECK-IDs, Datenquellen und Abbildung auf den Referenzkatalog.",
+  "README-Abschnitt 'Pruefkatalog (Abdeckungsstand)' Kap. 1-20 und die Abdeckungsmatrix Kap. 1-20 werden",
+  "aus dieser Datei generiert (py werkzeuge/katalog_doku.py --write); Build/Release-Check pruefen Aktualitaet",
+  "und Konsistenz (katalog_doku.pruefe). Aenderungen an Katalogpunkten NUR hier, nie in README/Matrix.",
+  "IDs (Kxx.yy) sind stabil: nie umnummerieren, neue Punkte erhalten die naechste freie Nummer des Kapitels",
+  "(Reihenfolge der Ausgabe = Reihenfolge in 'punkte'); entfallene Punkte werden geloescht, die ID nicht neu vergeben.",
+  "status: check (deterministischer Check, 'checks' nicht leer) | ki (KI-Beurteilungsschicht) | bericht (Berichtsblatt/",
+  "Kennzahl ohne eigene Check-ID) | strukturell (durch das Datenformat gewaehrleistet) | offen (mit vorhandenen",
+  "Datenquellen umsetzbar, noch nicht implementiert = Ausbaustufe) | zusatz (zusaetzliche Pruefung, wartet auf die",
+  "in 'zusatz' mit dem Zeichen U+2795 genannte Datenquelle). 'zusatz' darf auch bei umgesetzten Punkten den nicht",
+  "abgedeckten Teil benennen (U+2795 Datenquelle oder 'Ausbaustufe: ...' fuer reine Implementierungsluecken). 'ki' = KI-Schicht beteiligt (Text nennt 'KI'). 'quellen' = Schluessel aus 'datenquellen'",
+  "(Kap. 20) ueber den Buchungsstapel hinaus. 'referenz' = exakte Checkbox-Zeilen des Referenzkatalogs",
+  "(Pruefkatalog fuer einen Python-basierten Accounting-Agenten.md) im selben Kapitel; jede Referenzzeile ist genau",
+  "einem Punkt zugeordnet, die Soll-Klasse ist die Vereinigung der Klassen dieser Zeilen (R/P/A/X); Punkte ohne",
+  "'referenz' sind Ergaenzungen des Agenten. 'detail' erscheint nur in der Matrix. Evidenz je CHECK-ID:",
+  "testdaten/erwartung.json (Erwartungsbild der Referenzlaeufe, Spalte im generierten Check-Register)."
+ ],
+ "kapitel": [
+  {
+   "nr": 1,
+   "titel": "Datenvollständigkeit und technische Integrität"
+  },
+  {
+   "nr": 2,
+   "titel": "Journal- und Buchungsprüfung"
+  },
+  {
+   "nr": 3,
+   "titel": "Kasse und liquide Mittel"
+  },
+  {
+   "nr": 4,
+   "titel": "Debitoren und Forderungen"
+  },
+  {
+   "nr": 5,
+   "titel": "Kreditoren und Verbindlichkeiten"
+  },
+  {
+   "nr": 6,
+   "titel": "Anlagevermögen und AfA"
+  },
+  {
+   "nr": 7,
+   "titel": "Vorräte und Waren"
+  },
+  {
+   "nr": 8,
+   "titel": "Sonstige Bilanzkonten"
+  },
+  {
+   "nr": 9,
+   "titel": "GuV- und Kontenplausibilitäten"
+  },
+  {
+   "nr": 10,
+   "titel": "Umsatzsteuer"
+  },
+  {
+   "nr": 11,
+   "titel": "Ertragsteuerliche Auffälligkeiten"
+  },
+  {
+   "nr": 12,
+   "titel": "Lohn- und Personalverrechnung"
+  },
+  {
+   "nr": 13,
+   "titel": "Periodenabgrenzung und Cut-off"
+  },
+  {
+   "nr": 14,
+   "titel": "Intercompany und Gesellschafter"
+  },
+  {
+   "nr": 15,
+   "titel": "Stammdatenprüfung"
+  },
+  {
+   "nr": 16,
+   "titel": "Fraud-/Forensic-Indikatoren",
+   "hinweis": "Nur Risikosignale, keine Fehlernachweise; Ebene und Klasse je Check laut Check-Register."
+  },
+  {
+   "nr": 17,
+   "titel": "Gesamtabschluss und Cross-Checks",
+   "spalte": "Querverprobung"
+  },
+  {
+   "nr": 18,
+   "titel": "Kontenspezifische Erwartungslogik",
+   "prosa": [
+    "Teilweise umgesetzt über Kontengruppen-Erwartungen in",
+    "`werkzeuge/konten_config.json`: erwartetes Vorzeichen (`SB-02`), übliche",
+    "Steuerschlüssel dynamisch (`US-05`/`US-08`/`US-09`), Betragsbandbreite",
+    "dynamisch (`ST-02`), Buchungsfrequenz (`SB-08`), erlaubte Themen je Konto",
+    "(`ET-02`). Ausbaustufe: `erwartungen`-Objekt je Einzelkonto",
+    "(Gegenkonten-Whitelist, Monatsverteilung, Vorjahresabweichung) – Struktur",
+    "siehe Referenzkatalog Kap. 18."
+   ]
+  },
+  {
+   "nr": 19,
+   "titel": "Ergebnisstruktur je Treffer",
+   "prosa": [
+    "Jeder Befund führt: `check_id`, Prüfbereich, **Ebene (1–4)**, **Klasse",
+    "(R/P/A/X)**, Schwere, Konto, Gegenkonto, Datum, Betrag, Beleg,",
+    "Buchungstext, Befundtext (erwarteter/tatsächlicher Zustand), empfohlene",
+    "Prüfhandlung, Quelle (Datei:Zeile), KI-Kennzeichen sowie leere",
+    "**Review-Spalten** (Status, Bearbeiter, Kommentar) im Excel. Die",
+    "KI-Schicht ergänzt je Kandidat Urteil, Begründung, Schwere und",
+    "**Konfidenz**. Offen (Ausbaustufe): Regelversion je Check,",
+    "Wesentlichkeitsbezug zur Bilanzsumme."
+   ]
+  },
+  {
+   "nr": 20,
+   "titel": "Datenquellen"
+  }
+ ],
+ "datenquellen": [
+  {
+   "key": "stapel",
+   "nr": "1",
+   "name": "Buchungsstapel (EXTF/DTVF Kat. 21)",
+   "status": "✔ Pflichtquelle"
+  },
+  {
+   "key": "susa",
+   "nr": "2",
+   "name": "Summen- und Saldenliste",
+   "status": "✔ optional (`--susa`) → SB-05, US-06/07"
+  },
+  {
+   "key": "kontenplan",
+   "nr": "3",
+   "name": "Kontenplan des Mandanten (= Kontenbeschriftungen, Kat. 20)",
+   "status": "✔ optional, automatisch erkannt bzw. `--kontenplan` → DV-03, SD-01, Nutzungsgrad-Kennzahl"
+  },
+  {
+   "key": "stammdaten",
+   "nr": "4/5",
+   "name": "Debitoren-/Kreditorenstammdaten",
+   "status": "➕ IBAN-/Adress-/Dubletten-Prüfungen, 13b-/EU-Sachverhalte"
+  },
+  {
+   "key": "opos",
+   "nr": "6/7",
+   "name": "OPOS Debitoren/Kreditoren",
+   "status": "✔ optional (`--opos`) → OP-03/05/06, Alterung; Ausgleichs-/Zahlungshistorie ➕"
+  },
+  {
+   "key": "anlagen",
+   "nr": "8",
+   "name": "Anlagenbuchhaltung (Anlagenspiegel)",
+   "status": "➕ AfA-Einzelprüfungen je Wirtschaftsgut"
+  },
+  {
+   "key": "bank",
+   "nr": "9",
+   "name": "Bankbewegungen (CAMT/CSV)",
+   "status": "➕ Bank-/Zahlungsabgleich"
+  },
+  {
+   "key": "kassenbuch",
+   "nr": "10",
+   "name": "Kassenbuch",
+   "status": "➕ Kassenbuch-Abstimmung"
+  },
+  {
+   "key": "belege",
+   "nr": "11",
+   "name": "digitale Belege",
+   "status": "➕ §§ 14/15-Rechnungsprüfung, § 14c UStG, Leistungsdatum"
+  },
+  {
+   "key": "steuerschluessel",
+   "nr": "12",
+   "name": "Steuerschlüssel-Katalog",
+   "status": "✔ `konten_config.json` (erweiterbar); 13b-/EU-Schlüssel ➕"
+  },
+  {
+   "key": "kost",
+   "nr": "13",
+   "name": "Kostenstellen/Kostenträger",
+   "status": "optional (nicht unverzichtbar) – Feld wird gelesen; KOST-Auswertung Ausbaustufe"
+  },
+  {
+   "key": "journal",
+   "nr": "14",
+   "name": "Benutzer-/Erfassungsinfos (GDPdU-Journal)",
+   "status": "➕ User-/Zeit-/Rückdatierungs-Checks, Erfassungsart, Buchungs-IDs"
+  },
+  {
+   "key": "lohn",
+   "nr": "15",
+   "name": "Lohnbuchhaltung/Personaldaten",
+   "status": "➕ Lohnjournal-Abstimmung, Mitarbeiterentwicklung"
+  },
+  {
+   "key": "ustva",
+   "nr": "16/17",
+   "name": "UStVA / USt-Jahreswerte (ZM)",
+   "status": "➕ Erklärungsabgleich"
+  },
+  {
+   "key": "vorjahr",
+   "nr": "18/19",
+   "name": "Vorjahres-/Mehrjahresdaten",
+   "status": "Minimum = Vorjahr: ✔ Vorjahres-SuSa (`--susa-vorjahr`) → VJ-01/02, Erlös-Delta; Vorjahres-Buchungsstapel und 2–5 Jahre Zeitreihen ➕"
+  },
+  {
+   "key": "intercompany",
+   "nr": "20",
+   "name": "Intercompany-Daten",
+   "status": "➕ Spiegelbild-Abstimmungen"
+  },
+  {
+   "key": "folgeperiode",
+   "nr": "–",
+   "name": "Folgeperiode (Folgejahres-Buchungsstapel)",
+   "status": "✔ optional (`--stapel-folgejahr`) → CO-02; erlösseitiger Nachlauf, Zahlungen/Stornos nach Stichtag ➕ bzw. Ausbaustufe"
+  },
+  {
+   "key": "kapitalkonten",
+   "nr": "–",
+   "name": "Kapitalkontenentwicklung, Sonder-/Ergänzungsbilanzen (PersG)",
+   "status": "➕ Mitunternehmer-Prüfungen (§ 15a EStG, Sondervergütungen)"
+  },
+  {
+   "key": "vertraege",
+   "nr": "–",
+   "name": "Verträge/Tilgungspläne (Darlehen, Rückstellungsgründe, Gesellschaftsvertrag)",
+   "status": "➕ Darlehens-/Zinsverprobung, Fristigkeiten, Abzinsung"
+  },
+  {
+   "key": "inventur",
+   "nr": "–",
+   "name": "Inventur-/Warenwirtschaftsdaten",
+   "status": "➕ Vorräte-Prüfungen (Kap. 7)"
+  },
+  {
+   "key": "gliederung",
+   "nr": "–",
+   "name": "Positions-Zuordnungstabelle (Konto → Bilanz-/GuV-Position), Anhang-Checkliste",
+   "status": "➕ amtliche Gliederungstiefe § 266/§ 275 HGB, Anhangangaben"
+  }
+ ],
+ "punkte": [
+  {
+   "id": "K01.01",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Soll = Haben auf Beleg-, Perioden- und Jahresebene",
+   "referenz": [
+    "Soll = Haben auf Buchungs-/Belegebene",
+    "Soll = Haben auf Periodenebene",
+    "Soll = Haben über das gesamte Wirtschaftsjahr"
+   ],
+   "status": "strukturell",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "strukturell gewährleistet: jede DATEV-Stapelzeile bucht Konto gegen Gegenkonto (Einzeilenformat)"
+  },
+  {
+   "id": "K01.02",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Buchungen ohne Konto, Gegenkonto oder Betrag",
+   "referenz": [
+    "Buchungen ohne Konto",
+    "Buchungen ohne Gegenkonto",
+    "Buchungen ohne Betrag"
+   ],
+   "status": "check",
+   "checks": [
+    "DV-01",
+    "DQ-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "DV-01 (Nullbeträge) + Import-Abweisungen des Parsers in DQ-01"
+  },
+  {
+   "id": "K01.03",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Buchungen ohne Buchungsdatum",
+   "referenz": [
+    "Buchungen ohne Buchungsdatum"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Buchungs-/Erfassungsdatum – der Buchungsstapel führt nur das Belegdatum)"
+  },
+  {
+   "id": "K01.04",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Buchungen ohne Belegdatum",
+   "referenz": [
+    "Buchungen ohne Belegdatum"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Zählung leerer Belegdaten in DQ-01 (der Parser warnt nur bei unlesbarem, nicht bei fehlendem Belegdatum; im DATEV-Format ist das Belegdatum Pflichtfeld)"
+  },
+  {
+   "id": "K01.05",
+   "kapitel": 1,
+   "klasse": "R/P",
+   "punkt": "Buchungen ohne Belegnummer oder Buchungstext",
+   "referenz": [
+    "Buchungen ohne Belegnummer",
+    "Buchungen ohne Buchungstext"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-05"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-05 (Quoten je Stapel)"
+  },
+  {
+   "id": "K01.06",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "ungültige bzw. unbekannte Konten",
+   "referenz": [
+    "ungültige bzw. unbekannte Konten"
+   ],
+   "status": "check",
+   "checks": [
+    "DV-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "kontenplan"
+   ],
+   "umsetzung": "DV-03 (mit Kontenbeschriftungen)"
+  },
+  {
+   "id": "K01.07",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "ungültige Steuerschlüssel",
+   "referenz": [
+    "ungültige Steuerschlüssel"
+   ],
+   "status": "check",
+   "checks": [
+    "US-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-03"
+  },
+  {
+   "id": "K01.08",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Buchungen außerhalb des Wirtschaftsjahres",
+   "referenz": [
+    "Buchungen außerhalb des Wirtschaftsjahres"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-06"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-06"
+  },
+  {
+   "id": "K01.09",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Buchungen in nicht vorgesehenen Perioden",
+   "referenz": [
+    "Buchungen in nicht vorgesehenen Perioden"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Buchungsperiode/Buchungsdatum)"
+  },
+  {
+   "id": "K01.10",
+   "kapitel": 1,
+   "klasse": "P",
+   "punkt": "Lücken oder Sprünge in Beleg-/Buchungsnummern",
+   "referenz": [
+    "Lücken oder Sprünge in Beleg-/Buchungsnummern"
+   ],
+   "status": "check",
+   "checks": [
+    "RE-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "umsetzung": "RE-01 (Ausgangsrechnungsnummern; Eingangsnummern bewusst ausgenommen: fremdvergeben)",
+   "zusatz": "technische Buchungsnummern ➕ GDPdU-Journal"
+  },
+  {
+   "id": "K01.11",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "identische technische Buchungs-IDs",
+   "referenz": [
+    "identische technische Buchungs-IDs"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal mit Buchungs-IDs"
+  },
+  {
+   "id": "K01.12",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "inkonsistente Datensätze innerhalb desselben Buchungssatzes",
+   "referenz": [
+    "inkonsistente Datensätze innerhalb desselben Buchungssatzes"
+   ],
+   "status": "check",
+   "checks": [
+    "DV-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "DV-01 (Konto = Gegenkonto)"
+  },
+  {
+   "id": "K01.13",
+   "kapitel": 1,
+   "klasse": "R",
+   "punkt": "Rechtsform-Konsistenz: Mandantenname ↔ Angabe ↔ Kontenbild (KSt-/Kapital- vs. Privatkonten)",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "DQ-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "DQ-02",
+   "detail": "Klassifizierung über `rechtsformen_erkennung` in `konten_config.json`; KSt-/gezeichnetes-Kapital- vs. Privatkonten-Indizien; § 1a-KStG-Vorbehalt"
+  },
+  {
+   "id": "K01.14",
+   "kapitel": 1,
+   "gruppe": "Jahresübernahme",
+   "klasse": "R",
+   "punkt": "Eröffnungsbilanzwerte = Schlussbilanzwerte des Vorjahres, je Bilanzkonto",
+   "referenz": [
+    "Eröffnungsbilanzwerte = Schlussbilanzwerte des Vorjahres",
+    "EB-Werte je Bilanzkonto abstimmen"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-01 (mit `--susa-vorjahr`)"
+  },
+  {
+   "id": "K01.15",
+   "kapitel": 1,
+   "gruppe": "Jahresübernahme",
+   "klasse": "R",
+   "punkt": "keine EB-Buchungen auf GuV-Konten",
+   "referenz": [
+    "keine EB-Buchungen auf GuV-Konten"
+   ],
+   "status": "check",
+   "checks": [
+    "DV-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "DV-02"
+  },
+  {
+   "id": "K01.16",
+   "kapitel": 1,
+   "gruppe": "Jahresübernahme",
+   "klasse": "R",
+   "punkt": "Saldenvorträge saldieren auf null",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "SB-06"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-06"
+  },
+  {
+   "id": "K01.17",
+   "kapitel": 1,
+   "gruppe": "Jahresübernahme",
+   "klasse": "P",
+   "punkt": "neue Bilanzkonten ohne nachvollziehbaren Anfangsbestand, verschwundene Vorjahreskonten mit Restbestand",
+   "referenz": [
+    "neue Bilanzkonten ohne nachvollziehbaren Anfangsbestand",
+    "verschwundene Vorjahreskonten mit Restbestand"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-01 (mit `--susa-vorjahr`)"
+  },
+  {
+   "id": "K02.01",
+   "kapitel": 2,
+   "klasse": "R",
+   "punkt": "exakt identische Doppelbuchungen",
+   "referenz": [
+    "exakt identische Doppelbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-01 (hoch bei identischem Beleg)"
+  },
+  {
+   "id": "K02.02",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "wirtschaftlich wahrscheinliche Doppelbuchungen trotz unterschiedlicher Buchungs-ID",
+   "referenz": [
+    "wirtschaftlich wahrscheinliche Doppelbuchungen trotz unterschiedlicher Buchungs-ID"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "ST-01 (Zeitfenster `doppel_fenster_tage`) + KI"
+  },
+  {
+   "id": "K02.03",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "gleicher Betrag + gleicher Kreditor/Debitor + gleiches Rechnungsdatum",
+   "referenz": [
+    "gleicher Betrag + gleicher Kreditor/Debitor + gleiches Rechnungsdatum"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-01"
+  },
+  {
+   "id": "K02.04",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "gleiche Rechnungsnummer mehrfach gebucht",
+   "referenz": [
+    "gleiche Rechnungsnummer mehrfach gebucht"
+   ],
+   "status": "check",
+   "checks": [
+    "RE-02",
+    "KR-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "RE-02 (Ausgang), KR-01 (Eingang je Kreditor)"
+  },
+  {
+   "id": "K02.05",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "gleicher Buchungstext/Betrag in sehr kurzem Zeitraum",
+   "referenz": [
+    "gleicher Buchungstext/Betrag in sehr kurzem Zeitraum"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "ST-01 (gleicher Betrag auf gleicher Konto-Gegenkonto-Kombination im Zeitfenster; Buchungstext im KI-Kandidaten)"
+  },
+  {
+   "id": "K02.06",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "Buchung und Storno ohne erkennbaren Anlass, mehrfaches Storno und erneute Einbuchung",
+   "referenz": [
+    "Buchung und Storno ohne erkennbaren Anlass",
+    "mehrfaches Storno und erneute Einbuchung desselben Sachverhalts"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "FR-01"
+  },
+  {
+   "id": "K02.07",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele manuelle Umbuchungen",
+   "referenz": [
+    "ungewöhnlich viele manuelle Umbuchungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Erfassungsart/Herkunft der Buchung – der Stapel unterscheidet manuelle und automatische Buchungen nicht)"
+  },
+  {
+   "id": "K02.08",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele Abschluss-/Nachtragsbuchungen",
+   "referenz": [
+    "ungewöhnlich viele Abschluss-/Nachtragsbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-01",
+    "CO-01",
+    "CO-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "folgeperiode",
+    "journal"
+   ],
+   "umsetzung": "GV-01 (Monatsspitzen), CO-01/CO-02 (Cut-off-Fenster)",
+   "zusatz": "Erfassungsart ➕ GDPdU-Journal"
+  },
+  {
+   "id": "K02.09",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "rückdatierte Buchungen",
+   "referenz": [
+    "rückdatierte Buchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "RE-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "umsetzung": "RE-03 (Indiz: Rechnungsdatum entgegen Nummernfolge)",
+   "zusatz": "vollständig ➕ GDPdU-Journal mit Erfassungsdatum"
+  },
+  {
+   "id": "K02.10",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "großer Abstand zwischen Beleg- und Buchungsdatum",
+   "referenz": [
+    "großer Abstand zwischen Beleg- und Buchungsdatum"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Erfassungsdatum)"
+  },
+  {
+   "id": "K02.11",
+   "kapitel": 2,
+   "klasse": "A",
+   "punkt": "Buchungen an ungewöhnlichen Tagen oder Uhrzeiten, ungewöhnliche Buchungsaktivität einzelner Benutzer",
+   "referenz": [
+    "Buchungen an ungewöhnlichen Tagen oder Uhrzeiten, soweit Zeitstempel vorhanden",
+    "ungewöhnliche Buchungsaktivität einzelner Benutzer"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-04"
+   ],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "umsetzung": "ST-04 (Belegdatum Kasse: Sonn-/Feiertage)",
+   "zusatz": "Uhrzeit/Benutzer ➕ GDPdU-Journal mit User und Zeitstempel"
+  },
+  {
+   "id": "K02.12",
+   "kapitel": 2,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Konten-Gegenkonten-Kombination, erstmalig auftretende Kontierung",
+   "referenz": [
+    "ungewöhnliche Konten-Gegenkonten-Kombination",
+    "erstmalig auftretende Kontierung"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "GV-03",
+   "zusatz": "jahresübergreifend (erstmalig gegenüber dem Vorjahr) ➕ Vorjahres-Buchungsstapel"
+  },
+  {
+   "id": "K02.13",
+   "kapitel": 2,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Buchungstexte",
+   "referenz": [
+    "ungewöhnliche Buchungstexte"
+   ],
+   "status": "ki",
+   "checks": [
+    "ET-02"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "KI (Kandidaten) + ET-02 (regelbasierte Textmuster)"
+  },
+  {
+   "id": "K02.14",
+   "kapitel": 2,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Buchungsfrequenzen",
+   "referenz": [
+    "ungewöhnliche Buchungsfrequenzen"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-01",
+    "SB-08"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-01 (Monatsvolumen je GuV-Konto als Näherung), SB-08 (Buchungsfrequenz der Kasse)",
+   "zusatz": "Ausbaustufe: kontoindividuelle Frequenzerwartung (`erwartungen`-Objekt, Kap. 18)"
+  },
+  {
+   "id": "K02.15",
+   "kapitel": 2,
+   "klasse": "P",
+   "punkt": "Buchungen knapp oberhalb/unterhalb definierter Freigabegrenzen",
+   "referenz": [
+    "Buchungen knapp oberhalb/unterhalb definierter Freigabegrenzen"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "FR-03 (nur mit konfigurierten `freigabegrenzen`; Default leer → begründeter Skip)"
+  },
+  {
+   "id": "K02.16",
+   "kapitel": 2,
+   "klasse": "A",
+   "punkt": "auffällige Aufteilung eines Gesamtbetrags auf mehrere Einzelbuchungen",
+   "referenz": [
+    "auffällige Aufteilung eines Gesamtbetrags auf mehrere Einzelbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-07 (nur Anlagen-/GWG-Zugänge knapp unter der GWG-Grenze)",
+   "zusatz": "Ausbaustufe: allgemeines Betrags-Splitting je Konto/Geschäftspartner"
+  },
+  {
+   "id": "K03.01",
+   "kapitel": 3,
+   "klasse": "R",
+   "punkt": "negativer Kassenbestand zu irgendeinem Zeitpunkt (§ 146 AO)",
+   "referenz": [
+    "negativer Kassenbestand zu irgendeinem Zeitpunkt"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-01 (taggenauer Verlauf)"
+  },
+  {
+   "id": "K03.02",
+   "kapitel": 3,
+   "klasse": "R",
+   "punkt": "chronologisch fortgeschriebener Kassenbestand",
+   "referenz": [
+    "chronologisch fortgeschriebener Kassenbestand"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-01",
+    "SB-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Verlaufsrechnung in SB-01/SB-07"
+  },
+  {
+   "id": "K03.03",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "ungewöhnlich hohe Kassenbestände",
+   "referenz": [
+    "ungewöhnlich hohe Kassenbestände"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-07"
+  },
+  {
+   "id": "K03.04",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "ungewöhnlich hohe Bareinzahlungen/-entnahmen, sprunghafte Kassenbestandsänderungen",
+   "referenz": [
+    "ungewöhnlich hohe Bareinzahlungen",
+    "ungewöhnlich hohe Barentnahmen",
+    "sprunghafte Kassenbestandsänderungen"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-09"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-09"
+  },
+  {
+   "id": "K03.05",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele glatte Bargeldbeträge",
+   "referenz": [
+    "ungewöhnlich viele glatte Bargeldbeträge"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-10",
+    "ST-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-10 (Kasse ↔ Privat; bei Kapitalgesellschaft begründeter Skip), ST-03"
+  },
+  {
+   "id": "K03.06",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "nachträgliche Kassenbuchungen",
+   "referenz": [
+    "nachträgliche Kassenbuchungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal mit Erfassungsdatum"
+  },
+  {
+   "id": "K03.07",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "größere zeitliche Lücken in der Kassenführung",
+   "referenz": [
+    "größere zeitliche Lücken in der Kassenführung"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-08"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-08"
+  },
+  {
+   "id": "K03.08",
+   "kapitel": 3,
+   "klasse": "X",
+   "punkt": "Kassenbuch gegen Finanzbuchhaltung abstimmen",
+   "referenz": [
+    "Kassenbuch gegen Finanzbuchhaltung abstimmen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "kassenbuch"
+   ],
+   "zusatz": "➕ Kassenbuch-Export"
+  },
+  {
+   "id": "K03.09",
+   "kapitel": 3,
+   "klasse": "X",
+   "punkt": "Banksaldo und Bankbewegungen gegen Kontoauszug abstimmen",
+   "referenz": [
+    "Banksaldo Finanzbuchhaltung gegen Kontoauszug",
+    "Bankbewegungen gegen Buchungen vollständig matchen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "bank"
+   ],
+   "zusatz": "➕ Bankbewegungen (CAMT/CSV)"
+  },
+  {
+   "id": "K03.10",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "lange ungeklärte Bankbuchungen",
+   "referenz": [
+    "lange ungeklärte Bankbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-04"
+   ],
+   "ki": false,
+   "quellen": [
+    "bank"
+   ],
+   "umsetzung": "SB-04 (Interims-/Verrechnungskonten zum Stichtag nicht ausgeglichen)",
+   "zusatz": "unterjährige Klärungsdauer ➕ Bankbewegungen"
+  },
+  {
+   "id": "K03.11",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Barabhebungen",
+   "referenz": [
+    "ungewöhnliche Barabhebungen"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-09",
+    "SB-10"
+   ],
+   "ki": false,
+   "quellen": [
+    "bank"
+   ],
+   "umsetzung": "SB-09 (kassenseitige Ausreißer), SB-10 (Kasse/Privat)",
+   "zusatz": "bankseitig vollständig ➕ Bankbewegungen"
+  },
+  {
+   "id": "K03.12",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "Überweisungen auf ungewöhnliche Gegenkonten",
+   "referenz": [
+    "Überweisungen auf ungewöhnliche Gegenkonten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "bank",
+    "stammdaten"
+   ],
+   "zusatz": "➕ Bankbewegungen mit Empfänger-IBAN/Stammdaten (GV-03 sieht nur Kombinationen mit GuV-Seite)"
+  },
+  {
+   "id": "K03.13",
+   "kapitel": 3,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Geldtransfers zwischen eigenen Konten",
+   "referenz": [
+    "ungewöhnliche Geldtransfers zwischen eigenen Konten"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "bank"
+   ],
+   "umsetzung": "SB-03 (Geldtransit gleicht sich zum Stichtag aus)",
+   "zusatz": "Transfermuster zwischen Bankkonten ➕ Bankbewegungen"
+  },
+  {
+   "id": "K03.14",
+   "kapitel": 3,
+   "klasse": "R",
+   "punkt": "gleiche Zahlung mehrfach verbucht",
+   "referenz": [
+    "gleiche Zahlung mehrfach verbucht"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-01"
+  },
+  {
+   "id": "K03.15",
+   "kapitel": 3,
+   "klasse": "X",
+   "punkt": "gleiche Banktransaktion mehreren Rechnungen zugeordnet",
+   "referenz": [
+    "gleiche Banktransaktion mehreren Rechnungen zugeordnet"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "bank",
+    "opos"
+   ],
+   "zusatz": "➕ Bankbewegungen mit Zahlungszuordnung (OPOS-Ausgleichsinformation)"
+  },
+  {
+   "id": "K04.01",
+   "kapitel": 4,
+   "klasse": "R",
+   "punkt": "Debitoren-Hauptbuch = Debitoren-Nebenbuch",
+   "referenz": [
+    "Debitoren-Hauptbuch = Debitoren-Nebenbuch"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-05"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-05 (OPOS-Summen je Konto, mit `--opos`)"
+  },
+  {
+   "id": "K04.02",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "Kreditsalden auf Debitorenkonten",
+   "referenz": [
+    "Kreditsalden auf Debitorenkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-01"
+  },
+  {
+   "id": "K04.03",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "ungewöhnlich hohe Forderungssalden",
+   "referenz": [
+    "ungewöhnlich hohe Forderungssalden"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "Saldohöhe je Debitor relativ zu Umsatz und Vorjahr (Vorjahres-SuSa reicht als Datenbasis); OP-07 misst nur die Konzentration des Soll-Umsatzvolumens"
+  },
+  {
+   "id": "K04.04",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "lange überfällige Forderungen, OPOS-Altersstruktur 30/60/90/180/365 Tage",
+   "referenz": [
+    "lange überfällige Forderungen",
+    "OPOS-Altersstruktur: 30/60/90/180/365 Tage"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-03 + Berichtsblatt „OPOS-Alterung“ (mit `--opos`)"
+  },
+  {
+   "id": "K04.05",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "sehr alte Kleinstbeträge, sehr alte Gutschriften",
+   "referenz": [
+    "sehr alte Kleinstbeträge",
+    "sehr alte Gutschriften"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-06"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-06"
+  },
+  {
+   "id": "K04.06",
+   "kapitel": 4,
+   "klasse": "R",
+   "punkt": "ausgeglichene Rechnungen noch als offen, doppelte offene Rechnungen",
+   "referenz": [
+    "ausgeglichene Rechnungen noch als offen",
+    "doppelte offene Rechnungen"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-05"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-05 (Differenz OPOS-Summe ↔ Kontensaldo als Indiz)",
+   "zusatz": "➕ OPOS mit Ausgleichsinformation (Zahlungs-/Ausgleichshistorie)"
+  },
+  {
+   "id": "K04.07",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "Zahlung ohne korrespondierende Forderung",
+   "referenz": [
+    "Zahlung ohne korrespondierende Forderung"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-01 (Habensaldo)"
+  },
+  {
+   "id": "K04.08",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "Rechnung ohne Zahlung trotz ungewöhnlich langen Zeitraums",
+   "referenz": [
+    "Rechnung ohne Zahlung trotz ungewöhnlich langen Zeitraums"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-03 (überfällige offene Posten)"
+  },
+  {
+   "id": "K04.09",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele Teilzahlungen",
+   "referenz": [
+    "ungewöhnlich viele Teilzahlungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "zusatz": "➕ OPOS mit Ausgleichsinformation (Teilzahlungshistorie)"
+  },
+  {
+   "id": "K04.10",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Verrechnung zwischen Kunden",
+   "referenz": [
+    "ungewöhnliche Verrechnung zwischen Kunden"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-04 (Direktverrechnung zwischen Personenkonten)"
+  },
+  {
+   "id": "K04.11",
+   "kapitel": 4,
+   "klasse": "A",
+   "punkt": "Forderungen deutlich außerhalb des normalen Zahlungsverhaltens eines Kunden",
+   "referenz": [
+    "Forderungen deutlich außerhalb des normalen Zahlungsverhaltens eines Kunden"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "opos",
+    "vorjahr"
+   ],
+   "zusatz": "➕ Zahlungshistorie je Kunde (OPOS-Historie/Vorjahr)"
+  },
+  {
+   "id": "K04.12",
+   "kapitel": 4,
+   "klasse": "A",
+   "punkt": "Konzentrationsrisiko einzelner Debitoren",
+   "referenz": [
+    "Konzentrationsrisiko einzelner Debitoren"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-07"
+  },
+  {
+   "id": "K04.13",
+   "kapitel": 4,
+   "klasse": "P",
+   "punkt": "Forderungsanstieg ohne entsprechende Umsatzentwicklung",
+   "referenz": [
+    "Forderungsanstieg ohne entsprechende Umsatzentwicklung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "zusatz": "➕ Vorjahresdaten (Forderungs- und Umsatzentwicklung im Vergleich; Ausbaustufe auf Basis der Vorjahres-SuSa)"
+  },
+  {
+   "id": "K04.14",
+   "kapitel": 4,
+   "klasse": "X",
+   "punkt": "Zahlungseingänge nach Bilanzstichtag, Mahnstatus, Wertberichtigungen gegen Altersstruktur, Forderungen gegen verbundene Unternehmen",
+   "referenz": [
+    "Zahlungseingänge nach Bilanzstichtag zur Werthaltigkeitsprüfung",
+    "Mahnstatus gegen OPOS",
+    "Wertberichtigungen gegen Altersstruktur",
+    "Forderungen gegen verbundene Unternehmen abstimmen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "folgeperiode",
+    "opos",
+    "intercompany"
+   ],
+   "zusatz": "➕ Folgeperiode (Zahlungseingänge), Mahnwesen, Kontenzuordnung verbundener Unternehmen"
+  },
+  {
+   "id": "K05.01",
+   "kapitel": 5,
+   "klasse": "R",
+   "punkt": "Kreditoren-Hauptbuch = Kreditoren-Nebenbuch",
+   "referenz": [
+    "Kreditoren-Hauptbuch = Kreditoren-Nebenbuch"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-05"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-05 (mit `--opos`)"
+  },
+  {
+   "id": "K05.02",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "Sollsalden auf Kreditorenkonten",
+   "referenz": [
+    "Sollsalden auf Kreditorenkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-02"
+  },
+  {
+   "id": "K05.03",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "ungewöhnlich hohe Verbindlichkeiten",
+   "referenz": [
+    "ungewöhnlich hohe Verbindlichkeiten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "zusatz": "➕ Vorjahresdaten (Relation zu Material-/Gesamtaufwand; Ausbaustufe auf Basis der Vorjahres-SuSa)"
+  },
+  {
+   "id": "K05.04",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "sehr alte offene Verbindlichkeiten, alte Kreditorengutschriften",
+   "referenz": [
+    "sehr alte offene Verbindlichkeiten",
+    "alte Kreditorengutschriften"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-03",
+    "OP-06"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-03, OP-06"
+  },
+  {
+   "id": "K05.05",
+   "kapitel": 5,
+   "klasse": "R",
+   "punkt": "identische Eingangsrechnung mehrfach erfasst",
+   "referenz": [
+    "identische Eingangsrechnung mehrfach erfasst"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-01"
+  },
+  {
+   "id": "K05.06",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "gleiche Rechnungsnummer bei gleichem Kreditor",
+   "referenz": [
+    "gleiche Rechnungsnummer bei gleichem Kreditor"
+   ],
+   "status": "check",
+   "checks": [
+    "KR-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "KR-01"
+  },
+  {
+   "id": "K05.07",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "gleicher Betrag/Rechnungsdatum/Kreditor mit abweichender Rechnungsnummer",
+   "referenz": [
+    "gleicher Betrag/Rechnungsdatum/Kreditor mit abweichender Rechnungsnummer"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-01 (mittel: gleicher Betrag und Partner im Zeitfenster ohne identischen Beleg)"
+  },
+  {
+   "id": "K05.08",
+   "kapitel": 5,
+   "klasse": "R/X",
+   "punkt": "doppelte Zahlungen",
+   "referenz": [
+    "doppelte Zahlungen"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "bank"
+   ],
+   "umsetzung": "ST-01",
+   "zusatz": "Abgleich gegen Bank ➕ Bankbewegungen"
+  },
+  {
+   "id": "K05.09",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "Zahlung ohne offene Verbindlichkeit",
+   "referenz": [
+    "Zahlung ohne offene Verbindlichkeit"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "OP-02 (Sollsaldo)"
+  },
+  {
+   "id": "K05.10",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Vorauszahlungen",
+   "referenz": [
+    "ungewöhnliche Vorauszahlungen"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-02 (Sollsaldo auf Kreditor als Indiz)",
+   "zusatz": "Vorauszahlungs-Kennzeichnung ➕ OPOS-Detail"
+  },
+  {
+   "id": "K05.11",
+   "kapitel": 5,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele manuelle Kreditorenbuchungen",
+   "referenz": [
+    "ungewöhnlich viele manuelle Kreditorenbuchungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Erfassungsart)"
+  },
+  {
+   "id": "K05.12",
+   "kapitel": 5,
+   "klasse": "A",
+   "punkt": "ungewöhnliches Kreditorenkonto für bestimmte Kostenarten",
+   "referenz": [
+    "ungewöhnliches Kreditorenkonto für bestimmte Kostenarten"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-03"
+  },
+  {
+   "id": "K05.13",
+   "kapitel": 5,
+   "klasse": "A",
+   "punkt": "erhebliche Änderung des Zahlungsprofils eines Lieferanten",
+   "referenz": [
+    "erhebliche Änderung des Zahlungsprofils eines Lieferanten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "bank"
+   ],
+   "zusatz": "➕ Vorjahres-Buchungsstapel/Bankbewegungen (Zahlungsprofil im Zeitvergleich)"
+  },
+  {
+   "id": "K05.14",
+   "kapitel": 5,
+   "klasse": "X",
+   "punkt": "Verbindlichkeiten gegen Zahlungen nach Bilanzstichtag, Verbindlichkeiten gegenüber verbundenen Unternehmen",
+   "referenz": [
+    "Verbindlichkeiten gegen Zahlungen nach Bilanzstichtag",
+    "Verbindlichkeiten gegenüber verbundenen Unternehmen abstimmen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "folgeperiode",
+    "intercompany"
+   ],
+   "zusatz": "➕ Folgeperiode (Zahlungen nach Stichtag), Kontenzuordnung verbundener Unternehmen"
+  },
+  {
+   "id": "K06.01",
+   "kapitel": 6,
+   "klasse": "R/X",
+   "punkt": "Sachkonten Anlagevermögen, kumulierte AfA, Anlagenzugänge und -abgänge = Anlagenbuchhaltung",
+   "referenz": [
+    "Sachkonten Anlagevermögen = Anlagenbuchhaltung",
+    "kumulierte AfA = Anlagenbuchhaltung",
+    "Anlagenzugänge Hauptbuch = Anlagenzugänge Nebenbuch",
+    "Anlagenabgänge Hauptbuch = Anlagenabgänge Nebenbuch"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "anlagen"
+   ],
+   "zusatz": "➕ Anlagenspiegel-Export"
+  },
+  {
+   "id": "K06.02",
+   "kapitel": 6,
+   "klasse": "R",
+   "punkt": "Wirtschaftsgut vorhanden, aber keine AfA",
+   "referenz": [
+    "Wirtschaftsgut vorhanden, aber keine AfA"
+   ],
+   "status": "check",
+   "checks": [
+    "AF-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "anlagen"
+   ],
+   "umsetzung": "AF-01 (nur Anlagenzugänge bei völlig fehlender AfA-Buchung)",
+   "zusatz": "je Wirtschaftsgut ➕ Anlagenspiegel"
+  },
+  {
+   "id": "K06.03",
+   "kapitel": 6,
+   "klasse": "R",
+   "punkt": "AfA auf vollständig abgegangenes Wirtschaftsgut",
+   "referenz": [
+    "AfA auf vollständig abgegangenes Wirtschaftsgut"
+   ],
+   "status": "check",
+   "checks": [
+    "AF-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "anlagen"
+   ],
+   "umsetzung": "AF-02 (Kontenebene: AfA ohne Anlagevermögen)",
+   "zusatz": "je Wirtschaftsgut ➕ Anlagenspiegel"
+  },
+  {
+   "id": "K06.04",
+   "kapitel": 6,
+   "klasse": "R",
+   "punkt": "AfA auf nicht abnutzbares Anlagevermögen (Grund und Boden)",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "AF-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "AF-03"
+  },
+  {
+   "id": "K06.05",
+   "kapitel": 6,
+   "klasse": "R",
+   "punkt": "negativer Buchwert",
+   "referenz": [
+    "negativer Buchwert"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-02 (Saldenvorzeichen der Anlagenkonten)"
+  },
+  {
+   "id": "K06.06",
+   "kapitel": 6,
+   "klasse": "R/P",
+   "punkt": "je Wirtschaftsgut: AfA über dem abschreibbaren Restwert, Restbuchwert nach Ablauf der Nutzungsdauer, AfA vor Anschaffung oder nach Abgang, zeitanteilige AfA, Nutzungsdauer und AfA-Methode gegen Stammdaten",
+   "referenz": [
+    "AfA höher als abschreibbarer Restwert",
+    "Restbuchwert trotz rechnerisch vollständig abgelaufener Nutzungsdauer",
+    "AfA vor Anschaffungs-/Herstellungsdatum",
+    "AfA nach Abgang",
+    "unterjährige zeitanteilige AfA rechnerisch prüfen",
+    "verwendete Nutzungsdauer gegen hinterlegte Soll-Nutzungsdauer",
+    "AfA-Methode gegen Anlagenstammdaten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "anlagen"
+   ],
+   "zusatz": "➕ Anlagenspiegel (Einzelprüfungen je Wirtschaftsgut)"
+  },
+  {
+   "id": "K06.07",
+   "kapitel": 6,
+   "klasse": "P",
+   "punkt": "außergewöhnlich hohe/geringe AfA, erhebliche Änderung der AfA gegenüber Vorjahr",
+   "referenz": [
+    "außergewöhnlich hohe/geringe AfA",
+    "erhebliche Änderung der AfA gegenüber Vorjahr"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "anlagen"
+   ],
+   "umsetzung": "VJ-02 (AfA-Konten gegen Vorjahr, mit `--susa-vorjahr`)",
+   "zusatz": "AfA-Satz je Wirtschaftsgut ➕ Anlagenspiegel"
+  },
+  {
+   "id": "K06.08",
+   "kapitel": 6,
+   "klasse": "P",
+   "punkt": "Anlagenzugang ohne korrespondierende Kreditoren-/Bankbuchung",
+   "referenz": [
+    "Anlagenzugang ohne korrespondierende Kreditoren-/Bankbuchung"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Gegenkonten-Erwartung je Anlagenkonto (`erwartungen`-Objekt, Kap. 18); GV-03 sieht nur Kombinationen mit GuV-Seite"
+  },
+  {
+   "id": "K06.09",
+   "kapitel": 6,
+   "klasse": "P",
+   "punkt": "Investitionskonto mit ungewöhnlich vielen Kleinstbeträgen",
+   "referenz": [
+    "Investitionskonto mit ungewöhnlich vielen Kleinstbeträgen"
+   ],
+   "status": "check",
+   "checks": [
+    "AF-04",
+    "ST-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "AF-04 (Zugänge im GWG-Wahlrechtsband), ST-07 (Cluster knapp unter der GWG-Grenze)",
+   "zusatz": "Ausbaustufe: Häufung von Kleinstbeträgen je Investitionskonto"
+  },
+  {
+   "id": "K06.10",
+   "kapitel": 6,
+   "klasse": "P",
+   "punkt": "größere Anschaffungen unmittelbar als Aufwand gebucht, aktivierungspflichtige Anschaffungen auf Reparatur-/Instandhaltungskonten",
+   "referenz": [
+    "größere Anschaffungen unmittelbar als Aufwand gebucht",
+    "mögliche aktivierungspflichtige Anschaffungen auf Reparatur-/Instandhaltungskonten"
+   ],
+   "status": "check",
+   "checks": [
+    "AF-05"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "AF-05 + KI (Kandidaten = Befunde mit KI-Kennzeichen, u. a. AF-05/ST-02/ET-02, sowie Buchungen der Kontengruppe `sachfremd_llm` ab `llm_kandidat_min_eur`)"
+  },
+  {
+   "id": "K06.11",
+   "kapitel": 6,
+   "klasse": "P",
+   "punkt": "mögliche laufende Aufwendungen unplausibel aktiviert",
+   "referenz": [
+    "mögliche laufende Aufwendungen unplausibel aktiviert"
+   ],
+   "status": "ki",
+   "checks": [],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "KI, soweit ein Anlagenzugang über ST-02/ST-07 in die Kandidatenlage gelangt"
+  },
+  {
+   "id": "K06.12",
+   "kapitel": 6,
+   "klasse": "R/P",
+   "punkt": "GWG-/Sammelpostenbehandlung nach hinterlegten steuerlichen Parametern",
+   "referenz": [
+    "GWG-/Sammelpostenbehandlung nach hinterlegten steuerlichen Parametern"
+   ],
+   "status": "check",
+   "checks": [
+    "AF-04",
+    "ST-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "AF-04 (Grenzen), ST-07 (Schwellen-Splitting)"
+  },
+  {
+   "id": "K06.13",
+   "kapitel": 6,
+   "klasse": "X",
+   "punkt": "außerplanmäßige Abschreibungen auf dokumentierte Wertminderungen, Anlagenabgang gegen Verkaufserlös und Abgangsergebnis",
+   "referenz": [
+    "außerplanmäßige Abschreibungen auf dokumentierte Wertminderungen",
+    "Anlagenabgang gegen Verkaufserlös und Abgangsergebnis"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "anlagen",
+    "belege"
+   ],
+   "zusatz": "➕ Anlagenspiegel/Belege"
+  },
+  {
+   "id": "K07.01",
+   "kapitel": 7,
+   "klasse": "R/X",
+   "punkt": "Vorratskonten gegen Inventurlisten",
+   "referenz": [
+    "Vorratskonten gegen Inventurlisten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "inventur"
+   ],
+   "zusatz": "➕ Inventurlisten"
+  },
+  {
+   "id": "K07.02",
+   "kapitel": 7,
+   "klasse": "P",
+   "punkt": "ungewöhnlich starke Bestandsänderung",
+   "referenz": [
+    "ungewöhnlich starke Bestandsänderung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "inventur"
+   ],
+   "zusatz": "➕ Vorjahresdaten/Inventur (Bestandsveränderung im Zeitvergleich; Ausbaustufe auf Basis der Vorjahres-SuSa)"
+  },
+  {
+   "id": "K07.03",
+   "kapitel": 7,
+   "klasse": "P",
+   "punkt": "negativer Warenbestand, soweit Mengendaten vorhanden",
+   "referenz": [
+    "negativer Warenbestand, soweit Mengendaten vorhanden"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "inventur"
+   ],
+   "zusatz": "➕ Warenwirtschaftsdaten (Mengen); Ausbaustufe: wertmäßiges Saldenvorzeichen der Bestandskonten (Kontengruppe `vorraete` in SB-02)"
+  },
+  {
+   "id": "K07.04",
+   "kapitel": 7,
+   "klasse": "P/A",
+   "punkt": "Lagerbestand ohne Bewegungen über längere Zeit, langsam drehende Artikel, hohe Reichweiten",
+   "referenz": [
+    "Lagerbestand ohne Bewegungen über längere Zeit",
+    "ungewöhnlich langsam drehende Artikel",
+    "ungewöhnlich hohe Reichweiten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "inventur"
+   ],
+   "zusatz": "➕ Warenwirtschaftsdaten (Mengen, Bewegungen, Reichweiten)"
+  },
+  {
+   "id": "K07.05",
+   "kapitel": 7,
+   "klasse": "P",
+   "punkt": "Warenaufwand ohne korrespondierende Umsatzentwicklung, Umsatzentwicklung ohne korrespondierende Warenbewegung",
+   "referenz": [
+    "Warenaufwand ohne korrespondierende Umsatzentwicklung",
+    "Umsatzentwicklung ohne korrespondierende Warenbewegung"
+   ],
+   "status": "bericht",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "Kennzahlen-Ausweis (Materialquote, Rohertrag; Erlöse Vorjahr mit `--susa-vorjahr`)"
+  },
+  {
+   "id": "K07.06",
+   "kapitel": 7,
+   "klasse": "P",
+   "punkt": "auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag",
+   "referenz": [
+    "auffällige Buchungen auf Bestandskonten unmittelbar vor Stichtag"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Cut-off-Fenster für Bestandskonten (Kontengruppe `vorraete`); CO-01/CO-02 prüfen nur Erlös-/Aufwandskonten"
+  },
+  {
+   "id": "K07.07",
+   "kapitel": 7,
+   "klasse": "X",
+   "punkt": "Inventurdifferenzen, Niederstwert-/Wertberichtigungsindikatoren",
+   "referenz": [
+    "Inventurdifferenzen",
+    "Niederstwert-/Wertberichtigungsindikatoren"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "inventur"
+   ],
+   "zusatz": "➕ Inventur-/Warenwirtschaftsdaten"
+  },
+  {
+   "id": "K08.01",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "regelmäßig wiederkehrende Zahlungen (Versicherungen, Mieten, Wartungen) über den Stichtag hinweg ohne RAP",
+   "referenz": [
+    "regelmäßig wiederkehrende Zahlungen ohne RAP",
+    "Versicherungen, Mieten, Wartungen etc. über den Stichtag hinweg"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-01 (getrennt je Richtung ARAP/PRAP, § 250 Abs. 1/2 HGB)"
+  },
+  {
+   "id": "K08.02",
+   "kapitel": 8,
+   "klasse": "R",
+   "punkt": "RAP aus Vorjahr nicht aufgelöst",
+   "referenz": [
+    "RAP aus Vorjahr nicht aufgelöst"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-01",
+    "SB-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-01 (ARAP bzw. PRAP ohne Auflösung); Saldenvorzeichen ARAP/PRAP SB-02"
+  },
+  {
+   "id": "K08.03",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "ungewöhnlich alte RAP-Positionen, erhebliche RAP-Veränderungen ohne Geschäftsentwicklung",
+   "referenz": [
+    "ungewöhnlich alte RAP-Positionen",
+    "erhebliche RAP-Veränderungen ohne Geschäftsentwicklung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "zusatz": "➕ Vorjahresdaten"
+  },
+  {
+   "id": "K08.04",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "bestehende Vorjahresrückstellung ohne Bewegung",
+   "referenz": [
+    "bestehende Vorjahresrückstellung ohne Bewegung"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-02"
+  },
+  {
+   "id": "K08.05",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "jährlich identische Rückstellungsbeträge",
+   "referenz": [
+    "jährlich identische Rückstellungsbeträge"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "BL-02 (mit `--susa-vorjahr`)"
+  },
+  {
+   "id": "K08.06",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "Rückstellungsauflösung ohne entsprechenden Sachverhalt, Aufwand mit Rückstellungscharakter direkt als Verbindlichkeit oder Aufwand behandelt",
+   "referenz": [
+    "Rückstellungsauflösung ohne entsprechenden Sachverhalt",
+    "Aufwand mit Rückstellungscharakter direkt als Verbindlichkeit oder Aufwand behandelt"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vertraege"
+   ],
+   "zusatz": "➕ Unterlagen zum Rückstellungsgrund (Verträge, Leistungszeiträume, Abrechnungen)"
+  },
+  {
+   "id": "K08.07",
+   "kapitel": 8,
+   "klasse": "P/X",
+   "punkt": "starke Schwankung einzelner Rückstellungen, Abzinsung langfristiger Rückstellungen",
+   "referenz": [
+    "starke Schwankung einzelner Rückstellungen",
+    "langfristige Rückstellungen hinsichtlich Abzinsung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "vertraege"
+   ],
+   "zusatz": "➕ Vorjahresdaten/Verträge"
+  },
+  {
+   "id": "K08.08",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "latente Steuern: Bestand/Ansatz und Steuersatz-Staffel (KSt-Senkung ab 2028; § 274, § 274a HGB)",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "BL-05"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-05 (Kontenbereiche `latente_steuern` konfigurieren)",
+   "zusatz": "Bewertung der Differenzen ➕ Steuerbilanz/Überleitungsrechnung"
+  },
+  {
+   "id": "K08.09",
+   "kapitel": 8,
+   "klasse": "R/X",
+   "punkt": "Darlehenssaldo gegen Tilgungsplan, Zinsaufwand gegen Zinssatz und Saldo, Laufzeiten und Fristigkeiten",
+   "referenz": [
+    "Darlehenssaldo gegen Tilgungsplan",
+    "Zinsaufwand gegen Zinssatz und Saldo",
+    "Laufzeiten und Fristigkeiten"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vertraege"
+   ],
+   "zusatz": "➕ Darlehensverträge/Tilgungspläne"
+  },
+  {
+   "id": "K08.10",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "Tilgung auf Zinskonto bzw. Zins auf Darlehenskonto",
+   "referenz": [
+    "Tilgung auf Zinskonto bzw. Zins auf Darlehenskonto"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "vertraege"
+   ],
+   "umsetzung": "BL-03 (Indiz nur bei völlig fehlendem Zinsaufwand)",
+   "zusatz": "Zins-/Tilgungsverprobung ➕ Darlehensverträge"
+  },
+  {
+   "id": "K08.11",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "Darlehen ohne Zinsbuchungen",
+   "referenz": [
+    "Darlehen ohne Zinsbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-03"
+  },
+  {
+   "id": "K08.12",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Gesellschafterdarlehen",
+   "referenz": [
+    "ungewöhnliche Gesellschafterdarlehen"
+   ],
+   "status": "check",
+   "checks": [
+    "GS-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vertraege"
+   ],
+   "umsetzung": "GS-01 (Bewegungen auf Gesellschafterkonten)",
+   "zusatz": "Fremdüblichkeit von Zins und Laufzeit ➕ Darlehensverträge"
+  },
+  {
+   "id": "K08.13",
+   "kapitel": 8,
+   "klasse": "R/X",
+   "punkt": "Vortrag des Vorjahres, Ergebnisverwendung rechnerisch prüfen",
+   "referenz": [
+    "Vortrag des Vorjahres prüfen",
+    "Ergebnisverwendung rechnerisch prüfen"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-01 (EB der Eigenkapitalkonten gegen Vorjahres-SuSa)",
+   "zusatz": "Ergebnisverwendung ➕ Gewinnverwendungsbeschluss/Jahresabschluss Vorjahr"
+  },
+  {
+   "id": "K08.14",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "Buchungen unmittelbar auf Eigenkapitalkonten, unterjährige Buchungen auf Gewinnvortrag",
+   "referenz": [
+    "Buchungen unmittelbar auf Eigenkapitalkonten",
+    "unterjährige Buchungen auf Gewinnvortrag"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-04"
+  },
+  {
+   "id": "K08.15",
+   "kapitel": 8,
+   "klasse": "R",
+   "punkt": "Interims-/Verrechnungskonten und durchlaufende Posten zum Stichtag ausgeglichen",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "SB-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "SB-04"
+  },
+  {
+   "id": "K08.16",
+   "kapitel": 8,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Einlagen/Entnahmen, Gesellschafterkonten mit ungewöhnlichen Salden",
+   "referenz": [
+    "ungewöhnliche Einlagen/Entnahmen",
+    "Gesellschafterkonten mit ungewöhnlichen Salden"
+   ],
+   "status": "check",
+   "checks": [
+    "PP-02",
+    "SB-10",
+    "GS-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "PP-02, SB-10, GS-01"
+  },
+  {
+   "id": "K08.17",
+   "kapitel": 8,
+   "klasse": "R",
+   "punkt": "Privatkonten bei Kapitalgesellschaft bebucht",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "PP-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "PP-04 (mit `--rechtsform`; PP-01/02 und SB-10 werden bei Kapitalgesellschaft begründet übersprungen)"
+  },
+  {
+   "id": "K08.18",
+   "kapitel": 8,
+   "klasse": "R/X",
+   "punkt": "Kapitalkontenentwicklung je Gesellschafter (PersG: Kapitalkonten I/II, Verlust-/Darlehenskonten), verrechenbare Verluste § 15a EStG",
+   "referenz": [],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "kapitalkonten"
+   ],
+   "zusatz": "➕ Kapitalkontenentwicklung, Gesellschaftsvertrag"
+  },
+  {
+   "id": "K09.01",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "jedes GuV-Konto gegen Vorjahr: starke absolute/relative Veränderung, Vorzeichenwechsel, erstmalig mit wesentlichem Saldo, plötzlich ohne Saldo",
+   "referenz": [
+    "jedes GuV-Konto gegen Vorjahr",
+    "Konto erstmalig mit wesentlichem Saldo",
+    "Konto plötzlich ohne Saldo",
+    "Vorzeichenwechsel gegenüber Vorjahr",
+    "ungewöhnlich starke absolute Veränderung",
+    "ungewöhnlich starke relative Veränderung"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-02 (mit `--susa-vorjahr`)"
+  },
+  {
+   "id": "K09.02",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "jedes GuV-Konto gegen Vorperiode",
+   "referenz": [
+    "jedes GuV-Konto gegen Vorperiode"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "GV-01 (Monatsverlauf innerhalb des Jahres)",
+   "zusatz": "Vorperioden/Monatsreihen des Vorjahres ➕ Vorjahres-Buchungsstapel"
+  },
+  {
+   "id": "K09.03",
+   "kapitel": 9,
+   "klasse": "P/A",
+   "punkt": "Monatsverlauf jedes wesentlichen Kontos, ungewöhnliche Monatsspitzen",
+   "referenz": [
+    "Monatsverlauf jedes wesentlichen Kontos",
+    "ungewöhnliche Monatsspitzen"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-01"
+  },
+  {
+   "id": "K09.04",
+   "kapitel": 9,
+   "klasse": "A",
+   "punkt": "ungewöhnliche saisonale Abweichungen",
+   "referenz": [
+    "ungewöhnliche saisonale Abweichungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "zusatz": "➕ Vorjahres-Buchungsstapel (Saisonmuster im Mehrjahresvergleich)"
+  },
+  {
+   "id": "K09.05",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "Verhältniskennzahlen: Materialaufwand/Umsatz, Personalaufwand/Umsatz, Raumkosten/Umsatz, Werbekosten/Umsatz, Rohertrag/Rohmarge",
+   "referenz": [
+    "Materialaufwand/Umsatz",
+    "Personalaufwand/Umsatz",
+    "Raumkosten/Umsatz",
+    "Werbekosten/Umsatz",
+    "Rohertrag/Rohmarge"
+   ],
+   "status": "bericht",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Kennzahlen-Ausweis (Material-, Personal-, Mietkosten-, Werbekostenquote, Rohertrag)"
+  },
+  {
+   "id": "K09.06",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "Fahrzeugkosten/Umsatz",
+   "referenz": [
+    "Fahrzeugkosten/Umsatz"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Quote bewusst nicht ausgewiesen (unüblich); Fahrzeugkosten-Ausreißer über ST-02, private Kfz-Nutzung über PP-01 (nur Personengesellschaft)"
+  },
+  {
+   "id": "K09.07",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "weitere Verhältniskennzahlen: Fremdleistungen/Umsatz, Abschreibungen/Anlagevermögen, Zinsaufwand/Finanzverbindlichkeiten, Forderungen/Umsatz, Verbindlichkeiten/Materialaufwand, Umsatz pro Mitarbeiter",
+   "referenz": [
+    "Fremdleistungen/Umsatz",
+    "Abschreibungen/Anlagevermögen",
+    "Zinsaufwand/Finanzverbindlichkeiten",
+    "Forderungen/Umsatz",
+    "Verbindlichkeiten/Materialaufwand",
+    "Umsatz pro Mitarbeiter, wenn Mitarbeiterzahl vorhanden"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "lohn"
+   ],
+   "umsetzung": "weitere Kontengruppen in `konten_config.json` und Kennzahlen-Ausweis",
+   "zusatz": "Benchmarking ➕ Vorjahr/Branchenwerte; Umsatz pro Mitarbeiter ➕ Mitarbeiterzahl (Personaldaten)"
+  },
+  {
+   "id": "K09.08",
+   "kapitel": 9,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Gegenkonten",
+   "referenz": [
+    "ungewöhnliche Gegenkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-03"
+  },
+  {
+   "id": "K09.09",
+   "kapitel": 9,
+   "klasse": "A",
+   "punkt": "sachfremde Buchungstexte",
+   "referenz": [
+    "sachfremde Buchungstexte"
+   ],
+   "status": "ki",
+   "checks": [],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "KI (Kandidaten)"
+  },
+  {
+   "id": "K09.10",
+   "kapitel": 9,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Geschäftspartner",
+   "referenz": [
+    "ungewöhnliche Geschäftspartner"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03",
+    "FR-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-03 (Personenkonto als seltenes Gegenkonto), FR-02 (Einmal-Kreditoren)"
+  },
+  {
+   "id": "K09.11",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "außergewöhnlich hohe Einzelbuchungen",
+   "referenz": [
+    "außergewöhnlich hohe Einzelbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-02"
+  },
+  {
+   "id": "K09.12",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele Kleinstbuchungen",
+   "referenz": [
+    "ungewöhnlich viele Kleinstbuchungen"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "Kleinstbuchungs-Häufung je Konto (Betragsbandbreite als Erwartung je Konto, Kap. 18)"
+  },
+  {
+   "id": "K09.13",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele glatte Beträge",
+   "referenz": [
+    "ungewöhnlich viele glatte Beträge"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-03",
+    "FR-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-03, FR-04"
+  },
+  {
+   "id": "K09.14",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "außergewöhnliche Beträge kurz vor Periodenende",
+   "referenz": [
+    "außergewöhnliche Beträge kurz vor Periodenende"
+   ],
+   "status": "check",
+   "checks": [
+    "CO-01",
+    "ST-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "CO-01 (Erlösseite); betragsgroße Einzelfälle zudem ST-02"
+  },
+  {
+   "id": "K09.15",
+   "kapitel": 9,
+   "klasse": "P",
+   "punkt": "außerordentlich hohe Gutschriften, starke Gegenbuchungen auf normalerweise einseitigen Konten",
+   "referenz": [
+    "außerordentlich hohe Gutschriften",
+    "starke Gegenbuchungen auf normalerweise einseitigen Konten"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-02"
+  },
+  {
+   "id": "K10.01",
+   "kapitel": 10,
+   "klasse": "R",
+   "punkt": "Erlöskonto ↔ Steuerschlüssel und Aufwandskonto ↔ Vorsteuerschlüssel plausibel",
+   "referenz": [
+    "Erlöskonto ↔ Steuerschlüssel plausibel",
+    "Aufwandskonto ↔ Vorsteuerschlüssel plausibel"
+   ],
+   "status": "check",
+   "checks": [
+    "US-05",
+    "US-08"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-05 (Schlüsselprofil je Sachkonto), US-08 (Automatikkonto-Konflikt)"
+  },
+  {
+   "id": "K10.02",
+   "kapitel": 10,
+   "klasse": "R",
+   "punkt": "steuerpflichtiges Erlöskonto ohne Umsatzsteuer, steuerfreies Erlöskonto mit Umsatzsteuer",
+   "referenz": [
+    "steuerpflichtiges Erlöskonto ohne Umsatzsteuer",
+    "steuerfreies Erlöskonto mit Umsatzsteuer"
+   ],
+   "status": "check",
+   "checks": [
+    "US-08",
+    "US-05",
+    "US-06"
+   ],
+   "ki": false,
+   "quellen": [
+    "susa"
+   ],
+   "umsetzung": "US-08 (Automatikkonto), US-05 (Schlüsselprofil), US-06 (Verprobung mit SuSa)"
+  },
+  {
+   "id": "K10.03",
+   "kapitel": 10,
+   "klasse": "R",
+   "punkt": "Vorsteuerkonto ohne korrespondierende Bemessungsgrundlage",
+   "referenz": [
+    "Vorsteuerkonto ohne korrespondierende Bemessungsgrundlage"
+   ],
+   "status": "check",
+   "checks": [
+    "US-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-02 (Direktbuchungen auf Steuerkonten)"
+  },
+  {
+   "id": "K10.04",
+   "kapitel": 10,
+   "klasse": "R",
+   "punkt": "Steuerbetrag gegen Bemessungsgrundlage, Steuersatz gegen verwendeten Steuerschlüssel",
+   "referenz": [
+    "Steuerbetrag mathematisch gegen Bemessungsgrundlage prüfen",
+    "Steuersatz gegen verwendeten Steuerschlüssel"
+   ],
+   "status": "check",
+   "checks": [
+    "US-06",
+    "US-07",
+    "US-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "susa"
+   ],
+   "umsetzung": "US-06/US-07 (rechnerische USt/VSt aus Erlösen/Aufwand und Schlüsseln gegen Steuerkonten, mit SuSa), US-03 (Schlüsselkatalog mit Sätzen; Gültigkeit nur für die 16-%-Sätze 07–12/2020)"
+  },
+  {
+   "id": "K10.05",
+   "kapitel": 10,
+   "klasse": "P",
+   "punkt": "ungewöhnlicher Steuerschlüssel für bestimmtes Sachkonto",
+   "referenz": [
+    "ungewöhnlicher Steuerschlüssel für bestimmtes Sachkonto"
+   ],
+   "status": "check",
+   "checks": [
+    "US-05"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-05"
+  },
+  {
+   "id": "K10.06",
+   "kapitel": 10,
+   "klasse": "P",
+   "punkt": "Steuerschlüssel gegenüber üblicher Behandlung desselben Lieferanten/Kunden verändert",
+   "referenz": [
+    "Steuerschlüssel gegenüber üblicher Behandlung desselben Lieferanten/Kunden verändert"
+   ],
+   "status": "check",
+   "checks": [
+    "US-09"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-09"
+  },
+  {
+   "id": "K10.07",
+   "kapitel": 10,
+   "klasse": "R/P",
+   "punkt": "Buchung mit falschem Vorzeichen auf Umsatz-/Vorsteuerkonten",
+   "referenz": [
+    "Buchung mit falschem Vorzeichen auf Umsatz-/Vorsteuerkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "US-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-02 (Direktbuchungen auf Steuerkonten als Indiz)",
+   "zusatz": "Ausbaustufe: Vorzeichen-/Richtungsprüfung je Steuerkonto (Steuerkontengruppen in SB-02)"
+  },
+  {
+   "id": "K10.08",
+   "kapitel": 10,
+   "klasse": "R",
+   "punkt": "Umsatzsteuerkonten gegen Umsatzsteuer-Voranmeldung, Jahreswerte gegen Umsatzsteuer-Jahreserklärung",
+   "referenz": [
+    "Umsatzsteuerkonten gegen Umsatzsteuer-Voranmeldung abstimmen",
+    "Jahreswerte gegen Umsatzsteuer-Jahreserklärung abstimmen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "ustva"
+   ],
+   "zusatz": "➕ UStVA-/Erklärungswerte"
+  },
+  {
+   "id": "K10.09",
+   "kapitel": 10,
+   "klasse": "R/P",
+   "punkt": "Vorsteuer auf Konten mit typischerweise eingeschränktem Abzug",
+   "referenz": [
+    "Vorsteuer auf Konten mit typischerweise eingeschränktem Abzug"
+   ],
+   "status": "check",
+   "checks": [
+    "US-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-01"
+  },
+  {
+   "id": "K10.10",
+   "kapitel": 10,
+   "klasse": "P",
+   "punkt": "ungewöhnlich hoher Vorsteuerbetrag",
+   "referenz": [
+    "ungewöhnlich hoher Vorsteuerbetrag"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-02 (mittelbar über den Bruttobetrag der Aufwands-/Anlagenbuchung; Vorsteuerkonten selbst sind Bilanzkonten)"
+  },
+  {
+   "id": "K10.11",
+   "kapitel": 10,
+   "klasse": "P",
+   "punkt": "Vorsteuer ohne Kreditor bzw. Belegbezug",
+   "referenz": [
+    "Vorsteuer ohne Kreditor bzw. Belegbezug"
+   ],
+   "status": "check",
+   "checks": [
+    "US-10"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-10"
+  },
+  {
+   "id": "K10.12",
+   "kapitel": 10,
+   "klasse": "X",
+   "punkt": "Rechnung vorhanden, Pflichtangaben §§ 14, 14a UStG, Leistungsempfänger und Leistungsbezug, Leistungs-/Rechnungsdatum, zeitlich zutreffender Vorsteuerabzug",
+   "referenz": [
+    "Rechnung vorhanden",
+    "Rechnungsangaben nach §§ 14, 14a UStG",
+    "Leistungsempfänger entspricht Unternehmen",
+    "Leistungsbezug für das Unternehmen",
+    "Leistungs-/Rechnungsdatum plausibel",
+    "Vorsteuerabzug zeitlich zutreffend"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "belege"
+   ],
+   "zusatz": "➕ digitale Belege"
+  },
+  {
+   "id": "K10.13",
+   "kapitel": 10,
+   "klasse": "R/P",
+   "punkt": "Reverse Charge § 13b UStG: ausländischer Kreditor ohne 13b-Schlüssel, 13b-Schlüssel bei untypischem Sachverhalt, Abstimmung USt/VSt und Bemessungsgrundlage, 13b-Sachverhalte ohne Steuerbuchung",
+   "referenz": [
+    "ausländischer Kreditor + Dienstleistung ohne §-13b-Schlüssel",
+    "§-13b-Steuerschlüssel bei untypischem Sachverhalt",
+    "Umsatzsteuer und korrespondierende Vorsteuer betragsmäßig abstimmen",
+    "Bemessungsgrundlage gegen Steuerberechnung",
+    "§-13b-Sachverhalte ohne korrespondierende Steuerbuchung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "steuerschluessel",
+    "stammdaten"
+   ],
+   "zusatz": "➕ 13b-Schlüsselkatalog + Kreditorenstammdaten (Sitzland); Stapelfelder vorhanden (Ausbaustufe)"
+  },
+  {
+   "id": "K10.14",
+   "kapitel": 10,
+   "klasse": "P/X",
+   "punkt": "EU-Sachverhalte: innergemeinschaftlicher Erwerb/Lieferung, Reverse Charge bei EU-Dienstleistungen, Leistungsortprüfung, USt-IdNr., Zusammenfassende Meldung, Intrastat",
+   "referenz": [
+    "EU-Lieferant + Warenbezug ↔ innergemeinschaftlicher Erwerb",
+    "EU-Lieferant + Dienstleistung ↔ Reverse Charge",
+    "EU-Kunde + Warenlieferung ↔ innergemeinschaftliche Lieferung",
+    "EU-Kunde + B2B-Dienstleistung ↔ Leistungsortprüfung",
+    "USt-IdNr.-Daten",
+    "Zusammenfassende Meldung gegen Buchhaltung",
+    "Intrastat gegen Warenbewegungen, soweit einschlägig"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "steuerschluessel",
+    "stammdaten"
+   ],
+   "zusatz": "➕ EU-Schlüsselkatalog + Stammdaten (USt-IdNr., Land), ZM-/Intrastat-Daten"
+  },
+  {
+   "id": "K10.15",
+   "kapitel": 10,
+   "klasse": "P/X",
+   "punkt": "Berichtigungen § 17 UStG (Gutschrift, Skonto, Boni ohne Steuerkorrektur; Uneinbringlichkeit und nachträgliche Zahlung), § 15a UStG",
+   "referenz": [
+    "Gutschrift ohne Umsatzsteuerkorrektur",
+    "Skonto ohne entsprechende Steuerkorrektur",
+    "Boni/Rückvergütungen ohne Steuerkorrektur",
+    "uneinbringliche Forderungen ohne §-17-Berichtigung",
+    "nachträgliche Zahlung nach §-17-Berichtigung",
+    "Änderungen der Nutzung von Investitionsgütern hinsichtlich § 15a UStG"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "opos",
+    "belege"
+   ],
+   "zusatz": "➕ Skonto-Feld-Auswertung, OPOS-Historie, Belege (§ 15a: Nutzungsnachweise)"
+  },
+  {
+   "id": "K10.16",
+   "kapitel": 10,
+   "klasse": "X",
+   "punkt": "unrichtiger oder unberechtigter Steuerausweis § 14c UStG (Steuersatz, steuerfreie Sachverhalte, nicht berechtigte Aussteller)",
+   "referenz": [
+    "ausgewiesener Steuersatz ≠ gesetzlich geschuldeter Steuersatz",
+    "Umsatzsteuer auf eigentlich steuerfreien Sachverhalten",
+    "Umsatzsteuerausweis durch hierzu nicht berechtigte Rechnungsaussteller"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "belege"
+   ],
+   "zusatz": "➕ digitale Belege"
+  },
+  {
+   "id": "K11.01",
+   "kapitel": 11,
+   "klasse": "R",
+   "punkt": "Geschenke über der Abzugsgrenze (§ 4 Abs. 5 Satz 1 Nr. 1 EStG)",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "ET-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-01",
+   "detail": "Grenze 35/50 EUR nach WJ-Beginn; Maßstab netto, ohne VSt-Abzug brutto (`vst_abzugsberechtigt`)"
+  },
+  {
+   "id": "K11.02",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Geschenke auf falschem Konto",
+   "referenz": [
+    "Geschenke auf falschem Konto"
+   ],
+   "status": "check",
+   "checks": [
+    "ET-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-02 (Textmuster „Geschenk“)"
+  },
+  {
+   "id": "K11.03",
+   "kapitel": 11,
+   "klasse": "R",
+   "punkt": "Geschenke-Summe je Empfänger und Jahr gegen die Freigrenze",
+   "referenz": [],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [],
+   "zusatz": "➕ Empfängeraufzeichnung (§ 4 Abs. 7 EStG)"
+  },
+  {
+   "id": "K11.04",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Bewirtungsaufwendungen mit unplausibler steuerlicher Behandlung",
+   "referenz": [
+    "Bewirtungsaufwendungen mit unplausibler steuerlicher Behandlung"
+   ],
+   "status": "check",
+   "checks": [
+    "US-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "US-04 (fehlender nicht abziehbarer 30-%-Anteil = mittel; Quote unter `bewirtung_nabz_quote_min` = Hinweis)"
+  },
+  {
+   "id": "K11.05",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Geldbußen/Ordnungsgelder als abzugsfähiger Aufwand behandelt",
+   "referenz": [
+    "Geldbußen/Ordnungsgelder als abzugsfähiger Aufwand behandelt"
+   ],
+   "status": "check",
+   "checks": [
+    "ET-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-02 (Textmuster)"
+  },
+  {
+   "id": "K11.06",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Gewerbesteuer als abzugsfähige Betriebsausgabe behandelt",
+   "referenz": [
+    "Gewerbesteuer als abzugsfähige Betriebsausgabe behandelt"
+   ],
+   "status": "check",
+   "checks": [
+    "ET-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-02 (Textmuster)"
+  },
+  {
+   "id": "K11.07",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Spenden/Sponsoring auf gewöhnlichen Werbekonten",
+   "referenz": [
+    "Spenden/Sponsoring auf gewöhnlichen Werbekonten"
+   ],
+   "status": "check",
+   "checks": [
+    "ET-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-02 (Textmuster „Spende“/„Sponsoring“)"
+  },
+  {
+   "id": "K11.08",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "private bzw. gesellschaftlich veranlasste Aufwendungen auf Betriebsausgabenkonten",
+   "referenz": [
+    "private bzw. gesellschaftlich veranlasste Aufwendungen auf Betriebsausgabenkonten"
+   ],
+   "status": "ki",
+   "checks": [
+    "GS-01",
+    "PP-01"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "KI (Kandidaten) + GS-01; Kfz-Kosten ohne erkennbaren Privatanteil PP-01 (nur Personengesellschaft)"
+  },
+  {
+   "id": "K11.09",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "außergewöhnlich hohe Reise-, Fahrzeug- und Repräsentationskosten",
+   "referenz": [
+    "außergewöhnlich hohe Reisekosten",
+    "außergewöhnlich hohe Fahrzeugkosten",
+    "außergewöhnlich hohe Repräsentationskosten"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-02"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "ST-02 (Betragsausreißer) + KI (Reise- und Repräsentationskosten liegen in der Kandidaten-Kontengruppe `sachfremd_llm`; Fahrzeugkosten nur über ST-02)"
+  },
+  {
+   "id": "K11.10",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "Gesellschafteraufwendungen auf allgemeinen Sachkonten",
+   "referenz": [
+    "Gesellschafteraufwendungen auf allgemeinen Sachkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "GS-01"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "GS-01 + KI"
+  },
+  {
+   "id": "K11.11",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "mögliche verdeckte Gewinnausschüttungs-Sachverhalte (nur Review-Hinweis)",
+   "referenz": [
+    "mögliche verdeckte Gewinnausschüttungs-Sachverhalte lediglich als Review-Hinweis"
+   ],
+   "status": "ki",
+   "checks": [],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "KI (Urteil mit Begründung)"
+  },
+  {
+   "id": "K11.12",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "nicht abziehbare Betriebsausgaben nicht getrennt erfasst (§ 4 Abs. 7 EStG)",
+   "referenz": [
+    "nicht abziehbare Betriebsausgaben nicht getrennt erfasst"
+   ],
+   "status": "check",
+   "checks": [
+    "ET-01",
+    "ET-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ET-01/ET-02 (Buchung auf allgemeinem Konto als Indiz; Hinweis auf § 4 Abs. 7 EStG in den Empfehlungstexten)"
+  },
+  {
+   "id": "K11.13",
+   "kapitel": 11,
+   "klasse": "P",
+   "punkt": "ungewöhnliche Privatkontenbewegungen",
+   "referenz": [
+    "ungewöhnliche Privatkontenbewegungen"
+   ],
+   "status": "check",
+   "checks": [
+    "PP-02",
+    "SB-10"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "PP-02, SB-10"
+  },
+  {
+   "id": "K12.01",
+   "kapitel": 12,
+   "klasse": "R/X",
+   "punkt": "Lohnsteuer- und Sozialversicherungsverbindlichkeiten gegen Lohnabrechnung",
+   "referenz": [
+    "Lohnsteuerverbindlichkeiten gegen Lohnabrechnung",
+    "Sozialversicherungsverbindlichkeiten gegen Abrechnung"
+   ],
+   "status": "check",
+   "checks": [
+    "PP-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "lohn"
+   ],
+   "umsetzung": "PP-03 (Minimum: Lohnaufwand ohne LSt-/SV-Verbindlichkeiten)",
+   "zusatz": "Abstimmung gegen die Abrechnung ➕ Lohnjournal"
+  },
+  {
+   "id": "K12.02",
+   "kapitel": 12,
+   "klasse": "R/X",
+   "punkt": "Lohnjournal gegen Finanzbuchhaltung, Nettolohnverbindlichkeiten gegen Zahlungen",
+   "referenz": [
+    "Lohnjournal gegen Finanzbuchhaltung",
+    "Nettolohnverbindlichkeiten gegen Zahlungen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "lohn",
+    "bank"
+   ],
+   "zusatz": "➕ Lohnjournal/Bankbewegungen"
+  },
+  {
+   "id": "K12.03",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "ungewöhnliche manuelle Personalbuchungen",
+   "referenz": [
+    "ungewöhnliche manuelle Personalbuchungen"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "umsetzung": "GV-03 (seltene Gegenkonten auf Lohnkonten)",
+   "zusatz": "Erfassungsart ➕ GDPdU-Journal"
+  },
+  {
+   "id": "K12.04",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "erhebliche Veränderung der Personalkosten",
+   "referenz": [
+    "erhebliche Veränderung der Personalkosten"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-02 (mit `--susa-vorjahr`) + Kennzahl Personalquote"
+  },
+  {
+   "id": "K12.05",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "Personalkosten ohne entsprechende Mitarbeiterentwicklung",
+   "referenz": [
+    "Personalkosten ohne entsprechende Mitarbeiterentwicklung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "lohn"
+   ],
+   "zusatz": "➕ Personaldaten (Mitarbeiterzahl im Zeitverlauf)"
+  },
+  {
+   "id": "K12.06",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "Einmalzahlungen/Ausreißer",
+   "referenz": [
+    "Einmalzahlungen/Ausreißer"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-02",
+    "GV-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-02 (Betragsausreißer je Konto), GV-01 (Monatsspitzen)"
+  },
+  {
+   "id": "K12.07",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "negative Lohn-/Gehaltsaufwendungen",
+   "referenz": [
+    "negative Lohn-/Gehaltsaufwendungen"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-02"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-02"
+  },
+  {
+   "id": "K12.08",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "Mitarbeiterzahlungen außerhalb der üblichen Lohnkonten",
+   "referenz": [
+    "Mitarbeiterzahlungen außerhalb der üblichen Lohnkonten"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "GV-03 (z. B. Barlohn)"
+  },
+  {
+   "id": "K12.09",
+   "kapitel": 12,
+   "klasse": "P",
+   "punkt": "Zahlungen an ehemalige Mitarbeiter",
+   "referenz": [
+    "Zahlungen an ehemalige Mitarbeiter"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "lohn",
+    "stammdaten"
+   ],
+   "zusatz": "➕ Personaldaten (Austrittsdaten) + Stammdaten/Bankverbindungen"
+  },
+  {
+   "id": "K12.10",
+   "kapitel": 12,
+   "klasse": "X",
+   "punkt": "Rückstellungen für Urlaub/Boni",
+   "referenz": [
+    "Rückstellungen für Urlaub/Boni etc."
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "lohn"
+   ],
+   "zusatz": "➕ Personaldaten (Urlaubs-/Bonusansprüche)"
+  },
+  {
+   "id": "K13.01",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "Rechnungsdatum und Buchungsdatum über die Jahresgrenze hinweg (Dezember/Januar)",
+   "referenz": [
+    "Rechnungsdatum Dezember, Buchungsdatum Januar",
+    "Rechnungsdatum Januar, Buchungsdatum Dezember"
+   ],
+   "status": "check",
+   "checks": [
+    "CO-02",
+    "CO-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "folgeperiode",
+    "journal"
+   ],
+   "umsetzung": "CO-02 (Aufwand im Nachlauf-Fenster des Folgejahres-Stapels), CO-01 (Erlöse vor WJ-Ende)",
+   "zusatz": "Rechnungs- gegen Buchungsdatum ➕ Folgeperioden-Journal mit Erfassungsdatum"
+  },
+  {
+   "id": "K13.02",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "große Erlösbuchungen in den letzten Tagen des Jahres",
+   "referenz": [
+    "große Erlösbuchungen in den letzten Tagen des Jahres"
+   ],
+   "status": "check",
+   "checks": [
+    "CO-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "CO-01 (Fenster `cutoff_fenster_vor_tage` = 14 Tage strikt vor dem WJ-Ende aus dem DATEV-Header; WJ ≠ Kalenderjahr möglich, nie 31.12. hartkodiert)"
+  },
+  {
+   "id": "K13.03",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "große Erlösstornos und ungewöhnliche Gutschriften unmittelbar nach Jahresende",
+   "referenz": [
+    "große Erlösstornos unmittelbar nach Jahresende",
+    "ungewöhnliche Gutschriften unmittelbar nach Jahresende"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "folgeperiode"
+   ],
+   "umsetzung": "erlösseitiger Nachlauf (Stornos/Gutschriften) im Folgejahres-Stapel (`--stapel-folgejahr`)"
+  },
+  {
+   "id": "K13.04",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "große Aufwandsbuchungen unmittelbar nach Jahresende, verspätete Eingangsrechnungen mit Vorjahresbezug",
+   "referenz": [
+    "große Aufwandsbuchungen unmittelbar nach Jahresende",
+    "verspätete Eingangsrechnungen mit Vorjahresbezug"
+   ],
+   "status": "check",
+   "checks": [
+    "CO-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "folgeperiode"
+   ],
+   "umsetzung": "CO-02 (Fenster `cutoff_fenster_nach_tage` = 14 Tage; Datenquelle optionaler Folgejahres-Stapel `--stapel-folgejahr`, ohne Lieferung begründeter Skip)"
+  },
+  {
+   "id": "K13.05",
+   "kapitel": 13,
+   "klasse": "X",
+   "punkt": "Leistungsdatum gegen Buchungsperiode, Wareneingang gegen Eingangsrechnung, Ausgangsrechnung gegen Liefer-/Leistungsdatum",
+   "referenz": [
+    "Leistungsdatum gegen Buchungsperiode",
+    "Wareneingang gegen Eingangsrechnung",
+    "Ausgangsrechnung gegen Liefer-/Leistungsdatum"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": true,
+   "quellen": [
+    "belege",
+    "inventur"
+   ],
+   "zusatz": "➕ Belege/Warenwirtschaft; die KI-Beurteilung der CO-01/CO-02-Kandidaten nutzt den Buchungstext als Leistungsdatum-Indiz"
+  },
+  {
+   "id": "K13.06",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "wiederkehrende Jahreskosten/-erlöse ohne Abgrenzung",
+   "referenz": [
+    "wiederkehrende Jahreskosten ohne Abgrenzung",
+    "wiederkehrende Jahreserlöse ohne Abgrenzung"
+   ],
+   "status": "check",
+   "checks": [
+    "BL-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "BL-01"
+  },
+  {
+   "id": "K13.07",
+   "kapitel": 13,
+   "klasse": "P",
+   "punkt": "ungewöhnlich viele Abschlussbuchungen nach Periodenschluss",
+   "referenz": [
+    "ungewöhnlich viele Abschlussbuchungen nach Periodenschluss"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Erfassungsdatum)"
+  },
+  {
+   "id": "K14.01",
+   "kapitel": 14,
+   "klasse": "R/P/X",
+   "punkt": "Spiegelbild-Abstimmungen (Forderung A = Verbindlichkeit B, IC-Umsatz = IC-Aufwand, Darlehenssalden, Zinsaufwand/Zinsertrag), ungeklärte Intercompany-Differenzen",
+   "referenz": [
+    "Forderung Gesellschaft A = Verbindlichkeit Gesellschaft B",
+    "Intercompany-Umsatz A = Intercompany-Aufwand B",
+    "Darlehenssalden konzernintern abstimmen",
+    "Zinsaufwand und Zinsertrag spiegelbildlich abstimmen",
+    "erhebliche ungeklärte Intercompany-Differenzen"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "intercompany"
+   ],
+   "zusatz": "➕ Daten der Gegenseite"
+  },
+  {
+   "id": "K14.02",
+   "kapitel": 14,
+   "klasse": "P",
+   "punkt": "Bewegungen auf Gesellschafterkonten ohne eindeutigen Gegenposten, ungewöhnliche Zahlungen/Forderungen/Verbindlichkeiten gegenüber Gesellschaftern, privat wirkende Aufwendungen mit Gesellschafterbezug",
+   "referenz": [
+    "Buchungen auf Gesellschafterkonten ohne eindeutigen Gegenposten",
+    "ungewöhnliche Zahlungen an Gesellschafter",
+    "ungewöhnliche Forderungen gegen Gesellschafter",
+    "ungewöhnliche Verbindlichkeiten gegenüber Gesellschaftern",
+    "privat wirkende Aufwendungen mit Gesellschafterbezug"
+   ],
+   "status": "check",
+   "checks": [
+    "GS-01"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "GS-01 + KI"
+  },
+  {
+   "id": "K14.03",
+   "kapitel": 14,
+   "klasse": "X",
+   "punkt": "Sonder-/Ergänzungsbilanzen und Sondervergütungen (§ 15 Abs. 1 Satz 1 Nr. 2 EStG) bei Mitunternehmerschaften",
+   "referenz": [],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "kapitalkonten"
+   ],
+   "zusatz": "➕ Sonder-/Ergänzungsbilanzen, Gewinnfeststellung"
+  },
+  {
+   "id": "K15.01",
+   "kapitel": 15,
+   "klasse": "R",
+   "punkt": "identische Lieferanten/Kunden mehrfach angelegt",
+   "referenz": [
+    "identische Lieferanten mehrfach angelegt",
+    "identische Kunden mehrfach angelegt"
+   ],
+   "status": "check",
+   "checks": [
+    "SD-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "kontenplan"
+   ],
+   "umsetzung": "SD-01 (Bezeichnungen der Personenkonten)"
+  },
+  {
+   "id": "K15.02",
+   "kapitel": 15,
+   "klasse": "P",
+   "punkt": "nahezu identische Namen/Adressen",
+   "referenz": [
+    "nahezu identische Namen/Adressen"
+   ],
+   "status": "check",
+   "checks": [
+    "SD-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "stammdaten"
+   ],
+   "umsetzung": "SD-01 (Gleichheit nach Trim/Kleinschreibung)",
+   "zusatz": "Ausbaustufe: unscharfer Namensabgleich auf den Kontenbeschriftungen; Adressen ➕ Stammdaten-Export"
+  },
+  {
+   "id": "K15.03",
+   "kapitel": 15,
+   "klasse": "R/P",
+   "punkt": "IBAN-Dubletten, Adress-/Bankverbindungsabgleich Lieferant/Mitarbeiter/Kunde, Bankverbindungs-Änderung vor hoher Zahlung, häufig geänderte Stammdaten, fehlende Pflichtfelder",
+   "referenz": [
+    "gleiche IBAN bei mehreren Lieferanten",
+    "gleiche Anschrift bei Lieferant und Mitarbeiter",
+    "gleiche Bankverbindung bei Lieferant und Mitarbeiter",
+    "gleiche Bankverbindung bei Lieferant und Kunde",
+    "kürzlich geänderte Bankverbindung vor hoher Zahlung",
+    "ungewöhnlich häufig geänderte Stammdaten",
+    "fehlende Pflichtfelder nach internem Stammdatenstandard"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "stammdaten"
+   ],
+   "zusatz": "➕ Debitoren-/Kreditorenstammdaten (IBAN, Adresse, Änderungshistorie, Pflichtfelder)"
+  },
+  {
+   "id": "K15.04",
+   "kapitel": 15,
+   "klasse": "P",
+   "punkt": "neue Kreditoren mit unmittelbar hohem Zahlungsvolumen",
+   "referenz": [
+    "neue Kreditoren mit unmittelbar hohem Zahlungsvolumen"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "stammdaten"
+   ],
+   "umsetzung": "FR-02 (Kreditoren mit wenigen Buchungen und hohem Volumen)",
+   "zusatz": "Neuanlage-Zeitpunkt ➕ Vorjahres-Buchungsstapel/Stammdaten"
+  },
+  {
+   "id": "K15.05",
+   "kapitel": 15,
+   "klasse": "P",
+   "punkt": "lange inaktive Kreditoren plötzlich wieder verwendet",
+   "referenz": [
+    "lange inaktive Kreditoren plötzlich wieder verwendet"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "zusatz": "➕ Vorjahres-Buchungsstapel (Aktivitätshistorie je Kreditor)"
+  },
+  {
+   "id": "K16.01",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "auffällig runde Beträge, Häufung bestimmter Endziffern",
+   "referenz": [
+    "auffällig runde Beträge",
+    "auffällige Häufung bestimmter Endziffern"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-03",
+    "FR-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-03, FR-04"
+  },
+  {
+   "id": "K16.02",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "Benford-Analyse als ergänzendes Screening",
+   "referenz": [
+    "Benford-Analyse als ergänzendes Screening"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-08"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-08",
+   "detail": "ab `benford_min_n` GuV-Buchungen (Default 300; konservative eigene Kalibrierung, siehe README „Methodik“)"
+  },
+  {
+   "id": "K16.03",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "wiederkehrende Beträge knapp unterhalb von Freigabegrenzen, Aufteilung größerer Beträge",
+   "referenz": [
+    "wiederkehrende knapp unterhalb von Freigabegrenzen liegende Beträge",
+    "Aufteilung größerer Beträge"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-03",
+    "ST-07"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "FR-03 (nur mit konfigurierten `freigabegrenzen`), ST-07 (nur Anlagen-/GWG-Zugänge knapp unter der GWG-Grenze)"
+  },
+  {
+   "id": "K16.04",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Kombination Mitarbeiter/Lieferant",
+   "referenz": [
+    "ungewöhnliche Kombination Mitarbeiter/Lieferant"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "stammdaten",
+    "lohn"
+   ],
+   "zusatz": "➕ Stammdaten (Mitarbeiter-/Lieferantenabgleich: Adresse, Bankverbindung)"
+  },
+  {
+   "id": "K16.05",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Kombination Benutzer/Konto, Buchungen außerhalb typischer Geschäftszeiten, außergewöhnlich viele Buchungen eines einzelnen Users",
+   "referenz": [
+    "ungewöhnliche Kombination Benutzer/Konto",
+    "Buchungen außerhalb typischer Geschäftszeiten",
+    "außergewöhnlich viele Buchungen eines einzelnen Users"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal mit User und Zeitstempel"
+  },
+  {
+   "id": "K16.06",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "Buchungen an Wochenenden/Feiertagen",
+   "referenz": [
+    "Buchungen an Wochenenden/Feiertagen"
+   ],
+   "status": "check",
+   "checks": [
+    "ST-04"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "ST-04 (Kasse, Belegdatum)",
+   "detail": "bundeseinheitliche Feiertage, Landesfeiertage über `feiertage_zusatz`"
+  },
+  {
+   "id": "K16.07",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "ungewöhnlich hohe manuelle Buchungsquote",
+   "referenz": [
+    "ungewöhnlich hohe manuelle Buchungsquote"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "journal"
+   ],
+   "zusatz": "➕ GDPdU-Journal (Erfassungsart)"
+  },
+  {
+   "id": "K16.08",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "außergewöhnlich hohe Stornoquote",
+   "referenz": [
+    "außergewöhnlich hohe Stornoquote"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-01"
+   ],
+   "ki": false,
+   "quellen": [],
+   "umsetzung": "FR-01"
+  },
+  {
+   "id": "K16.09",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "neue Lieferanten kurz vor großen Zahlungen, Lieferanten mit nur einer einzigen großen Transaktion",
+   "referenz": [
+    "neue Lieferanten kurz vor großen Zahlungen",
+    "Lieferanten mit nur einer einzigen großen Transaktion"
+   ],
+   "status": "check",
+   "checks": [
+    "FR-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr",
+    "stammdaten"
+   ],
+   "umsetzung": "FR-02 (Lieferanten mit nur einer oder wenigen großen Transaktionen)",
+   "zusatz": "Zeitpunkt der Neuanlage vor großen Zahlungen ➕ Vorjahres-Buchungsstapel/Stammdaten"
+  },
+  {
+   "id": "K16.10",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "ungewöhnliche Freitexte und Kontierungswege",
+   "referenz": [
+    "ungewöhnliche Freitexte",
+    "ungewöhnliche Kontierungswege"
+   ],
+   "status": "check",
+   "checks": [
+    "GV-03"
+   ],
+   "ki": true,
+   "quellen": [],
+   "umsetzung": "GV-03 + KI"
+  },
+  {
+   "id": "K16.11",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "Zahlung an unbekannte IBAN, Änderung der Lieferanten-IBAN kurz vor Zahlung, gleiche IBAN bei unabhängigen Geschäftspartnern",
+   "referenz": [
+    "Zahlung an bislang unbekannte IBAN",
+    "Änderung Lieferanten-IBAN kurz vor Zahlung",
+    "gleiche IBAN bei mehreren wirtschaftlich unabhängigen Geschäftspartnern"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "stammdaten",
+    "bank"
+   ],
+   "zusatz": "➕ Stammdaten/Bankbewegungen (IBAN-Muster)"
+  },
+  {
+   "id": "K16.12",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "außergewöhnliche Buchungen unmittelbar vor Abschluss",
+   "referenz": [
+    "außergewöhnliche Buchungen unmittelbar vor Abschluss"
+   ],
+   "status": "check",
+   "checks": [
+    "CO-01",
+    "CO-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "folgeperiode"
+   ],
+   "umsetzung": "CO-01 (erlösseitig), CO-02 (aufwandsseitig nach WJ-Ende, fakultativ mit `--stapel-folgejahr`)"
+  },
+  {
+   "id": "K16.13",
+   "kapitel": 16,
+   "klasse": "A",
+   "punkt": "Storno unmittelbar nach Stichtag",
+   "referenz": [
+    "Storno unmittelbar nach Stichtag"
+   ],
+   "status": "offen",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "folgeperiode"
+   ],
+   "umsetzung": "Storno-Auswertung im Folgejahres-Stapel (`--stapel-folgejahr`)"
+  },
+  {
+   "id": "K17.01",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Stapel ↔ Summen- und Saldenliste",
+   "referenz": [
+    "Hauptbuch ↔ Summen- und Saldenliste"
+   ],
+   "status": "check",
+   "checks": [
+    "SB-05"
+   ],
+   "ki": false,
+   "quellen": [
+    "susa"
+   ],
+   "umsetzung": "SB-05"
+  },
+  {
+   "id": "K17.02",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Stapel ↔ Bilanz/GuV, Ergebnis Finanzbuchhaltung ↔ Jahresabschluss, Kontenzuordnung ↔ Bilanz-/GuV-Position",
+   "referenz": [
+    "Hauptbuch ↔ Bilanz/GuV",
+    "Ergebnis Finanzbuchhaltung ↔ Jahresabschluss",
+    "Kontenzuordnung ↔ Bilanz-/GuV-Position"
+   ],
+   "status": "bericht",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "gliederung"
+   ],
+   "umsetzung": "vereinfachte Bilanz- und GuV-Blätter mit Vorjahresspalte, formelverknüpft mit „Salden je Konto“ (Positions-Spalte, Kontrolle Aktiva = Passiva)",
+   "zusatz": "amtliche Gliederungstiefe § 266/§ 275 HGB ➕ Positions-Zuordnungstabelle je Konto"
+  },
+  {
+   "id": "K17.03",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Schlussbilanz Vorjahr ↔ Eröffnungsbilanz",
+   "referenz": [
+    "Schlussbilanz Vorjahr ↔ Eröffnungsbilanz"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-01"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-01"
+  },
+  {
+   "id": "K17.04",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Vorjahreswerte ↔ aktuelle Vergleichswerte",
+   "referenz": [
+    "Vorjahreswerte ↔ aktuelle Vergleichswerte"
+   ],
+   "status": "check",
+   "checks": [
+    "VJ-02"
+   ],
+   "ki": false,
+   "quellen": [
+    "vorjahr"
+   ],
+   "umsetzung": "VJ-02 (GuV je Konto), Vorjahresspalte der Bilanz-/GuV-Blätter"
+  },
+  {
+   "id": "K17.05",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Sachkonten ↔ Debitoren-/Kreditoren-Nebenbuch (OPOS)",
+   "referenz": [
+    "Sachkonten ↔ Debitoren-Nebenbuch",
+    "Sachkonten ↔ Kreditoren-Nebenbuch"
+   ],
+   "status": "check",
+   "checks": [
+    "OP-05"
+   ],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "OP-05"
+  },
+  {
+   "id": "K17.06",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "OPOS ↔ Altersstruktur",
+   "referenz": [],
+   "status": "bericht",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "opos"
+   ],
+   "umsetzung": "Blatt „OPOS-Alterung“"
+  },
+  {
+   "id": "K17.07",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Umsatzsteuerkonten ↔ rechnerische USt/VSt",
+   "referenz": [],
+   "status": "check",
+   "checks": [
+    "US-06",
+    "US-07"
+   ],
+   "ki": false,
+   "quellen": [
+    "susa"
+   ],
+   "umsetzung": "US-06/US-07"
+  },
+  {
+   "id": "K17.08",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Umsatzsteuerkonten ↔ UStVA und USt-Jahreserklärung",
+   "referenz": [
+    "Umsatzsteuerkonten ↔ UStVA",
+    "Umsatzsteuerkonten ↔ USt-Jahreserklärung"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "ustva"
+   ],
+   "zusatz": "➕ UStVA-/Erklärungswerte"
+  },
+  {
+   "id": "K17.09",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Anhangangaben und größenabhängige Erleichterungen (§§ 284–288, § 274a, § 276 HGB)",
+   "referenz": [],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "gliederung"
+   ],
+   "zusatz": "➕ Anhang-Checkliste je Größenklasse; Größenklassen-Indikation (§ 267, § 267a HGB) läuft bereits als Kennzahl (ohne Ø-Arbeitnehmerzahl)"
+  },
+  {
+   "id": "K17.10",
+   "kapitel": 17,
+   "klasse": null,
+   "punkt": "Sachkonten ↔ Anlagen-/Lohnbuchhaltung, Bank, Kasse; EU-Umsätze ↔ ZM; Warenbestand ↔ Inventur; Darlehen ↔ Verträge; Forderungen/Verbindlichkeiten ↔ Zahlungen nach Stichtag; Intercompany A ↔ B",
+   "referenz": [
+    "Sachkonten ↔ Anlagenbuchhaltung",
+    "Sachkonten ↔ Lohnbuchhaltung",
+    "Sachkonten ↔ Bank",
+    "Sachkonten ↔ Kasse",
+    "EU-Umsätze ↔ ZM",
+    "Warenbestand ↔ Inventur",
+    "Darlehen ↔ Verträge/Tilgungspläne",
+    "Forderungen ↔ Zahlungseingänge nach Stichtag",
+    "Verbindlichkeiten ↔ Zahlungen nach Stichtag",
+    "Intercompany A ↔ Intercompany B"
+   ],
+   "status": "zusatz",
+   "checks": [],
+   "ki": false,
+   "quellen": [
+    "anlagen",
+    "lohn",
+    "bank",
+    "kassenbuch",
+    "ustva",
+    "inventur",
+    "vertraege",
+    "folgeperiode",
+    "intercompany"
+   ],
+   "zusatz": "➕ jeweilige Datenquelle (siehe 20.)"
+  }
+ ]
+}
