@@ -4,6 +4,6 @@
 # prueft die Lizenzvertraeglichkeit der Laufzeitabhaengigkeiten im CI-Job
 # `security` (docs/test-strategy.md).
 -r requirements.txt
-ruff>=0.5,<1
+ruff>=0.16.4,<1
 pip-audit>=2.7,<3
 pip-licenses>=5,<6
