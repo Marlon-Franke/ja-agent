@@ -102,7 +102,7 @@
       },
       {
         "label": "Spende",
-        "muster": "spende",
+        "muster": "spende|sponsoring",
         "erlaubt_gruppen": ["spenden"]
       },
       {
